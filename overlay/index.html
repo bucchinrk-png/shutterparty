@@ -305,6 +305,13 @@
   }
   .photo .badge {
     position: absolute;
+    /* Above the subject, and it has to say so.
+       The photograph took a z-index of its own when the pattern layer went in
+       underneath it (ba04279, docs/plan.md §4.4). This badge sits on the corner
+       of that photograph, so the two overlap — and in the same stacking context
+       `auto` loses to `1`. It went behind the picture, which is where the
+       amount somebody paid is least useful (本人の報告 2026-08-29, 実測). */
+    z-index: 2;
     top: calc(-11px * var(--ov-scale)); right: calc(-11px * var(--ov-scale));
     background: rgb(var(--acc-rgb));
     color: #fff;
@@ -320,6 +327,18 @@
   /* ---------- a paid shot (docs/plan.md §4.4) ----------
      The effects are gone in three seconds; the photo with a name on it is what
      is left. So the difference has to be on the print, not only in the flash. */
+
+  /* A bought photograph is never covered by a free one.
+     ---------------------------------------------------
+     The prints stack up as they land, so before this the order was arrival
+     order: a free press a second later slid over the top of the photo somebody
+     paid for (本人の報告 2026-08-29). What was bought has to stay legible for
+     as long as it is on screen, and "it was on top for a second" is not that.
+
+     Only inside the stage. #stage is position: fixed, so it makes its own
+     stacking context and this cannot reach the counter, the banner or the
+     card — the layers outside it keep the order the markup gives them. */
+  #stage .photo.paid { z-index: 1; }
   /* The frame carries the amount. --tone falls back to the session's own paid
      colour, so a photo that arrives without an amount — an older EBS, a receipt
      whose value did not survive — still looks bought rather than unfinished. */
@@ -5244,7 +5263,13 @@
    */
   function resumeParty(remainMs) {
     if (party || !(remainMs > 0)) return;
-    party = { name: "", shots: [], people: 0, endsAt: Date.now() + remainMs };
+    // paidAt for the same reason shots is empty: what already played belongs to
+    // the sequence that played it, and what arrives from here on has to have
+    // somewhere to go. Without it a paid press after a rejoin threw on
+    // party.paidAt.push (60-capture.js fileShot) — and the throw took the frame
+    // with it, so the contact sheet lost every photograph after the first
+    // purchase rather than just its ordering.
+    party = { name: "", shots: [], paidAt: [], people: 0, endsAt: Date.now() + remainMs };
     updatePhaseState("party");
     updateBar();
     elBannerLede.textContent = t("banner.lede");
