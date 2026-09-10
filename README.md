@@ -20,11 +20,11 @@ That is what these two files do:
 
 | | |
 |---|---|
-| `setup/index.html` | You open this in your normal browser. It connects to OBS over obs-websocket, builds the scenes and browser sources for you, and writes your settings into them. |
+| `SHUTTERPARTY-setup.html` | You open this in your normal browser. It connects to OBS over obs-websocket, builds the scenes and browser sources for you, and writes your settings into them. |
 | `overlay/index.html` | OBS loads this as a browser source. It takes the photographs and draws the effects. It has no interface of its own. |
 
 **They have to stay next to each other.** The setup page finds the overlay at
-`../overlay/index.html`, so unzip the folder and leave it as it came.
+`overlay/index.html` beside it, so unzip the folder and leave it as it came.
 
 ## Why a download instead of a website
 
@@ -45,8 +45,13 @@ answer to that.
 What you will find:
 
 - **The obs-websocket password never leaves your machine.** It is used to open a
-  connection to `127.0.0.1` and is stored in your own browser and in the browser
-  source URL on your PC. It is never sent anywhere.
+  connection to `127.0.0.1`, and it is never sent anywhere.
+- **It is not left lying about on your PC either.** The password and the pairing
+  code are kept encrypted, under a key that the page itself cannot read back out
+  — so a copy of your browser profile, a backup, or a sync does not carry them.
+  They also arrive in the OBS browser source's address and are **taken back out
+  of it** once they are safely stored: OBS shows that address in the source's
+  properties, which is a window you might open while you are live.
 - **The photographs are never uploaded.** They are produced by your OBS and
   appear inside your own broadcast, the same way everything else on your canvas
   does.
@@ -68,8 +73,8 @@ Full detail: [privacy policy](https://shutterparty-ebs.bucchi.workers.dev/privac
 
 ## Updating
 
-Download again and replace the two folders where they already are, then open
-`setup/index.html` and press **Write to OBS** once — OBS keeps the old overlay
+Download again and replace the file and the folder where they already are, then
+open `SHUTTERPARTY-setup.html` and press **Write to OBS** once — OBS keeps the old overlay
 until it is told to fetch the new one. The setup page says *"The overlay file is
 newer than what OBS has. Write it again"* until you do. **Your settings survive
 the replacement**; they are kept by the browser you set things up in, not by the

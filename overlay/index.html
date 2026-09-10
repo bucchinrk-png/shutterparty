@@ -1,6 +1,70 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>SHUTTERPARTY overlay</title>
+<!-- What this page is allowed to reach.
+
+     It reaches almost nothing, and that was true before this line existed: the
+     two distributed pages load no external script, no external stylesheet and
+     no font, and they contain no eval, no new Function, no innerHTML and no
+     document.write (実測 2026-09-10 — all six searched, all zero). So there is
+     no known way into this page for code that is not in it. This is the belt
+     for the day one of those six stops being zero.
+
+     A <meta> CSP does work on file:// (実測 — docs/from-worddrop.md §3), and it
+     has to come before every <script>: after one, the first script has already
+     run under no policy at all.
+
+     Line by line, because each one is a decision:
+
+       default-src 'none'   Everything not named below is refused. The list is
+                            short enough to be exhaustive, and the alternative —
+                            naming only what to forbid — is a list nobody can
+                            finish.
+       script-src           'unsafe-inline' and no sources: the page is one
+                            inline script, and no <script src> from anywhere may
+                            load. A hash would also block an INJECTED inline
+                            script, and was not taken: the stamp already has a
+                            fixed point that cost a day to solve (§3.2.2 手当て2),
+                            a hash of the script inside the same file adds a
+                            second one, and the failure mode of getting it wrong
+                            is a blank overlay on air. There is no injection
+                            vector to close — see the six zeroes above.
+       style-src            The page is one inline stylesheet, and it sets
+                            element styles from script.
+       img-src              file: is the photographs — the contact sheet is
+                            handed file:///…/shot.png addresses, because a
+                            file:// page is refused the PIXELS of a file:// image
+                            and can only draw it (§6). data: is OBS's own
+                            screenshots coming back over obs-websocket, and the
+                            sample's stand-in picture. blob: was
+                            listed and is gone again: nothing in either page makes one
+                            (createObjectURL: 実測 0 件), and an allowance nobody
+                            needs is a hole nobody is watching.
+       connect-src          ws: is obs-websocket, and it is deliberately not
+                            pinned to 127.0.0.1: the host is a field on the setup
+                            page, and a broadcaster whose OBS is on another
+                            machine would be cut off by a policy — silently,
+                            which is the one thing a policy must not be here.
+                            The EBS is pinned to *.workers.dev, which is where it
+                            is and where it would move to; http://localhost and
+                            http://127.0.0.1 are a development EBS (Phase 3).
+                            https: and http: to anywhere else are refused, which
+                            is the easy way out for anything that should not be
+                            leaving.
+       frame-src            This page frames nothing.
+       base-uri / form-action
+                            Neither page has a <base> or a <form>; naming them
+                            'none' is what keeps that true. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<!-- The tab is the only place this page is allowed to say anything.
+     Opened by hand it is a blank transparent rectangle, which reads as a broken
+     download (docs/onboarding-plan.md §2.E) — and the body cannot answer that,
+     because "no text by default" is the invariant keeping words off the stream
+     (tools/overlay-invariants.mjs). A title is not body.innerText and OBS does
+     not draw one, so this is the one sentence available for free.
+     English only: the title is set before there is a language to set it in, and
+     the overlay's language belongs to the broadcaster's settings rather than to
+     the browser that happened to open the file. -->
+<title>SHUTTERPARTY overlay — this file goes into OBS as a browser source</title>
 <!--
   Phase 1 — the vertical slice.
 
@@ -295,6 +359,12 @@
     pointer-events: none;
   }
   .photo .pat svg, .card .pat svg { position: absolute; }
+  /* A free print has nothing written under it, and keeps the paper anyway.
+     An empty box collapses to its padding — measured, 29px to 14px at size M —
+     which would make free prints a different shape from paid ones on the same
+     wall. The strut gives the box one line of the caption's own font, so the
+     number lives in the font rather than here. */
+  .photo .cap:empty::before { content: ""; display: inline-block; }
   .photo .cap {
     font-family: var(--mono);
     font-size: calc(clamp(11px, .68vw, 17px) * var(--ov-scale));
@@ -379,6 +449,11 @@
   /* @end bits-wash-photo */
   .photo.paid .cap { color: #3b3226; display: flex; justify-content: space-between; gap: 8px; padding-inline: 4px; }
   .photo.paid .cap .who { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The clock steps aside when the name would not fit beside it. Spelled out
+     rather than left to the browser's own [hidden] rule, because the caption is
+     a flex row and a display the UA sets is the first thing a later rule here
+     would overwrite by accident. See fitCaptionStamp(). */
+  .photo.paid .cap .when[hidden] { display: none; }
   /* The badge wears the frame's colour, or the frame reads as one photo and the
      price as another. Flat rather than the old gradient: the amounts have no
      deep end of their own, and dark ink carries every one of them — white does
@@ -886,6 +961,9 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .card .cwhen { flex: none; font-size: 2.6vw; font-variant-numeric: tabular-nums; }
+  /* .ccap is a flex row with a gap, so an empty span is a hole rather than
+     nothing. Taken out of the row entirely when there is no time to print. */
+  .card .cwhen[hidden] { display: none; }
   /* Nothing bought, nobody else pressing: one line, centred, quiet. */
   .card.plain .ccap { justify-content: center; }
   .card.plain .cwho { display: none; }
@@ -1105,6 +1183,55 @@
   "use strict";
 
   /**
+   * Which release this file is.
+   *
+   * The setup page already knows the answer it WANTS — it writes ?v=BUILD onto
+   * this page's address, and its dock goes "stale" when that address names an
+   * older release than the one it was built with. What nothing could say until
+   * now is which release actually arrived: CEF answers an address it has
+   * already fetched from its cache, so the address can be current while these
+   * bytes are last week's, and the dock calls that clean (docs/plan.md §3.2.2
+   * 手当て2).
+   *
+   * So this page names itself, and the two are compared where they differ:
+   * against its own ?v= just below, and over the EBS link, where it is the
+   * only version report that survives the broadcaster not having the setup
+   * page open — which, during a stream, is always.
+   *
+   * Numbered by tools/build-pages.mjs from this file's own contents with this
+   * line held still. 手で書き換えない。
+   */
+  /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
+  var BUILD = "sp-663b67753745";
+  /* @end build */
+
+  /**
+   * The release the ADDRESS asked for, when it says.
+   *
+   * Empty is not a mismatch. The overlay is opened without ?v= by
+   * tools/overlay-invariants.mjs, by the setup page's sample, and by anybody
+   * double-clicking the file to see whether it draws — none of which is a
+   * broadcaster running a stale copy, and all of which would light a warning
+   * that means nothing.
+   */
+  function askedBuild() {
+    var m = /[?&]v=([^&#]*)/.exec(String(location.search || ""));
+    try { return m ? decodeURIComponent(m[1]) : ""; } catch (e) { return m[1]; }
+  }
+
+  /**
+   * True when OBS asked for one release and this file is another.
+   *
+   * Which means the fetch was answered from the cache — the failure that cost
+   * a live stream on 2026-08-31, where the address had been rewritten but the
+   * bytes had not moved, and nothing anywhere said so.
+   */
+  function buildMismatch() {
+    var asked = askedBuild();
+    return !!asked && asked !== BUILD;
+  }
+
+  /**
    * A subject box clamped to the picture it is about to be drawn from.
    *
    * The box is measured from the scene; the picture is a file written a moment
@@ -1287,6 +1414,11 @@
 
       document.documentElement.setAttribute("data-accent", accent);
       cWhen.textContent = when;
+      // Both ways round. This source is reused: the fragment is rewritten and
+      // the redraw hangs off hashchange, so a card left hidden would stay
+      // hidden for every photograph after it. An empty span is not free either
+      // — .ccap is a flex row with a gap, so nothing would be a hole.
+      cWhen.hidden = !when;
 
       cEl.className = "card";
       cEl.removeAttribute("data-bits");     // the last photo's amount is not this one's
@@ -1399,10 +1531,17 @@
       "log.ebs.live": "EBS に接続しました。視聴者のボタンが届きます",
       "log.ebs.shoot": "視聴者 {n} 人が押しました",
       "log.ebs.lost": "EBS との接続が切れました。自動で再接続します",
+      "log.stale": "OBS が読み込んだのは {b} ですが、アドレスは {a} を要求しています。キャッシュから返されました。設定ページから書き込み直してください",
       "st.ebs.dead": "連携コードが無効です",
       "log.ebs.dead": "連携コードが無効になっています。Twitch の設定パネルで作り直し、この画面に貼り直してください",
+      "log.ebs.notoken": "連携の鍵がまだ届いていません。オーバーレイが受け取るまで待ちます",
+      "log.secret.locked": "保存してあるパスワードと連携の鍵を開けませんでした。消えてはいませんが、このプロファイルでは読めません。設定ページから入れ直してください",
+      "log.secret.nostore": "この環境ではパスワードと連携の鍵を暗号化して保存できません。書き留めずに、URL に載ったまま使います",
       "log.ebs.failed": "EBS に接続できません: {m}",
       "st.idle": "未接続", "st.connecting": "接続中…", "st.ok": "接続済み", "st.lost": "切断。再接続中です",
+      "st.failed": "つながりません",
+      "st.authfail": "パスワードが違います",
+      "st.needpw": "パスワードを入れてください",
       "log.hello": "obs-websocket {v} を検出",
       "log.livestart": "配信が始まりました。ボタンが効きます",
       "log.livestop": "配信が終わりました。ボタンは効きません",
@@ -1454,10 +1593,17 @@
       "log.ebs.live": "connected — viewer presses will arrive",
       "log.ebs.shoot": "{n} viewer(s) pressed",
       "log.ebs.lost": "lost the EBS; it will reconnect on its own",
+      "log.stale": "OBS loaded {b} but its address asked for {a} — it came from the cache. Write the settings again from the setup page",
       "st.ebs.dead": "the pairing code is not valid",
       "log.ebs.dead": "this pairing code is no longer valid. Make a new one in the Twitch config panel and paste it here",
+      "log.ebs.notoken": "the pairing key has not arrived yet. Waiting for the overlay to receive it",
+      "log.secret.locked": "the saved password and pairing key could not be opened. They are not lost, but this profile can no longer read them — set them again from the setup page",
+      "log.secret.nostore": "this browser cannot store the password and pairing key encrypted, so they are not written down — they stay in the URL instead",
       "log.ebs.failed": "cannot reach the EBS: {m}",
       "st.idle": "not connected", "st.connecting": "connecting…", "st.ok": "connected", "st.lost": "lost — reconnecting",
+      "st.failed": "cannot connect",
+      "st.authfail": "wrong password",
+      "st.needpw": "enter the password",
       "log.hello": "found obs-websocket {v}",
       "log.livestart": "stream started — the button works",
       "log.livestop": "stream stopped — the button does not",
@@ -1517,13 +1663,20 @@
       "log.ebs.live": "已连接 EBS。观众的按钮会送到这里",
       "log.ebs.shoot": "{n} 位观众按下了按钮",
       "log.ebs.lost": "与 EBS 的连接已断开。将自动重新连接",
+      "log.stale": "OBS 加载的是 {b}，但地址请求的是 {a}。这是从缓存返回的。请在设置页面重新写入设置",
       "st.ebs.dead": "配对码无效",
       "log.ebs.dead": "这个配对码已经无效。请在 Twitch 设置面板重新生成，并粘贴到这里",
+      "log.ebs.notoken": "配对密钥尚未送达。正在等待叠加层收到它",
+      "log.secret.locked": "无法打开已保存的密码和配对密钥。它们没有丢失，但此配置文件已无法读取，请在设置页面重新输入",
+      "log.secret.nostore": "此环境无法加密保存密码和配对密钥，因此不写入本地，改为保留在 URL 中",
       "log.ebs.failed": "无法连接 EBS：{m}",
       "st.idle": "未连接",
       "st.connecting": "连接中…",
       "st.ok": "已连接",
       "st.lost": "断开 — 正在重连",
+      "st.failed": "连不上",
+      "st.authfail": "密码不对",
+      "st.needpw": "请输入密码",
       "log.hello": "检测到 obs-websocket {v}",
       "log.livestart": "直播已开始 — 按钮生效",
       "log.livestop": "直播已结束 — 按钮不生效",
@@ -1578,13 +1731,20 @@
       "log.ebs.live": "conectado al EBS. Llegarán las pulsaciones de los espectadores",
       "log.ebs.shoot": "{n} espectador(es) pulsaron",
       "log.ebs.lost": "se perdió la conexión con el EBS. Se reconectará automáticamente",
+      "log.stale": "OBS cargó {b} pero su dirección pedía {a}: vino de la caché. Vuelve a escribir la configuración desde la página de ajustes",
       "st.ebs.dead": "el código de pareo no es válido",
       "log.ebs.dead": "este código de pareo ya no es válido. Crea uno nuevo en el panel de configuración de Twitch y pégalo aquí",
+      "log.ebs.notoken": "la clave de emparejamiento aún no ha llegado. Esperando a que la superposición la reciba",
+      "log.secret.locked": "no se pudieron abrir la contraseña y la clave de emparejamiento guardadas. No se han perdido, pero este perfil ya no puede leerlas: vuelve a introducirlas desde la página de configuración",
+      "log.secret.nostore": "este navegador no puede guardar cifrados la contraseña y la clave de emparejamiento, así que no se escriben: permanecen en la URL",
       "log.ebs.failed": "no se puede conectar con el EBS: {m}",
       "st.idle": "sin conexión",
       "st.connecting": "conectando…",
       "st.ok": "conectado",
       "st.lost": "se cortó — reconectando",
+      "st.failed": "no se pudo conectar",
+      "st.authfail": "contraseña incorrecta",
+      "st.needpw": "escribe la contraseña",
       "log.hello": "detectado obs-websocket {v}",
       "log.livestart": "la transmisión ha empezado — el botón funciona",
       "log.livestop": "la transmisión ha terminado — el botón no funciona",
@@ -1639,13 +1799,20 @@
       "log.ebs.live": "conectado ao EBS. Os apertos dos espectadores vão chegar",
       "log.ebs.shoot": "{n} espectador(es) apertaram",
       "log.ebs.lost": "a conexão com o EBS caiu. Vai reconectar sozinho",
+      "log.stale": "O OBS carregou {b}, mas o endereço pedia {a} — veio do cache. Escreva as configurações de novo pela página de configuração",
       "st.ebs.dead": "o código de pareamento não é válido",
       "log.ebs.dead": "este código de pareamento não é mais válido. Faça outro no painel de configuração da Twitch e cole aqui",
+      "log.ebs.notoken": "a chave de pareamento ainda não chegou. Aguardando a sobreposição recebê-la",
+      "log.secret.locked": "não foi possível abrir a senha e a chave de pareamento salvas. Elas não se perderam, mas este perfil não consegue mais lê-las — informe-as novamente na página de configuração",
+      "log.secret.nostore": "este navegador não consegue guardar a senha e a chave de pareamento cifradas, então elas não são gravadas — permanecem na URL",
       "log.ebs.failed": "não dá para alcançar o EBS: {m}",
       "st.idle": "sem conexão",
       "st.connecting": "conectando…",
       "st.ok": "conectado",
       "st.lost": "caiu — reconectando",
+      "st.failed": "não conectou",
+      "st.authfail": "senha incorreta",
+      "st.needpw": "digite a senha",
       "log.hello": "obs-websocket {v} detectado",
       "log.livestart": "a transmissão começou — o botão funciona",
       "log.livestop": "a transmissão terminou — o botão não funciona",
@@ -1700,13 +1867,20 @@
       "log.ebs.live": "mit EBS verbunden. Zuschauer-Klicks kommen an",
       "log.ebs.shoot": "{n} Zuschauer haben gedrückt",
       "log.ebs.lost": "Verbindung zu EBS abgerissen. Es wird automatisch neu verbunden",
+      "log.stale": "OBS hat {b} geladen, obwohl die Adresse {a} angefordert hat — aus dem Cache. Schreibe die Einstellungen auf der Einrichtungsseite erneut",
       "st.ebs.dead": "der Kopplungscode ist ungültig",
       "log.ebs.dead": "dieser Kopplungscode ist nicht mehr gültig. Lege im Twitch-Konfigurationsfenster einen neuen an und füge ihn hier ein",
+      "log.ebs.notoken": "der Kopplungsschlüssel ist noch nicht da. Warte darauf, dass das Overlay ihn erhält",
+      "log.secret.locked": "das gespeicherte Passwort und der Kopplungsschlüssel ließen sich nicht öffnen. Sie sind nicht verloren, aber dieses Profil kann sie nicht mehr lesen — gib sie auf der Einrichtungsseite erneut ein",
+      "log.secret.nostore": "dieser Browser kann Passwort und Kopplungsschlüssel nicht verschlüsselt speichern, also werden sie nicht abgelegt — sie bleiben in der URL",
       "log.ebs.failed": "EBS ist nicht erreichbar: {m}",
       "st.idle": "nicht verbunden",
       "st.connecting": "verbinde…",
       "st.ok": "verbunden",
       "st.lost": "abgerissen — verbinde neu",
+      "st.failed": "Verbindung fehlgeschlagen",
+      "st.authfail": "falsches Passwort",
+      "st.needpw": "Passwort eingeben",
       "log.hello": "obs-websocket {v} gefunden",
       "log.livestart": "Stream gestartet — der Button funktioniert",
       "log.livestop": "Stream beendet — der Button funktioniert nicht",
@@ -1761,13 +1935,20 @@
       "log.ebs.live": "connecté à l’EBS. Les pressions des spectateurs arriveront",
       "log.ebs.shoot": "{n} spectateur(s) ont appuyé",
       "log.ebs.lost": "connexion à l’EBS perdue. Reconnexion automatique",
+      "log.stale": "OBS a chargé {b} alors que son adresse demandait {a} — servi depuis le cache. Réécris les réglages depuis la page de configuration",
       "st.ebs.dead": "le code d’appairage n’est pas valide",
       "log.ebs.dead": "ce code d’appairage n’est plus valide. Crée-en un nouveau dans le panneau de configuration Twitch et colle-le ici",
+      "log.ebs.notoken": "la clé d’appairage n’est pas encore arrivée. En attente de sa réception par l’overlay",
+      "log.secret.locked": "impossible d’ouvrir le mot de passe et la clé d’appairage enregistrés. Ils ne sont pas perdus, mais ce profil ne peut plus les lire — saisis-les à nouveau depuis la page de configuration",
+      "log.secret.nostore": "ce navigateur ne peut pas stocker le mot de passe et la clé d’appairage chiffrés ; ils ne sont donc pas enregistrés et restent dans l’URL",
       "log.ebs.failed": "EBS inaccessible : {m}",
       "st.idle": "non connecté",
       "st.connecting": "connexion…",
       "st.ok": "connecté",
       "st.lost": "coupé — reconnexion",
+      "st.failed": "connexion impossible",
+      "st.authfail": "mot de passe incorrect",
+      "st.needpw": "saisis le mot de passe",
       "log.hello": "obs-websocket {v} détecté",
       "log.livestart": "le direct a commencé — le bouton fonctionne",
       "log.livestop": "le direct est terminé — le bouton ne fonctionne pas",
@@ -1822,13 +2003,20 @@
       "log.ebs.live": "подключено к EBS. Нажатия зрителей будут приходить",
       "log.ebs.shoot": "зрителей нажали: {n}",
       "log.ebs.lost": "соединение с EBS оборвалось. Переподключение будет автоматическим",
+      "log.stale": "OBS загрузил {b}, хотя адрес запрашивал {a} — ответ пришёл из кэша. Запишите настройки заново на странице настройки",
       "st.ebs.dead": "код связи недействителен",
       "log.ebs.dead": "этот код связи больше недействителен. Создайте новый в панели настроек Twitch и вставьте его сюда",
+      "log.ebs.notoken": "ключ связи ещё не получен. Ожидание, пока его получит оверлей",
+      "log.secret.locked": "не удалось открыть сохранённые пароль и ключ связи. Они не потеряны, но этот профиль больше не может их прочитать — введите их заново на странице настройки",
+      "log.secret.nostore": "этот браузер не может хранить пароль и ключ связи в зашифрованном виде, поэтому они не записываются и остаются в URL",
       "log.ebs.failed": "не удалось подключиться к EBS: {m}",
       "st.idle": "нет подключения",
       "st.connecting": "подключение…",
       "st.ok": "подключено",
       "st.lost": "оборвалось — переподключаюсь",
+      "st.failed": "не удалось подключиться",
+      "st.authfail": "неверный пароль",
+      "st.needpw": "введите пароль",
       "log.hello": "найден obs-websocket {v}",
       "log.livestart": "трансляция началась — кнопка работает",
       "log.livestop": "трансляция завершена — кнопка не работает",
@@ -1883,13 +2071,20 @@
       "log.ebs.live": "EBS 에 연결했습니다. 시청자의 버튼 입력이 도착합니다",
       "log.ebs.shoot": "시청자 {n}명이 눌렀습니다",
       "log.ebs.lost": "EBS 연결이 끊겼습니다. 자동으로 다시 연결합니다",
+      "log.stale": "OBS가 불러온 것은 {b}이지만 주소가 요청한 것은 {a}입니다. 캐시에서 응답했습니다. 설정 페이지에서 설정을 다시 쓰세요",
       "st.ebs.dead": "연동 코드가 유효하지 않습니다",
       "log.ebs.dead": "이 연동 코드는 더 이상 유효하지 않습니다. Twitch 설정 패널에서 새로 만들고 여기에 다시 붙여 넣어 주세요",
+      "log.ebs.notoken": "연동 키가 아직 도착하지 않았습니다. 오버레이가 받을 때까지 기다립니다",
+      "log.secret.locked": "저장된 비밀번호와 연동 키를 열 수 없었습니다. 사라진 것은 아니지만 이 프로필에서는 읽을 수 없습니다. 설정 페이지에서 다시 입력해 주세요",
+      "log.secret.nostore": "이 환경에서는 비밀번호와 연동 키를 암호화해 저장할 수 없어 기록하지 않고 URL에 남겨 둡니다",
       "log.ebs.failed": "EBS 에 연결할 수 없습니다: {m}",
       "st.idle": "연결 안 됨",
       "st.connecting": "연결 중…",
       "st.ok": "연결됨",
       "st.lost": "끊김 — 다시 연결합니다",
+      "st.failed": "연결하지 못했습니다",
+      "st.authfail": "비밀번호가 다릅니다",
+      "st.needpw": "비밀번호를 입력해 주세요",
       "log.hello": "obs-websocket {v} 을 찾았습니다",
       "log.livestart": "방송이 시작되었습니다 — 버튼이 작동합니다",
       "log.livestop": "방송이 종료되었습니다 — 버튼이 작동하지 않습니다",
@@ -1944,13 +2139,20 @@
       "log.ebs.live": "connesso all’EBS. Arriveranno le pressioni degli spettatori",
       "log.ebs.shoot": "{n} spettatore/i hanno premuto",
       "log.ebs.lost": "connessione all’EBS persa. Si riconnetterà automaticamente",
+      "log.stale": "OBS ha caricato {b} ma il suo indirizzo chiedeva {a} — è arrivato dalla cache. Riscrivi le impostazioni dalla pagina di configurazione",
       "st.ebs.dead": "il codice di abbinamento non è valido",
       "log.ebs.dead": "questo codice di abbinamento non è più valido. Creane uno nuovo nel pannello di configurazione Twitch e incollalo qui",
+      "log.ebs.notoken": "la chiave di abbinamento non è ancora arrivata. In attesa che l’overlay la riceva",
+      "log.secret.locked": "non è stato possibile aprire la password e la chiave di abbinamento salvate. Non sono perse, ma questo profilo non riesce più a leggerle: reinseriscile dalla pagina di configurazione",
+      "log.secret.nostore": "questo browser non può salvare cifrate la password e la chiave di abbinamento, quindi non vengono scritte: restano nell’URL",
       "log.ebs.failed": "EBS non raggiungibile: {m}",
       "st.idle": "non connesso",
       "st.connecting": "connessione…",
       "st.ok": "connesso",
       "st.lost": "caduta — riconnessione",
+      "st.failed": "connessione non riuscita",
+      "st.authfail": "password errata",
+      "st.needpw": "inserisci la password",
       "log.hello": "rilevato obs-websocket {v}",
       "log.livestart": "la diretta è iniziata — il pulsante funziona",
       "log.livestop": "la diretta è finita — il pulsante non funziona",
@@ -2005,13 +2207,20 @@
       "log.ebs.live": "połączono z EBS. Naciśnięcia widzów będą docierać",
       "log.ebs.shoot": "widzowie nacisnęli: {n}",
       "log.ebs.lost": "połączenie z EBS zostało zerwane. Nastąpi automatyczne ponowne połączenie",
+      "log.stale": "OBS wczytał {b}, choć adres prosił o {a} — odpowiedź przyszła z pamięci podręcznej. Zapisz ustawienia ponownie na stronie konfiguracji",
       "st.ebs.dead": "kod parowania jest nieważny",
       "log.ebs.dead": "ten kod parowania nie jest już ważny. Utwórz nowy w panelu konfiguracji Twitcha i wklej go tutaj",
+      "log.ebs.notoken": "klucz parowania jeszcze nie dotarł. Czekam, aż overlay go otrzyma",
+      "log.secret.locked": "nie udało się otworzyć zapisanego hasła i klucza parowania. Nie zginęły, ale ten profil nie może ich już odczytać — wprowadź je ponownie na stronie konfiguracji",
+      "log.secret.nostore": "ta przeglądarka nie potrafi zapisać hasła i klucza parowania w postaci zaszyfrowanej, więc nie są zapisywane — zostają w adresie URL",
       "log.ebs.failed": "nie można dosięgnąć EBS: {m}",
       "st.idle": "brak połączenia",
       "st.connecting": "łączenie…",
       "st.ok": "połączono",
       "st.lost": "zerwane — łączę ponownie",
+      "st.failed": "nie udało się połączyć",
+      "st.authfail": "błędne hasło",
+      "st.needpw": "wpisz hasło",
       "log.hello": "znaleziono obs-websocket {v}",
       "log.livestart": "transmisja się rozpoczęła — przycisk działa",
       "log.livestop": "transmisja się zakończyła — przycisk nie działa",
@@ -2066,13 +2275,20 @@
       "log.ebs.live": "EBS'ye bağlandı. İzleyici basışları gelecek",
       "log.ebs.shoot": "{n} izleyici bastı",
       "log.ebs.lost": "EBS bağlantısı koptu. Kendiliğinden yeniden bağlanacak",
+      "log.stale": "OBS {b} yükledi ama adresi {a} istiyordu — önbellekten geldi. Ayarları kurulum sayfasından yeniden yazın",
       "st.ebs.dead": "eşleştirme kodu geçerli değil",
       "log.ebs.dead": "bu eşleştirme kodu artık geçerli değil. Twitch yapılandırma panelinde yenisini oluşturup buraya yapıştırın",
+      "log.ebs.notoken": "eşleştirme anahtarı henüz gelmedi. Yer paylaşımının onu almasını bekliyorum",
+      "log.secret.locked": "kayıtlı parola ve eşleştirme anahtarı açılamadı. Kaybolmadılar, ama bu profil artık onları okuyamıyor — kurulum sayfasından yeniden girin",
+      "log.secret.nostore": "bu tarayıcı parolayı ve eşleştirme anahtarını şifreli saklayamıyor, bu yüzden yazılmıyorlar — URL’de kalıyorlar",
       "log.ebs.failed": "EBS'ye ulaşılamıyor: {m}",
       "st.idle": "bağlı değil",
       "st.connecting": "bağlanıyor…",
       "st.ok": "bağlandı",
       "st.lost": "koptu — yeniden bağlanıyor",
+      "st.failed": "bağlanılamadı",
+      "st.authfail": "parola yanlış",
+      "st.needpw": "parolayı girin",
       "log.hello": "obs-websocket {v} bulundu",
       "log.livestart": "yayın başladı — düğme çalışıyor",
       "log.livestop": "yayın bitti — düğme çalışmıyor",
@@ -2119,6 +2335,545 @@
     return s;
   }
 
+  /* ================= the secret store =================
+
+     Two settings are secret, and until now both sat in localStorage as text:
+     the obs-websocket password and the EBS pairing token. That is a file on
+     disk in the browser profile, and it travels the way profiles travel —
+     copied, backed up, synced — and it is on screen the moment anybody opens
+     DevTools on a browser source, which on this product is a thing that
+     happens while a stream is running.
+
+     So they are kept as ciphertext, under a key that JS cannot read back.
+
+     WHAT THIS DOES NOT PROTECT AGAINST — worth saying plainly, because the two
+     get mixed up. It does NOT protect against code running in this document: a
+     script here can take the key out of IndexedDB and call decrypt, exactly as
+     this file does. Anybody who can change the page has already won (plan.md
+     §3.2.2 決めている: 改ざんは原理的に防げない).
+
+     What it protects is the BYTES AT REST. Whoever reads the profile — a copy,
+     a backup, a sync, a screen share with the Local Storage pane open — gets
+     ciphertext and no key material, because the key is a CryptoKey object with
+     extractable:false and the structured clone in IndexedDB carries no bytes a
+     reader can lift out.
+
+     MEASURED on file:// (docs/prototype/obs-cryptoprobe.html, and independently
+     by the sister product — docs/from-worddrop.md §2): file:// is a secure
+     context, an extractable:false AES-GCM key can be made, exportKey on it
+     throws InvalidAccessError, the CryptoKey survives being put in IndexedDB,
+     and it is still there after the browser has been closed and reopened.
+
+     THE FAILURE THAT MATTERS is losing the key while keeping the ciphertext:
+     the secrets would then be gone with no way to say what happened. So the key
+     is written and READ BACK before any ciphertext is written, and every write
+     and every delete is verified by reading it again — a storage that throws
+     nothing and keeps nothing is a real thing (docs/from-worddrop.md §2).
+
+     And "could not open" is never reported as "empty". Empty means there was
+     never a password; locked means there is one and this profile can no longer
+     read it, and the two need different sentences or a broadcaster is left
+     staring at 「パスワードが違います」 with no idea that the one they saved is
+     sitting right there. */
+
+  var SEC_KEY = "sp-secrets";      // localStorage: {v, iv, ct}
+  var SEC_DB = "sp-keys";
+  var SEC_STORE = "keys";
+  var SEC_ID = "cfg";
+  var SEC_V = 2;
+
+  /* The two settings that are secret, named once for everyone who asks.
+   *
+   * The overlay's URL clean-up walks this list, the setup page is checked
+   * against it (tools/contract-check.mjs 「秘密を URL に載せない」), and this
+   * store is what holds them. A third one is added here and nowhere else. */
+  var SECRETS = ["pw", "ebsToken"];
+
+  /* Where the store got to. Four answers, and they are four because they need
+   * four different things said to the broadcaster:
+   *
+   *   loading  — not asked yet. Nothing is known and nothing should be decided.
+   *   ready    — opened. Either it held secrets or it held none; both are fine.
+   *   locked   — there IS ciphertext and this profile cannot open it.
+   *   nostore  — no WebCrypto or no IndexedDB here. Nothing is written down.
+   */
+  var secretState = "loading";
+
+  /* What is known to be written down, by value.
+   *
+   * The overlay drops a secret out of its own URL only once the copy in
+   * storage is real (30-configuration.js: scrubSecretsFromUrl), and with an
+   * asynchronous store "real" has to mean "the write came back and read back
+   * as what we sent" rather than "we called setItem". Nothing is entered here
+   * that was not read out of storage again afterwards. */
+  var secretsHeld = {};
+
+  /* Bumped by every write and every clear.
+   *
+   * A decrypt that was already in flight when the broadcaster pressed reset
+   * would otherwise land afterwards and put the secrets back in memory —
+   * "cleared" followed by a working password, with nothing in between to
+   * explain it. Anything that finishes at an old generation is dropped. */
+  var secretGen = 0;
+
+  /* Every CHANGE to the store goes through one queue, in order.
+   *
+   * Two failures share this cause, and the second costs a password.
+   *
+   * (a) Two writes racing. Each encrypts before it persists and encrypting is
+   *     not instant, so the one that started first can reach setItem last: the
+   *     disk ends up holding the older secret while memory holds the newer, and
+   *     both callers get a plausible answer with nothing reporting the split.
+   *
+   * (b) A write racing a clear. The generation counter guarded only what
+   *     happens AFTER the round trip, so a write already in flight when the
+   *     broadcaster pressed reset went on to create the key and write the
+   *     ciphertext — "erased", and then a working password on disk, with
+   *     nothing in between to explain it.
+   *
+   * Serial rather than "check the generation again just before persisting":
+   * the only way to be certain a clear happened after a write is to make the
+   * two unable to overlap. Reads are deliberately NOT queued — opening the
+   * store is what the page is waiting on, and it must not sit behind a write.
+   *
+   * THIS QUEUE IS PER DOCUMENT, and that is only enough because a bucket has
+   * exactly one writer (Codex 2巡目 MEDIUM). In the OBS CEF three documents
+   * share this storage and two of them never write: the bar leaves
+   * saveSecrets() at its first line, and the framed-save card returns out of
+   * the page before the configuration exists at all (10-card-mode.js). Two
+   * overlays can only exist by duplicating the browser source, which gives
+   * them the same URL and therefore the same secrets to write. The setup page
+   * is a different origin and a different bucket.
+   *
+   * A second writer with different values would need locking across documents
+   * — navigator.locks, or IndexedDB as the commit point — and that is not
+   * built, because it would add a way for a write to hang to a file whose one
+   * job is to never lose a password. If a second writer is ever added, this
+   * comment is the thing that stopped being true.
+   */
+  var secretsQueue = Promise.resolve();
+
+  function secretsSerial(fn) {
+    // Both arms, so one rejection does not stall every later operation.
+    var run = secretsQueue.then(fn, fn);
+    secretsQueue = run.then(function () {}, function () {});
+    return run;
+  }
+
+  function secretsUsable() {
+    try {
+      return !!(window.isSecureContext && window.crypto && window.crypto.subtle &&
+                window.crypto.subtle.generateKey && window.indexedDB);
+    } catch (e) { return false; }
+  }
+
+  /* ---- bytes ---- */
+
+  function secB64(buf) {
+    var b = new Uint8Array(buf), s = "";
+    for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+    return btoa(s);
+  }
+
+  function secUnb64(str) {
+    var bin = atob(String(str)), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  /* ---- the key ----
+
+     One transaction does the get and the put, so two browser sources starting
+     together cannot each decide the store is empty and write a different key
+     over each other. In the OBS CEF the overlay, the bar and the framed-save
+     card are three documents sharing one origin, and they start at the same
+     moment (docs/plan.md §4.11) — this is not a hypothetical race. */
+
+  function secOpenDb() {
+    return new Promise(function (resolve, reject) {
+      var req;
+      try { req = indexedDB.open(SEC_DB, 1); }
+      catch (e) { reject(e); return; }
+      req.onupgradeneeded = function () {
+        try { req.result.createObjectStore(SEC_STORE); } catch (e) {}
+      };
+      req.onerror = function () { reject(req.error || new Error("indexedDB.open")); };
+      req.onblocked = function () { reject(new Error("indexedDB blocked")); };
+      req.onsuccess = function () { resolve(req.result); };
+    });
+  }
+
+  /** Run one transaction and hand back what `fn` asked for. */
+  function secTx(mode, fn) {
+    return secOpenDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, out;
+        try {
+          tx = db.transaction(SEC_STORE, mode);
+          out = fn(tx.objectStore(SEC_STORE));
+        } catch (e) { db.close(); reject(e); return; }
+        tx.oncomplete = function () {
+          db.close();
+          resolve(out && typeof out === "object" && "result" in out ? out.result : out);
+        };
+        tx.onerror = function () { db.close(); reject(tx.error || new Error("transaction")); };
+        tx.onabort = function () { db.close(); reject(tx.error || new Error("aborted")); };
+      });
+    });
+  }
+
+  var secretKey = null;
+
+  /* Why there is no key — which is not one question but two.
+   *
+   * "The store answered, and it holds nothing" and "the store could not be
+   * asked" arrive here as the same null and mean opposite things. Only the
+   * first is a reason to mint a new key over ciphertext that already exists.
+   * The second is a transient failure — IndexedDB blocked by another
+   * connection, a profile under pressure, a browser mid-shutdown — and reading
+   * it as loss would destroy a perfectly good secret in order to replace a key
+   * that was there the whole time.
+   *
+   * "" not asked yet | "have" | "none" | "unreachable"
+   */
+  var secKeyAnswer = "";
+
+  /**
+   * The key this profile encrypts with, made once and kept.
+   *
+   * `make` decides what happens when there is none. Reading asks for false —
+   * a reader that quietly minted a key would turn "there is ciphertext I
+   * cannot open" into "there is nothing here", which is the one confusion this
+   * whole file is written to avoid.
+   */
+  function secGetKey(make) {
+    if (secretKey) return Promise.resolve(secretKey);
+    if (!secretsUsable()) return Promise.resolve(null);
+    return secTx("readonly", function (store) { return store.get(SEC_ID); })
+      .then(function (found) {
+        secKeyAnswer = found ? "have" : "none";
+        if (found) return found;
+        if (!make) return null;
+        // Generated outside any transaction: crypto.subtle is a promise and an
+        // IndexedDB transaction closes the moment control returns to the event
+        // loop, so there is no way to await one inside the other. The race that
+        // opens up is closed by the write below rather than by holding a lock.
+        return crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"])
+          .then(function (fresh) {
+            return secTx("readwrite", function (store) {
+              // get-then-put inside ONE transaction. Whichever document gets
+              // there second sees the first one's key and keeps it, so the two
+              // do not write different keys over each other and leave one of
+              // them holding ciphertext it can no longer open.
+              var again = store.get(SEC_ID);
+              again.onsuccess = function () { if (!again.result) store.put(fresh, SEC_ID); };
+              return again;
+            });
+          })
+          .then(function () {
+            // Read back, always. A key that was not actually kept and a key
+            // that was look the same from here — until the ciphertext is
+            // written under it and the next start cannot open it.
+            return secTx("readonly", function (store) { return store.get(SEC_ID); });
+          });
+      })
+      .then(function (key) { secretKey = key || null; return secretKey; })
+      .catch(function () {
+        // The get itself never answered, so nothing is known about what is in
+        // there. Anything already decided stays decided; a "have" or a "none"
+        // from an earlier successful ask is not undone by a later failure.
+        if (!secKeyAnswer) secKeyAnswer = "unreachable";
+        return null;
+      });
+  }
+
+  /* ---- reading ---- */
+
+  function secStored() {
+    try {
+      var raw = localStorage.getItem(SEC_KEY);
+      if (!raw) return null;
+      var box = JSON.parse(raw);
+      return box && box.v === SEC_V && typeof box.iv === "string" && typeof box.ct === "string" ? box : null;
+    } catch (e) { return null; }
+  }
+
+  var secretsOpened = null;
+  var secretsOpening = false;
+
+  /**
+   * Open the store, once.
+   *
+   * Resolves to { state, values } — never rejects, because every caller has
+   * something to do with every outcome and none of them is an exception.
+   */
+  function secretsOpen() {
+    if (secretsOpened) return secretsOpened;
+    secretsOpening = true;
+    secretsOpened = (function () {
+      if (!secretsUsable()) {
+        secretState = "nostore";
+        return Promise.resolve({ state: secretState, values: {} });
+      }
+      var box = secStored();
+      if (!box) {
+        secretState = "ready";
+        return Promise.resolve({ state: secretState, values: {} });
+      }
+      var gen = secretGen;
+      return secGetKey(false).then(function (key) {
+        if (!key) throw new Error("no key");
+        return crypto.subtle.decrypt({ name: "AES-GCM", iv: secUnb64(box.iv) }, key, secUnb64(box.ct));
+      }).then(function (plain) {
+        // Cleared while this was in flight: the reset wins, or the secrets
+        // come back from the dead a moment after being deleted.
+        if (gen !== secretGen) return { state: secretState, values: {} };
+        var got = JSON.parse(new TextDecoder().decode(plain));
+        var values = {};
+        SECRETS.forEach(function (k) { if (typeof got[k] === "string") values[k] = got[k]; });
+        SECRETS.forEach(function (k) { if (values[k]) secretsHeld[k] = values[k]; });
+        secretState = "ready";
+        return { state: secretState, values: values };
+      }).catch(function () {
+        if (gen !== secretGen) return { state: secretState, values: {} };
+        // There is ciphertext and it did not open. Say THAT, and do not touch
+        // it: the key may come back (a profile restored, the store recovered),
+        // and overwriting it here would be the only irreversible thing this
+        // file could do.
+        secretState = "locked";
+        return { state: secretState, values: {} };
+      });
+    })();
+    // Settled-ness, tracked rather than inferred: secretState is only written
+    // inside the promise, so from outside there is no way to tell "still on
+    // its way" from "finished and found nothing" (secretsReopen).
+    secretsOpened = secretsOpened.then(function (r) { secretsOpening = false; return r; });
+    return secretsOpened;
+  }
+
+  /**
+   * Ask again — but only while there is nothing to have, and only one at a time.
+   *
+   * The bar is handed no token and has to find the one the overlay stored,
+   * which may not have been stored yet when the bar loaded (setup: barConfig).
+   * So the store can be re-opened, on the retry that is already waiting.
+   *
+   * Two conditions, and the second is the one that was missing. Re-opening
+   * while an answer is already held would re-run a decrypt per attempt for no
+   * new answer, and would fight a broadcaster who has just reset. Re-opening
+   * while an OPEN IS STILL IN FLIGHT starts a second decrypt beside the first,
+   * and then which one lands last decides whether this page believes it is
+   * ready or locked — a state that depends on the order two identical
+   * questions happened to be answered in (Codex 5巡目 MEDIUM).
+   */
+  function secretsReopen() {
+    if (secretsOpening) return secretsOpened;      // one is already on its way
+    var got = SECRETS.some(function (k) { return !!secretsHeld[k]; });
+    if (!got && secretState !== "loading") secretsOpened = null;
+    return secretsOpen();
+  }
+
+  /* ---- writing ---- */
+
+  /**
+   * Keep these secrets, and prove they were kept.
+   *
+   * Resolves true only when the ciphertext has been read back and decrypted
+   * into the same values — which is what lets the overlay drop its URL copy.
+   * Everything is written together: they live in one blob, so a partial write
+   * is not a shape this can be in.
+   */
+  function secretsWrite(values) {
+    var want = {};
+    SECRETS.forEach(function (k) { want[k] = typeof values[k] === "string" ? values[k] : ""; });
+
+    /* Emptiness is never an instruction to forget.
+     *
+     * "Both of them are blank" is what a page looks like BEFORE the store has
+     * been read — the fields are not filled until the decrypt lands (setup:
+     * 99-go.js) — and it is also what a page looks like when there genuinely
+     * never was a password. Treating those the same is how pressing Connect in
+     * the first moment after opening the page erased both secrets: the empty
+     * boxes were written straight back as "there is nothing to keep", and the
+     * clear took the key with it.
+     *
+     * This is the rule the rest of the product already lives by — an empty
+     * password means "I do not have one", never "erase the one you have"
+     * (setup: overlayConfig, and the 2026-09-03 fix) — finally applied inside
+     * the store that was written to protect them. Erasing is its own function
+     * and its own gesture: the reset button, and emptying the pairing box.
+     */
+    if (!SECRETS.some(function (k) { return !!want[k]; })) return Promise.resolve(false);
+
+    /* ...and nothing is written from values that were never read.
+     *
+     * A page whose store has not opened yet does not know what it holds, so
+     * anything it offers is a guess about the fields on screen rather than a
+     * decision the broadcaster made. The callers wait for secretsOpen() before
+     * they touch a field (setup: 99-go.js, overlay: secretsSettled); this is
+     * the belt for the ones that get added later.
+     */
+    if (secretState === "loading") return Promise.resolve(false);
+
+    /* A store that would not open is not overwritten on a guess.
+     *
+     * secretsOpen() refuses to touch ciphertext it could not decrypt, saying
+     * that the key may yet come back and that overwriting is the only
+     * irreversible thing this file can do — and then this function went and did
+     * it, because minting a key is what secGetKey(true) is for. The two halves
+     * disagreed, and the write half won by accident (Codex 2巡目 HIGH).
+     *
+     * They are reconciled by asking WHY there was no key rather than whether.
+     * A store that answered "there is none" has genuinely lost it: the
+     * ciphertext under it can never be opened by anybody, replacing it costs
+     * nothing, and refusing would leave a broadcaster who is doing exactly what
+     * they were told — enter them again — unable to save anything, for ever.
+     * A store that could not be asked has said nothing at all, and that is the
+     * case where the secrets are probably fine and the failure is a moment
+     * long. So the first goes through and the second waits. */
+    if (secretState === "locked" && secKeyAnswer !== "none") return Promise.resolve(false);
+
+    /* Already written down, exactly this: nothing to do.
+     *
+     * Every write mints a fresh IV, so re-saving the same two values rewrites
+     * the blob with different bytes — and the setup page saves on every
+     * Connect, whether or not the password changed (52-obs-hooks.js:
+     * obsBeforeConnect). Churn on disk is the small cost; the real one is that
+     * each of those is an encrypt, a persist and a read-back racing whatever
+     * else the page is doing, for an outcome already true. */
+    if (SECRETS.every(function (k) { return secretsHeld[k] === want[k]; })) {
+      return Promise.resolve(true);
+    }
+
+    if (!secretsUsable()) {
+      secretState = "nostore";
+      /* Deliberately not written as text instead.
+       *
+       * The overlay only takes a secret out of its URL once this comes back
+       * true, so a false here leaves the URL carrying it and the product keeps
+       * working — with the secret in the browser source's properties, which is
+       * where it already was. Falling back to plaintext localStorage would add
+       * a second copy in a second place to buy nothing. */
+      return Promise.resolve(false);
+    }
+
+    var gen = ++secretGen;
+    // The key first, and read back, before a single byte of ciphertext exists.
+    // The other order is the failure this file is most afraid of: ciphertext on
+    // disk under a key that was never kept opens for nobody, ever.
+    return secretsSerial(function () {
+      // Asked again here, at the front of the queue: between being requested
+      // and being reached, a clear or a later write may have superseded this
+      // one — and the check that used to be the only one came AFTER the bytes
+      // had been persisted (Codex 6巡目 HIGH).
+      if (gen !== secretGen) return false;
+      return secGetKey(true).then(function (key) {
+      if (!key) throw new Error("no key");
+      var iv = crypto.getRandomValues(new Uint8Array(12));
+      return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key,
+        new TextEncoder().encode(JSON.stringify(want))
+      ).then(function (ct) {
+        localStorage.setItem(SEC_KEY, JSON.stringify({ v: SEC_V, iv: secB64(iv), ct: secB64(ct) }));
+        var box = secStored();
+        if (!box) throw new Error("not stored");
+        return crypto.subtle.decrypt({ name: "AES-GCM", iv: secUnb64(box.iv) }, key, secUnb64(box.ct));
+      });
+      }).then(function (plain) {
+        if (plain === false) return false;           // superseded before it started
+        if (gen !== secretGen) return false;         // ...or while it was running
+        var back = JSON.parse(new TextDecoder().decode(plain));
+        var same = SECRETS.every(function (k) { return back[k] === want[k]; });
+        if (!same) return false;
+        secretState = "ready";
+        SECRETS.forEach(function (k) { secretsHeld[k] = want[k]; });
+        return true;
+      }).catch(function () {
+        /* A write that did not happen is not a store that will not open.
+         *
+         * Setting "locked" here put 「保存したパスワードを開けません」 on the rail
+         * of a page whose stored secrets were perfectly fine and whose SAVE had
+         * failed. Two different problems need two different sentences, which is
+         * the entire reason this file has four states rather than a boolean —
+         * the caller says "could not save", and what opening the store found
+         * stays what it found. */
+        return false;
+      });
+    });
+  }
+
+  /**
+   * Forget them — the ciphertext AND the key.
+   *
+   * Both, or the honest sentence stops being true. Leaving the key is leaving
+   * the tool that opens whatever copy of the ciphertext is in a backup;
+   * leaving the ciphertext is leaving the thing itself. Verified by reading
+   * both back, for the same reason writes are.
+   */
+  function secretsClear() {
+    /* Behind the same queue as writes, and the reason is the whole of (b)
+     * above: a write that is already encrypting cannot be told to stop, so the
+     * clear waits for it to finish and then removes what it wrote. Running
+     * them in parallel is what let an erased store come back. */
+    /* The generation moves NOW, not when the queue gets here.
+     *
+     * A write takes its generation when it is REQUESTED, so a clear that only
+     * bumped on the way through left a later write holding a number from
+     * before the erasure — and that write went on to persist the ciphertext
+     * and the key, and only then discovered it had been superseded. It
+     * reported "could not save" to a page whose store it had just refilled:
+     * the caller carried the old plaintext forward believing nothing had been
+     * kept, while the disk held the secret it thought it had lost
+     * (Codex 6巡目 HIGH).
+     *
+     * The in-memory forgetting comes with it, for the same reason and in the
+     * safer direction: from the moment somebody asks for an erasure this page
+     * stops claiming the secret is written down, whether or not the removal
+     * then succeeds. Under-claiming costs a rewrite; over-claiming costs the
+     * only copy. */
+    secretGen++;
+    secretKey = null;
+    SECRETS.forEach(function (k) { delete secretsHeld[k]; });
+    return secretsSerial(function () {
+      /* Nulled again, HERE, and this is not belt-and-braces.
+       *
+       * The one at call time stops a page that has asked for an erasure from
+       * handing the cached key to anything new. It cannot stop a write that
+       * was already in flight from putting its own key back afterwards — and
+       * that key is about to be deleted from IndexedDB by the lines below,
+       * while the object stays perfectly usable in memory. The next write then
+       * encrypts under it, persists, and VERIFIES, because decrypting with an
+       * object you are holding works whether or not the store still has it.
+       *
+       * The result is the failure this file's header calls the one it is most
+       * afraid of: ciphertext on disk under a key that was never kept, opening
+       * for nobody, ever — reached by writing, resetting, and writing again
+       * (実測 2026-09-10, while building 回帰 15).
+       *
+       * Everything queued after this point re-reads the store instead. */
+      secretKey = null;
+      var lsGone = true;
+      try {
+        localStorage.removeItem(SEC_KEY);
+        lsGone = !localStorage.getItem(SEC_KEY);
+      } catch (e) { lsGone = false; }
+      if (!secretsUsable()) {
+        if (secretState !== "nostore") secretState = "ready";
+        return lsGone;
+      }
+      return secTx("readwrite", function (store) { store.delete(SEC_ID); })
+        .then(function () { return secTx("readonly", function (store) { return store.get(SEC_ID); }); })
+        .then(function (still) {
+          secretState = "ready";
+          return lsGone && !still;
+        })
+        .catch(function () { return false; });
+    });
+  }
+
+  /** Is this exact value written down? Answered from verified writes only. */
+  function secretIsStored(key, value) {
+    return !!value && secretsHeld[key] === value;
+  }
   /* ================= configuration =================
 
      This page has no settings UI, and that is the point. A panel drawn on the
@@ -2146,8 +2901,9 @@
     host: "127.0.0.1", port: "4455", pw: "", src: "",
     preset: "standard", accent: "safelight", place: "bl", scale: "1",
     lang: "", ebs: "", ch: "", ebsToken: "",
-    saveDir: "", saveFree: "1", saveParty: "1", saveSize: "std",
-    scenes: "", gateSet: "", testUntil: ""
+    saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
+    stampShot: "on", stampSave: "datetime", scenes: "", gateSet: "",
+    testUntil: ""
   };
   /* @end config-defaults */
 
@@ -2174,10 +2930,60 @@
 
   var pushed = fromHash();
 
+  /* ---- #demo ----
+
+     The same file again, drawn as a sample inside the setup page so a
+     broadcaster can see the effects before putting them on the air.
+
+     It does NOT return early the way #card does. The parts of this page are
+     fragments of one function body in filename order (tools/build-pages.mjs),
+     so returning here would take the dictionary, the effects, the wall and the
+     bar with it — and the sample would have to draw all of them again. A
+     sample that is a second implementation is worth less than no sample: it
+     drifts, and the drift is invisible (docs/look-tab-plan.md §2).
+
+     So everything loads, and what is cut is the four wires that leave this
+     page: storage (here), obs-websocket and the EBS (99-go.js), and sound
+     (75-audio.js).
+
+     Storage is first because it is the one that surprises. This page keeps its
+     settings under the SAME key the setup page uses, and file:// pages share
+     localStorage — measured, across directories (docs/look-tab-plan.md 未決3).
+     So a sample that reads it would be handed the broadcaster's obs-websocket
+     password and EBS token without either ever appearing in its URL, and one
+     that writes it would overwrite their settings by being looked at. Both
+     were measured happening before this existed. */
+  var DEMO = hashFlag("demo");
+
+  /* ---- #bar ----
+
+     Read here rather than where the bar is drawn (99-go.js) because storage is
+     decided here, and a bar must not write to it. What it draws is described in
+     99-go.js; this is only the flag.
+
+     The two sources are the same file under the same origin, so they share one
+     localStorage — and the bar is deliberately handed a config with pieces
+     removed: no obs-websocket password, no save folder, because a bar has
+     nothing to connect to and nothing to save (setup: barConfig). Storing that
+     config overwrites the overlay's own copy with the gaps in it.
+
+     Measured 2026-09-03. The overlay authenticated, put its password in
+     storage and took it out of its URL; the bar then loaded, wrote its
+     password-less config over the same key, and the next OBS start had an
+     overlay that could not authenticate — with nothing in either the URL or
+     storage to say what the password had been. The stream showed viewers
+     「いまは撮れません」 for as long as it took to find that.
+
+     A bar has nothing to remember in any case: it is told everything it draws
+     in its own URL, and it is never the page a broadcaster configures. */
+  var BAR_ONLY = hashFlag("bar");
+
   function loadCfg() {
     var base = {};
     for (var k in DEFAULTS) base[k] = DEFAULTS[k];
-    try {
+    // The sample is told everything it may know in its URL, and asks for
+    // nothing else. See DEMO above for what asking would have picked up.
+    if (!DEMO) try {
       var raw = localStorage.getItem(CFG_KEY);
       if (raw) {
         var saved = JSON.parse(raw);
@@ -2191,19 +2997,135 @@
     return base;
   }
 
-  function saveCfg(c) {
-    try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); } catch (e) {}
-  }
-
-  /** Did the password actually survive being written down? */
-  function passwordIsStored(pw) {
+  /** Whatever the OLD plaintext store still holds for one secret. */
+  function legacySecret(key) {
     try {
       var raw = localStorage.getItem(CFG_KEY);
-      return !!raw && JSON.parse(raw).pw === pw;
-    } catch (e) { return false; }
+      var saved = raw ? JSON.parse(raw) : null;
+      return saved && typeof saved[key] === "string" ? saved[key] : "";
+    } catch (e) { return ""; }
+  }
+
+  /**
+   * Write down everything that is not secret.
+   *
+   * The two secrets live in their own encrypted store now (shared:
+   * secret-store.js) and are written by saveSecrets(), which runs only where a
+   * secret actually changed. Saving a colour must not touch them: this function
+   * is called on every settings change, and a version of it that also wrote the
+   * secrets would hand the store two empty strings on any load that did not
+   * happen to bring them — which the store reads as "forget them".
+   *
+   * The old plaintext copy is carried forward until the encrypted store is
+   * known to hold the same value. Dropping it on the first save would delete
+   * the only copy of a password the new store has not accepted yet — and the
+   * case where it cannot accept one is exactly the case where that copy is all
+   * there is.
+   */
+  function saveCfg(c) {
+    if (DEMO || BAR_ONLY) return;
+    var plain = {};
+    for (var k in DEFAULTS) if (SECRETS.indexOf(k) === -1) plain[k] = c[k];
+    SECRETS.forEach(function (key) {
+      if (secretIsStored(key, c[key])) return;    // the encrypted store has it
+      /* An empty one is not carried forward, and that is not a detail.
+       *
+       * secretIsStored() asks whether THIS VALUE is the stored one, and it
+       * answers false for an empty value however things stand — so without
+       * this line the old plaintext was fetched back and written down again
+       * every single save, for exactly the key the broadcaster had just
+       * emptied. Clearing the pairing box did not survive a reload: the token
+       * came back out of the config it had never left (Codex 4巡目 HIGH).
+       *
+       * Nothing is lost by the rule. A page that still holds the secret has it
+       * in c[key] and it is carried; a page that does not is either one the
+       * store has taken over from, or one where somebody has just erased it on
+       * purpose. */
+      if (!c[key]) return;
+      var old = legacySecret(key);
+      if (old) plain[key] = old;
+    });
+    try { localStorage.setItem(CFG_KEY, JSON.stringify(plain)); } catch (e) {}
+  }
+
+  /** Hand the secrets to the store, and tidy up the old copy once it took. */
+  function saveSecrets() {
+    if (DEMO || BAR_ONLY) return Promise.resolve(false);
+    var box = {};
+    SECRETS.forEach(function (k) { box[k] = cfg[k]; });
+    return secretsWrite(box).then(function (kept) {
+      // Only now: saveCfg stops carrying the plaintext forward the moment
+      // secretIsStored() agrees, and that is true only after a verified write.
+      if (kept) saveCfg(cfg);
+      return kept;
+    });
+  }
+
+
+  /**
+   * What the store turned out to be holding for one secret.
+   *
+   * cfg is settled once, at load, and that is the wrong shape for a secret the
+   * page did not arrive with: the bar is handed no token at all and has to find
+   * the one the overlay stored, which may not have been stored yet when the bar
+   * loaded (setup: barConfig).
+   *
+   * So the store can be asked again — secretsReopen() is the one that decides
+   * when that is allowed, because the conditions are about the store and not
+   * about this page (shared: secret-store.js).
+   */
+  function storedSecret(key) {
+    if (DEMO) return "";
+    return secretsHeld[key] || "";
   }
 
   var cfg = loadCfg();
+
+  /* What arrived in THIS page load, before the store has said anything.
+   *
+   * Either the setup page just wrote it into the URL, or it is still sitting in
+   * the old plaintext config and is about to be migrated. Both are "a value
+   * this page brought", and both have to end up in the store — the difference
+   * between them is not one this page has to care about. */
+  var broughtSecrets = {};
+  SECRETS.forEach(function (k) { if (cfg[k]) broughtSecrets[k] = cfg[k]; });
+
+  /**
+   * Settle the two secrets, which is the one part of the config that is not
+   * ready when the page is.
+   *
+   * Everything else in cfg is a string that was in the URL or in localStorage,
+   * both of which answer immediately. The secrets come out of an encrypted
+   * store, and opening it means IndexedDB and a decrypt — so the page starts
+   * without them and the two things that need them wait on this
+   * (99-go.js: connect() and ebsConnect()).
+   *
+   * The URL still wins, exactly as it does for every other setting: a value
+   * this load brought is kept and written down, and the store only fills in
+   * what was not brought.
+   */
+  var secretsSettled = (
+    /* The sample asks for nothing, here as everywhere else.
+     *
+     * #demo runs inside the setup page, which means it runs in the
+     * BROADCASTER'S OWN storage — the same bucket the setup page keeps its
+     * encrypted secrets in. Opening the store from here would decrypt a real
+     * password and a real token into a frame that exists to show what the
+     * effects look like. It never uses them, and that is not the point: the
+     * sample is told everything it may know in its URL (see DEMO above), and
+     * this was the one line that had started asking. */
+    DEMO ? Promise.resolve({ state: "demo", values: {} }) : secretsOpen()
+  ).then(function (r) {
+    SECRETS.forEach(function (k) {
+      if (!broughtSecrets[k] && r.values[k]) cfg[k] = r.values[k];
+    });
+    var news = SECRETS.some(function (k) {
+      return broughtSecrets[k] && r.values[k] !== broughtSecrets[k];
+    });
+    return news ? saveSecrets() : Promise.resolve(false);
+  }).then(function () {
+    return DEMO ? "demo" : secretState;
+  });
 
   /* Settings ride in the fragment, and OBS does not reload a browser source when
      only the fragment changes (measured — §6). Everything read once at load
@@ -2228,6 +3150,15 @@
     // the broadcaster is waiting to see confirmed.
     closedWhy = null;
     sceneOpen();
+    // ...and tell the EBS, which is the half that decides. Saying it only in
+    // the log leaves the buttons shut on an answer that has already changed:
+    // nothing else reports until the overlay happens to notice something else
+    // — a scene change, the stream going on or off, a capture succeeding or
+    // failing — and a broadcaster who set the scenes after going live would
+    // wait for one of those with no way of knowing that is what they are
+    // waiting for. It re-asks sceneOpen() itself; the call above is what puts
+    // the reason in the log even when there is no EBS link to report to.
+    reportOverlayState();
   });
   saveCfg(cfg);
 
@@ -2252,17 +3183,50 @@
   pickLanguage();
 
   /**
-   * Take the password back out of the browser source's URL.
+   * Take the secrets back out of the browser source's URL.
    *
    * Rewriting the URL makes OBS reload this page, so this must run at most once:
-   * the reloaded page sees no password in the fragment and does nothing.
+   * the reloaded page sees no secret in the fragment and does nothing.
+   *
+   * Each secret is dropped only once THAT secret is known to have been written
+   * down, and they are decided one at a time: a browser that refuses storage
+   * keeps a working URL rather than losing the only copy, and a password that
+   * could not be stored does not take the token down with it.
+   *
+   * 2026-09-10: this used to be about the password alone, which had two costs.
+   * The token stayed in the URL — and it is the one that is worth something to
+   * somebody else. And the whole clean-up was skipped for a broadcaster running
+   * obs-websocket without authentication: there was no password to take out, so
+   * the function returned on its first line and the token stayed for ever.
    */
-  function scrubPasswordFromUrl() {
-    if (!pushed || !pushed.pw) return;             // nothing to take out
-    if (!passwordIsStored(pushed.pw)) return;      // it would be the only copy
+  function scrubSecretsFromUrl() {
+    if (!pushed) return;
+    var drop = SECRETS.filter(function (k) {
+      return pushed[k] && secretIsStored(k, pushed[k]);
+    });
+    if (!drop.length) return;                      // nothing safe to take out
+    /* A secret is left out when it is being dropped — and also when there is
+     * nothing to say about it. Writing pw:"" or ebsToken:"" back into the URL
+     * would be an instruction to forget, because the URL wins over storage on
+     * the next load: the same shape as the 2026-09-03 outage, from the page
+     * that is supposed to be cleaning up (setup: barConfig, overlayConfig). */
     var clean = {};
-    for (var k in DEFAULTS) if (k !== "pw") clean[k] = cfg[k];
-    var wanted = location.href.split("#")[0] + "#c=" + encodeURIComponent(JSON.stringify(clean));
+    for (var k in DEFAULTS) {
+      if (drop.indexOf(k) !== -1) continue;
+      if (SECRETS.indexOf(k) !== -1 && !cfg[k]) continue;
+      clean[k] = cfg[k];
+    }
+    /* Everything else in the fragment is put back.
+     *
+     * The fragment is not only the settings: #debug turns the status chip on
+     * and #preview draws the bar at full size, and both are how a broadcaster
+     * is looking at this page at the moment they set it up. Rebuilding the URL
+     * from the settings alone swept them away — which never showed while the
+     * clean-up needed a password, because that is not the state you are in
+     * while adjusting anything. */
+    var rest = hashParts().filter(function (part) { return part.slice(0, 2) !== "c="; });
+    var wanted = location.href.split("#")[0] + "#c=" + encodeURIComponent(JSON.stringify(clean)) +
+      (rest.length ? "&" + rest.join("&") : "");
 
     request("GetInputList", { inputKind: "browser_source" })
       .then(function (d) {
@@ -2275,12 +3239,25 @@
       })
       .then(function (rows) {
         var mine = rows.filter(function (r) { return r.url === location.href; });
-        if (mine.length !== 1) return;             // cannot tell which one we are
-        return request("SetInputSettings", {
-          inputName: mine[0].name,
-          inputSettings: { url: wanted },
-          overlay: true
-        });
+        /* All of them, not the one.
+         *
+         * This used to give up unless exactly one source matched, on the
+         * reasoning that it could not tell which one it was. But a source
+         * whose url is character-for-character this page's url IS this page,
+         * settings and secrets and all, and the replacement built for one is
+         * correct for every one of them. Giving up left a broadcaster who had
+         * duplicated the browser source with the password and the token in
+         * every copy — in the properties window and in the scene collection —
+         * and nothing said so, because from here it looked like a clean-up
+         * that had simply not happened yet (Codex 1巡目 HIGH). */
+        if (!mine.length) return;                  // none of these is us
+        return Promise.all(mine.map(function (row) {
+          return request("SetInputSettings", {
+            inputName: row.name,
+            inputSettings: { url: wanted },
+            overlay: true
+          });
+        }));
       })
       .catch(function () { /* the URL simply keeps the password */ });
   }
@@ -2418,6 +3395,17 @@
        obsOnIdentified()      authenticated, and this page may start work.
        obsOnDisconnect()      a deliberate disconnect, sockets already down.
 
+     WHAT EACH PAGE READS OUT OF HERE. Both parts end up in the same closure, so
+     these are plain variables rather than getters — `identified` was already
+     being read this way by the setup page's rail:
+
+       identified             is there an authenticated session right now.
+       failKey                why there is not, as an i18n KEY, or "" when the
+                              socket is up or was never tried. A key and not a
+                              sentence because the page is repainted whole on a
+                              language change, and a stored sentence would come
+                              back in the language it was written in.
+
      Everything below this line is the protocol. If you are changing it for one
      page, you are changing it for both — which is the point. */
 
@@ -2439,6 +3427,20 @@
   var waiting = {};
   var retry = 0;
   var manualClose = false;
+  /* Why the connection is not up, as an i18n key.
+   *
+   * The reason existed before this variable did — it was written to the log and
+   * nowhere else, and the log has to be opened by pressing a button. What the
+   * screen showed was the generic "not connected", which is the one thing the
+   * broadcaster could already see (docs/onboarding-plan.md §2.D).
+   *
+   * It is state rather than an argument to status() because a single write does
+   * not survive: obsOnClosed() repaints the rail, and so does every language
+   * change, and both of those recompute the row from `identified` alone. The
+   * needpw path made that visible — it closes the socket itself, so its own
+   * status() call was overwritten by onclose a tick later (実測). Anything that
+   * repaints now reads this. */
+  var failKey = "";
   var retryTimer = null;
   // Bumped by every connect and disconnect, so a timer that was already in
   // flight when the user reconnected by hand can tell that it is stale.
@@ -2481,6 +3483,7 @@
     connectGen++;
     manualClose = false;
     identified = false;
+    failKey = "";
 
     obsBeforeConnect();
 
@@ -2493,8 +3496,9 @@
       sock = new WebSocket(url);
       ws = sock;
     } catch (e) {
+      failKey = "st.failed";
       log(t("log.failed"), "bad");
-      status("bad", t("st.idle"), true);
+      status("bad", t(failKey), true);
       scheduleRetry();
       return;
     }
@@ -2505,16 +3509,33 @@
       if (sock !== ws) return; // a socket we already replaced
       var wasIdentified = identified;
       identified = false;
+
+      /* Decided BEFORE obsOnClosed(), because that hook repaints the page and
+       * the repaint reads failKey. A deliberate close keeps whatever reason
+       * asked for it — the needpw path sets one, pressing Disconnect does not.
+       *
+       * `wasIdentified` is what separates the last two. Saying "dropped —
+       * reconnecting" to somebody whose OBS was never running is a lie about
+       * the one thing they need to fix, and it was the FIRST thing the page
+       * said on a fresh machine: new WebSocket() does not throw when nothing is
+       * listening, so an unstarted OBS arrives here rather than at the catch
+       * above (docs/onboarding-plan.md §2.D). */
+      if (!manualClose) {
+        if (!wasIdentified && ev.code === 4009) failKey = "st.authfail";
+        else if (!wasIdentified) failKey = "st.failed";
+        else failKey = "st.lost";
+      }
+
       obsOnClosed();
-      if (manualClose) { status("bad", t("st.idle"), true); return; }
-      if (!wasIdentified && ev.code === 4009) {
+      status("bad", t(failKey || "st.idle"), true);
+
+      if (manualClose) return;
+      if (failKey === "st.authfail") {
         // obs-websocket closes with 4009 on a bad auth
         log(t("log.authfail"), "bad");
-        status("bad", t("st.idle"), true);
         return; // a wrong password will not fix itself; do not spin
       }
       if (!wasIdentified) log(t("log.failed"), "bad");
-      status("bad", t("st.lost"), true);
       scheduleRetry();
     };
 
@@ -2550,6 +3571,9 @@
       return;
     }
     if (!cfg.pw) {
+      // Closed by us, so onclose takes the manualClose branch — and that branch
+      // used to write "not connected" over this. It reads failKey now.
+      failKey = "st.needpw";
       log(t("log.needpw"), "bad");
       manualClose = true;
       try { sock.close(); } catch (e) {}
@@ -2570,8 +3594,9 @@
       })
       .catch(function (e) {
         if (sock !== ws) return;
+        failKey = "st.failed";
         log(t("log.reqfail", { m: e.message }), "bad");
-        status("bad", t("st.idle"), true);
+        status("bad", t(failKey), true);
         try { sock.close(); } catch (e2) {}
       });
   }
@@ -2579,6 +3604,7 @@
   function onIdentified() {
     identified = true;
     retry = 0;
+    failKey = "";
     cancelRetry();
     log(t("log.auth"), "ok");
     obsOnIdentified();
@@ -2590,6 +3616,9 @@
     cancelRetry();
     connectGen++;
     identified = false;
+    // Asked for. There is no reason to show, and the previous one is stale:
+    // teardown() nulls the handlers, so onclose never runs to clear it.
+    failKey = "";
     obsOnDisconnect();
     if (!silent) status("bad", t("st.idle"), true);
   }
@@ -2823,7 +3852,7 @@
       reportOverlayState();
     }).catch(function () { /* older obs-websocket: stays off */ });
     reportOverlayState();
-    scrubPasswordFromUrl();
+    scrubSecretsFromUrl();
   }
 
   function obsOnDisconnect() {
@@ -2982,29 +4011,43 @@
    * SHUTTER PARTY is twenty seconds — so a single party can write 29 MB and a
    * busy hour can write gigabytes.
    */
-  /* Two switches, not one list.
+  /* A dial and a switch, not two switches.
    *
-   * A photograph is two independent things at once — bought or free, and inside
-   * a party or outside one — so the space has four corners, and a single list of
-   * three choices could only ever reach three of them. The one it could not
-   * reach is a real want: "drop the free ones, drop the party, keep what people
-   * bought outside it" (本人の指摘 2026-08-26).
+   * A photograph is two independent things at once — worth some amount (free is
+   * zero), and inside a party or outside one — so the space still has its four
+   * corners and both axes are still ANDed. What changed is that the first axis
+   * is no longer a switch:
    *
-   * As two switches ANDed, all four corners are reachable and none is spelled
-   * twice:
+   *   from   party   keeps
+   *   0      on      everything
+   *   0      off     everything outside a party
+   *   10     on      every bought photograph
+   *   10     off     bought photographs outside a party
+   *   500    off     the big ones, outside a party           <- the new reach
    *
-   *   free  party   keeps
-   *   on    on      everything
-   *   on    off     everything outside a party
-   *   off   on      every bought photograph
-   *   off   off     bought photographs outside a party      <- the missing one
+   * The dial replaces the old free/paid switch rather than joining it: "keep
+   * from 10 Bits up" is exactly what "do not keep free ones" meant, so there is
+   * one setting where there were two and nothing is spelled twice.
    *
-   * A bought photograph outside a party is therefore the floor: it is kept
-   * whenever saving is on at all, and the way to keep nothing is to turn saving
-   * off. That is the right floor — it is the one photograph somebody paid for.
+   * WHY AN AMOUNT AND NOT A LIST OF PRODUCTS. The catalogue grows in two
+   * directions (docs/plan.md §4.4) — patterns at the same amount, and new
+   * amounts — and a box per product would reach twenty-eight of them and ask
+   * the broadcaster to decide again every time one is added. It is the same
+   * reason §4.12 keyed the bundling of prints to the amount rather than the SKU.
+   *
+   * THE FLOOR MOVED, DELIBERATELY. This used to say that a bought photograph
+   * outside a party is always kept, because it is the one somebody paid for.
+   * That conflated two things: what the viewer bought is the print appearing on
+   * the broadcast — the frame, the name, the seconds it stands — and that is
+   * delivered whatever this says. The file is the BROADCASTER's copy, and its
+   * cost scales with the size of their channel: ten parties of a hundred
+   * purchases is 242 MB at the standard size, and 50 MB at "100 Bits and up,
+   * small" (本人の指摘 2026-08-30). A cost that lands on one person is a cost
+   * that person decides.
    */
   function keepThisShot(paid) {
-    if (!paid && cfg.saveFree === "0") return false;
+    var from = Number(cfg.saveFrom || 0);
+    if ((paid ? paid.bits : 0) < from) return false;
     if (party && cfg.saveParty === "0") return false;
     return true;
   }
@@ -3629,7 +4672,7 @@
             cardFresh = true;
             var hash = "sheet=1" +
               "&accent=" + encodeURIComponent(cfg.accent || "safelight") +
-              "&when=" + encodeURIComponent(stamp()) +
+              "&when=" + encodeURIComponent(savedStamp()) +
               "&tally=" + encodeURIComponent(sheetTally(done.shots.length, done.people)) +
               (box ? "&crop=" + [box.x, box.y, box.w, box.h].join(",") : "") +
               "&imgs=" + picks.map(encodeURIComponent).join("|");
@@ -3675,14 +4718,10 @@
       });
     }).then(function (stopped) {
       if (stopped === "stop") return;
-      var d = new Date();
-      var p = function (v) { return String(v).padStart(2, "0"); };
       var hash =
         "img=" + encodeURIComponent(tempUrl) +
         "&accent=" + encodeURIComponent(cfg.accent || "safelight") +
-        "&when=" + encodeURIComponent(
-          d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "  " +
-          p(d.getHours()) + ":" + p(d.getMinutes())) +
+        "&when=" + encodeURIComponent(savedStamp()) +
         (paid ? "&bits=" + paid.bits + "&name=" + encodeURIComponent(paid.name || "") +
           "&sku=" + encodeURIComponent(paid.sku || "") : "") +
         (!paid && people > 1 ? "&people=" + people : "") +
@@ -3882,6 +4921,33 @@
   function keepName(people, paid) {
     return "shutterparty-" + fileStamp() + "-" +
       (paid ? "paid" + paid.bits : "free" + people) + ".jpg";
+  }
+
+  /**
+   * What a saved print says underneath, in the shape the broadcaster chose.
+   *
+   * One function for both of the things that get saved — the photograph and
+   * the contact sheet — because they are one choice. Written twice, "date"
+   * would have meant a date on one and a time on the other, and the setting
+   * would be lying in one of the two places.
+   *
+   * Nothing here says SHUTTERPARTY: the saved card already carries it in the
+   * corner (.cmark in overlay/shell.html), so putting it in the caption too
+   * would print it twice on the same card (docs/stamp-plan.md §1.C).
+   *
+   * Empty is a real answer, and the card hides the element rather than drawing
+   * an empty one — see 10-card-mode.js.
+   */
+  function savedStamp() {
+    var mode = cfg.stampSave || "datetime";
+    if (mode === "off") return "";
+    var d = new Date();
+    var p = function (v) { return String(v).padStart(2, "0"); };
+    var date = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+    var time = p(d.getHours()) + ":" + p(d.getMinutes());
+    if (mode === "date") return date;
+    if (mode === "time") return time;
+    return date + "  " + time;
   }
 
   function fileStamp() {
@@ -4142,6 +5208,18 @@
   var SFX_GAIN = 1.8;
 
   function ensureAudio() {
+    /* The sample is silent, and this is where that is decided.
+     *
+     * Not at boot. The call there only warms the samples up; the ones that
+     * matter are inside shutter() and blip(), which the effects reach on their
+     * own every time a press is drawn. Skipping the warm-up and leaving those
+     * would have let the sample play shutter sounds on a machine that is very
+     * often the one running OBS with desktop audio captured — the noise would
+     * go out on the broadcast (docs/look-tab-plan.md §2).
+     *
+     * Both callers already handle a null: they ask for a context and give up
+     * without one. So one refusal here closes all three doors. */
+    if (DEMO) return null;
     if (!actx) {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
@@ -4318,11 +5396,81 @@
     toStack(it.el, it.w, it.hh, it.cur);
   }
 
+  /**
+   * The hour and the minute, and not the second.
+   *
+   * The clock is the item in a caption that will not shrink, so what it costs
+   * is charged to the name beside it (fitCaptionStamp). Seconds are three
+   * characters of that, and measured on the real page they are 18, 23 and 29
+   * pixels at the three size settings — 38% of the whole clock. Dropping them
+   * lets the time stay up on prints that much narrower.
+   *
+   * Nothing was using the precision. The window releases up to seven prints a
+   * second, so consecutive captures shared a second anyway; the file keeps a
+   * full stamp of its own (captureToDisk names it to the hundredth); and what
+   * this is here to say — the moment the shutter went off, rather than the
+   * moment the print reached its spot — survives at minute resolution.
+   *
+   * The saved card had already decided this: captureToDisk writes its caption
+   * as a date and an hour and a minute, and has since it was written. The print
+   * on the stream was the one place still carrying seconds, and it was the one
+   * place with no room for them.
+   *
+   * WHOSE CLOCK. The broadcaster's — this page runs inside their OBS, so
+   * getHours() is their machine's wall clock (measured 2026-08-30: Asia/Tokyo
+   * on the development machine, printing 12:54 where UTC read 03:54). There is
+   * no other answer available: an overlay is drawn once for the whole
+   * broadcast, so it cannot say a time per viewer, and UTC would mean nothing
+   * to any of them. What is printed is the local time of the place the thing
+   * happened, which is what a stamp on a photograph has always been.
+   *
+   * Twenty-four hours in every language. A locale-formatted time would be
+   * idiomatic in some of the twelve, but "8:41 PM" is two characters wider than
+   * "20:41" — which is most of what dropping the seconds just bought back —
+   * and this is a mark on a print rather than a field in a form.
+   *
+   * **[要検討]** A machine whose clock or zone is wrong prints a wrong time on
+   * every photograph, and nothing here notices.
+   */
   function stamp() {
     var d = new Date();
     var p = function (v) { return String(v).padStart(2, "0"); };
-    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    return p(d.getHours()) + ":" + p(d.getMinutes());
   }
+
+  /**
+   * Whether a bought print still has room for the clock.
+   *
+   * The caption's font does not follow the print. That is deliberate — a name
+   * on a small print is the same size as a name on a large one — but it means
+   * the caption cannot get smaller, only shorter, and what gets cut is the end
+   * of the name, because the clock is the item that will not shrink. Measured
+   * on the real page: at the size setting M, a name is already an ellipsis at
+   * 152px and has nothing at all left by 90px, which is the floor the wall is
+   * allowed to draw at (PAID_MIN_W). Without the clock the same name reads at
+   * 83px, so the whole ladder of tiers stays legible instead of the top two.
+   *
+   * So the two things in the caption are ranked rather than shared. The name is
+   * what the Bits bought; the time is what the caption can pay with. Sweeping
+   * the four presets against the three size settings at the fastest the window
+   * can deliver (6.67 prints a second), the clock costs 22% to 87% of the time
+   * a name was readable, and dropping it when it does not fit returns every one
+   * of the twelve to whole names (docs/plan.md §4.12).
+   *
+   * It is a threshold and not a taper because the caption is one line: either
+   * the name ends in an ellipsis or it does not.
+   */
+  function fitCaptionStamp(e) {
+    if (!e || !e.whenEl) return;
+    // Off is off, whatever the width would have allowed. The rule below is the
+    // one for a broadcaster who wants the clock: it appears when there is room
+    // for it beside the name, and steps aside when there is not.
+    e.whenEl.hidden = cfg.stampShot === "off" || e.w < e.capMinW;
+  }
+
+  // Handed from the measurement below to the entry built a few lines later,
+  // which is the only thing between them.
+  var capEntryMin = 0, nameEntryMin = 0;
 
   function showPhoto(dataUrl, people, paid, at) {
     // When the shutter went off, rather than when the print reaches the spot.
@@ -4367,17 +5515,37 @@
 
     var cap = document.createElement("div");
     cap.className = "cap";
+    var who = null, when = null;
     if (paid) {
       // textContent, never innerHTML: this is a name a viewer chose.
-      var who = document.createElement("span");
+      who = document.createElement("span");
       who.className = "who";
       who.textContent = paid.name || t("someone");
       cap.appendChild(who);
-      var when = document.createElement("span");
+      when = document.createElement("span");
+      when.className = "when";
       when.textContent = at;
       cap.appendChild(when);
     } else {
-      cap.textContent = at;
+      /* A free print says nothing.
+       *
+       * It used to print the time, and that was the only thing in its caption.
+       * On the air it was never worth the space: the wall is already the
+       * advertisement — prints flying and stacking is the product visibly
+       * working — and a caption on every one of them says it again to nobody.
+       * The moment it would matter most is the moment it cannot be read, since
+       * a busy wall shrinks the prints and the caption with them.
+       *
+       * The strip stays. It is the white margin of an instant photo rather
+       * than empty space, and a free print that lost it would sit differently
+       * beside a paid one on the same wall — measured, the caption box halves
+       * (29px to 14px at size M). The stylesheet keeps the height with a strut
+       * on :empty, so nothing here has to know the number.
+       *
+       * The name still travels: the saved copy carries SHUTTERPARTY in the
+       * corner (.cmark), which is the copy that leaves the broadcast at all
+       * (docs/stamp-plan.md §1.C).
+       */
     }
     card.appendChild(cap);
 
@@ -4395,6 +5563,36 @@
     el.stage.appendChild(card);
 
     var hh = card.offsetHeight;
+    // What the caption needs before the clock costs the name anything.
+    //
+    // Taken here because this is already the one forced layout a new print
+    // pays, and because it is the only moment the caption is at its natural
+    // size: from here on the wall writes widths and never reads them back
+    // (applyPaidPlan). Nothing about the box is written down twice — the card's
+    // padding and the caption's are whatever `w - cap.clientWidth` says they
+    // are, and the gap is read from the rule that sets it, so moving any of
+    // them in the stylesheet moves this with them.
+    if (paid && who) {
+      // clientWidth carries the caption's own padding, so the content box has
+      // to be taken out of it explicitly. Left in, the threshold lands eight
+      // pixels under the width the name is actually cut at and the clock stays
+      // up for exactly the range it was supposed to step out of — measured, and
+      // it bought nothing at all (docs/scratch/capmeasure2.html).
+      var cs = getComputedStyle(cap);
+      var inner = cap.clientWidth
+        - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+      // scrollWidth is a whole number, so it can name a content half a pixel
+      // narrower than it is. One pixel of slack, on the side that keeps a name
+      // whole.
+      var chrome = (w - inner) + 1;
+      capEntryMin = chrome + who.scrollWidth
+        + (parseFloat(cs.columnGap) || 0) + when.scrollWidth;
+      // And the same without the clock, which is how narrow this print may be
+      // drawn before the name itself starts losing its end. The wall consults
+      // it when a queue is waiting: it may make prints smaller to seat more of
+      // them, and this is where that stops (choosePaidCols).
+      nameEntryMin = chrome + who.scrollWidth;
+    }
     // The width is decided by the amount and the broadcaster's settings; the
     // height comes from whatever shape the subject was framed in, and until
     // this the two were never reconciled. A camera held portrait — ordinary for
@@ -4454,8 +5652,12 @@
       // side it is going to live on rather than cross the whole frame.
       entry = {
         el: card, paid: paid, w: w, hh: hh, tilt: tilt, fresh: true,
+        whenEl: when, capMinW: capEntryMin, nameMinW: nameEntryMin,
         cur: "translate(" + (-(w + 40)) + "px," + showY + "px) rotate(" + tilt + "deg)"
       };
+      // Before the wall has said anything, in case the name is long enough to
+      // be clipped even at full tier width.
+      fitCaptionStamp(entry);
       card.style.transform = entry.cur;
       // Measured from a real card rather than assumed: the shape follows what
       // the broadcaster framed, and the wall works out its rows from it. Only
@@ -4507,12 +5709,27 @@
     // The dwell is part of what the Bits bought: a paid photograph carries a
     // name, and a name nobody had time to read was not worth paying for. So the
     // multiplier follows the amount rather than splitting at one point — 1.5s
-    // free, and up to 6s at the top, which is the length of a look rather than
-    // a glimpse.
+    // free, and 6s at 1000, which is the length of a look rather than a glimpse.
+    //
+    // Above that the ladder keeps climbing, and the two rungs there are not a
+    // longer look: 9s at 10000 is a hold. The amount is a hundred times the
+    // cheapest frame and the wall has nothing else left to give it — the width
+    // is already at TIER_TOP_F with tierLid() over it, so a tall subject drags
+    // 10000 back down to the size of 1000 (docs/plan.md §4.4).
+    //
+    // WHY THIS DOES NOT LOOSEN THE RUNGS BELOW. §4.12 caps a bundle at 4.0x the
+    // base, and it was tempting to read that 4.0 as "the top multiplier" — in
+    // which case raising the top would raise every cap under it and rose and
+    // gold would start bundling. It is not that. It is the length of a look, an
+    // absolute, and §4.12 put it in as a constant for exactly this reason. So
+    // the ceiling stays at 4.0 while the ladder goes past it, and every cap
+    // below is untouched. The gap that opens is the point: a bundle of the
+    // cheapest frames tops out at 6s and can no longer reach a single 5000.
     var hold = P.dwell;
     if (paid) {
       var b = paid.bits;
-      hold *= b >= 1000 ? 4.0 : b >= 500 ? 3.2 : b >= 250 ? 2.6 : b >= 100 ? 2.1 : 1.8;
+      hold *= b >= 10000 ? 6.0 : b >= 5000 ? 5.0
+        : b >= 1000 ? 4.0 : b >= 500 ? 3.2 : b >= 250 ? 2.6 : b >= 100 ? 2.1 : 1.8;
       // And that is the whole of it. Congestion used to be answered by
       // trimming this, which paid for the wait with seconds somebody had
       // bought; the wall answers it by getting smaller instead. What an amount
@@ -4802,8 +6019,9 @@
    * those facts matter, because each one looks removable until the measured
    * failure is remembered.
    */
-  function choosePaidCols(restCount, standingCount, waitingCount, currentCols, aspect, wallW, regionH, gap, budgetMs, dwellMs) {
+  function choosePaidCols(rest, standingCount, waitingCount, currentCols, aspect, wallW, regionH, gap, budgetMs, dwellMs) {
     var cols = WALL_COLS_MAX, colW = 0, cellH = 0, rows = 1, capC = WALL_COLS_MAX;
+    var restCount = rest.length;
     if (restCount <= 0) return 2;
     // The fewest columns that hold the non-hero prints already standing. More
     // columns means smaller cells, which also means more rows fit, so the
@@ -4874,6 +6092,26 @@
         }
       }
     }
+    // A lid, not a target.
+    //
+    // The wall may shrink prints to seat more of them, and this is where that
+    // stops: past it a caption is an ellipsis, and a print nobody can put a
+    // name to is not the thing that was bought. The number comes from the
+    // cards themselves — each one measured the width its own name needs when
+    // it was made (85-display.js) — so it follows the broadcaster's size and
+    // preset, the subject's shape, and the actual names on screen rather than
+    // a table of assumed ones.
+    //
+    // Applied as a ceiling and never as a goal. Aimed at instead, the wall sits
+    // exactly on the edge, and the next thing that moves — the aspect rising as
+    // an upright card arrives — pushes it over: measured 2026-08-30, targeting
+    // the limit drained the party four seconds faster and left 72% to 87% of
+    // the names readable, where holding it as a lid left 100%.
+    //
+    // Capacity still wins. When even the fewest columns that hold everybody are
+    // too narrow for a name, the prints get drawn small anyway, because being
+    // shown small beats not being shown.
+    cols = Math.max(capC, Math.min(cols, colsNameCap(rest, aspect, wallW, regionH, gap, capC)));
     // The column count only rises while a wall is standing. applyPaidPlan()
     // writes every card's width when the count changes, and without hysteresis
     // the longer forty-second drain budget made a party rebuild the wall up to
@@ -4881,6 +6119,35 @@
     // 0-1 reversals, with no worse peak column count or minimum width.
     if (cols < currentCols) cols = currentCols;
     return cols;
+  }
+
+  /**
+   * The densest the wall may get with every standing name still whole.
+   *
+   * The same arithmetic layoutPaid() uses, walked upward until one of the
+   * prints on screen would be narrower than its own name needs. Kept beside
+   * choosePaidCols rather than in the caller for the reason freeWidth() gives:
+   * two copies of a geometry are two geometries.
+   */
+  function colsNameCap(rest, aspect, wallW, regionH, gap, capC) {
+    var cap = capC;
+    for (var c = capC; c <= WALL_COLS_MAX; c++) {
+      var colW = (wallW - (c - 1) * gap) / c;
+      var cellH = Math.min(colW * aspect, regionH);
+      var cellW = Math.min(colW, cellH / aspect);
+      var ok = true;
+      for (var i = 0; i < rest.length; i++) {
+        var e = rest[i];
+        if (!e.nameMinW) continue;      // a print with no name to lose
+        if (Math.min(tierWidth(e.paid.bits), cellW * tierFill(e.paid.bits)) < e.nameMinW) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) break;
+      cap = c;
+    }
+    return cap;
   }
 
   /**
@@ -4946,9 +6213,18 @@
     var wallL = reg.x + heroW + W * 0.012;
     var wallW = Math.max(120, reg.r - wallL);
     var gap = W * 0.008;
-    var budgetMs = Math.max(0, party && party.endsAt ? party.endsAt - Date.now() : 0) + TIMELINE.drainMaxMs;
+    // While the party runs, the budget is the party's own remaining time. The
+    // forty seconds of drain are for the tail AFTER the window closes — adding
+    // them to a party that is still going tells the solver it has a minute to
+    // seat everybody, and it answers with a wall so sparse that the queue is
+    // paid for in lateness instead of density. Measured 2026-08-30: at the
+    // fastest the window can deliver, the last purchase landed fourteen to
+    // twenty-three seconds after the party it belonged to, on a wall standing
+    // eleven to thirty-three prints out of a possible forty-one.
+    var remainMs = Math.max(0, party && party.endsAt ? party.endsAt - Date.now() : 0);
+    var budgetMs = remainMs > 0 ? remainMs : TIMELINE.drainMaxMs;
     var cols = choosePaidCols(
-      rest.length,
+      rest,
       paidLive.length,
       paidWaiting,
       paidCols,
@@ -5060,6 +6336,12 @@
       if (t.resized) {
         t.e.el.style.width = t.w + "px";
         t.e.w = t.w;
+        // A write, in the pass that only writes: the threshold was measured
+        // when the card was made, so deciding it here costs no layout. The
+        // wall's whole job is to keep a bought print visible, and a print
+        // whose caption says "Kazum…" is visible without being the thing that
+        // was bought (fitCaptionStamp).
+        fitCaptionStamp(t.e);
       }
     }
     for (i = 0; i < plan.length; i++) {
@@ -5194,6 +6476,8 @@
   var bar = { pool: 0, goal: 0 };
   var barForced = false;     // #preview: drawn regardless, to be sized against
   var party = null;          // { name, shots: [], people: 0, endsAt } while it is open
+  var barParty = false;      // #bar only: the party this source does not run
+  var barPartyTimers = [];
   var paidWaiting = 0;
   var pendingSheet = null;
   var pendingSheetTimer = null;
@@ -5209,6 +6493,44 @@
     pendingSheet = null;
   }
 
+  /**
+   * The bar source's own copy of "hidden while the party is running".
+   *
+   * The overlay hides the bar by setting `party`, and `party` is only ever set
+   * from openParty() — reached from requestShot(), which is the one path the
+   * bar source skips (94-ebs-link.js: the bar has no camera, so it takes the
+   * number out of `shoot` and ignores the rest). So the source that actually
+   * DRAWS the bar never learned a party had started, and left the goal frozen
+   * on the broadcast for the whole twenty seconds — the one moment the number
+   * means nothing, because enterStandby() zeroed the pool and the EBS credits
+   * nothing towards the next goal while a party runs (shoot.js:
+   * `delta = phase.ignitable ? paid : 0`).
+   *
+   * It hides on the same message the overlay ignites on, and for the same span:
+   * down when the party opens — after the name card and the 3-2-1, which the
+   * overlay is still playing — and back up when it closes. The banner that
+   * stands in the bar's place in the overlay is not in this source at all
+   * (shell.html, the #bar block), so here the strip simply goes empty, which is
+   * the honest answer: there is nothing to count towards.
+   */
+  function barClearParty() {
+    for (var i = 0; i < barPartyTimers.length; i++) clearTimeout(barPartyTimers[i]);
+    barPartyTimers.length = 0;
+    barParty = false;
+  }
+
+  function barRunParty(ign) {
+    if (!BAR_ONLY) return;
+    // Same first move as ignite(): the timeline travels with the ignition, so a
+    // broadcaster who lengthened the party gets a bar that is away for exactly
+    // as long as the party they set.
+    if (ign) applyTimeline(ign.timeline);
+    barClearParty();
+    var opensIn = TIMELINE.lastHitMs + TIMELINE.countdownMs;
+    barPartyTimers.push(setTimeout(function () { barParty = true; updateBar(); }, opensIn));
+    barPartyTimers.push(setTimeout(function () { barParty = false; updateBar(); }, opensIn + TIMELINE.partyMs));
+  }
+
   function updateBar() {
     elBarLabel.textContent = t("bar.label");
     var remain = Math.max(0, bar.goal - bar.pool);
@@ -5222,7 +6544,15 @@
     // the two share this file — but it is never shown: the bar belongs to the
     // source OBS can place, and two of them would disagree the moment one
     // source was hidden.
-    elBar.classList.toggle("on", BAR_ONLY && (barForced || bar.goal > 0) && !party);
+    //
+    // The sample draws it too, and for the opposite reason: nothing there is on
+    // a broadcast, so there is no second bar to disagree with. It is the only
+    // place a broadcaster can see the bar and the photographs at once before
+    // going live — in OBS they are two sources and the bar is wherever they put
+    // it. What the sample shows is the default corner at the default width,
+    // which is also the size these rules were written for and, until now, a
+    // state nobody ever saw (see the #bar block in shell.html).
+    elBar.classList.toggle("on", (BAR_ONLY || DEMO) && (barForced || bar.goal > 0) && !party && !barParty);
   }
 
   /** Take the bar the EBS just sent. It is the only thing that knows. */
@@ -5269,6 +6599,10 @@
     // party.paidAt.push (60-capture.js fileShot) — and the throw took the frame
     // with it, so the contact sheet lost every photograph after the first
     // purchase rather than just its ordering.
+    // A rejoin takes over from here: `party` hides the bar on its own, and a
+    // timer left over from an ignition this source saw before the reload would
+    // put the bar back in the middle of the party it is now showing.
+    barClearParty();
     party = { name: "", shots: [], paidAt: [], people: 0, endsAt: Date.now() + remainMs };
     updatePhaseState("party");
     updateBar();
@@ -5561,7 +6895,10 @@
     if (!picks.length) return;
 
     elSheetTally.textContent = sheetTally(done.shots.length, done.people);
-    elSheetTime.textContent = stamp();
+    // The same answer as the prints above it: the sheet is on the broadcast,
+    // and a broadcaster who does not want the time on screen does not want it
+    // on the sheet either.
+    elSheetTime.textContent = cfg.stampShot === "off" ? "" : stamp();
     elSheet.classList.add("on");
     seqDelay(function () { elSheet.classList.remove("on"); }, TIMELINE.sheetMs);
     // Off the critical path: the sheet is already on the channel, and this only
@@ -5585,6 +6922,26 @@
   var ebsRetryTimer = null;
   var ebsManualClose = false;
 
+  /**
+   * The token this socket is opened with.
+   *
+   * Not simply cfg.ebsToken, because two of the three pages running this file
+   * do not have it in their URL. The overlay takes it out of its own URL once
+   * it is stored (scrubSecretsFromUrl) and the bar is never handed it at all
+   * (setup: barConfig) — the token is the one secret that is worth something to
+   * somebody who is not at this machine, and OBS puts a browser source's URL on
+   * screen in its properties (docs/plan.md §3.2.2).
+   *
+   * So storage is where it lives, and it is read at the moment a socket is
+   * opened rather than at load. On a first set-up the bar can reach this before
+   * the overlay has stored anything — the two sources are written in the same
+   * breath, and nothing decides which loads first — and reading at load would
+   * leave the bar holding that emptiness until something reloaded it.
+   */
+  function ebsTokenNow() {
+    return cfg.ebsToken || storedSecret("ebsToken");
+  }
+
   function ebsSocketUrl() {
     var base = String(cfg.ebs || "").trim().replace(/\/+$/, "");
     if (!base) return "";
@@ -5593,7 +6950,7 @@
       : "wss://";
     var host = base.replace(/^https?:\/\//, "");
     return scheme + host + "/stream?ch=" + encodeURIComponent(cfg.ch) +
-      "&t=" + encodeURIComponent(cfg.ebsToken || "");
+      "&t=" + encodeURIComponent(ebsTokenNow());
   }
 
   function ebsSetState(s) {
@@ -5620,10 +6977,39 @@
     ebsSetState("off");
   }
 
+  var tokenWaitSaid = false;
+
   function ebsConnect() {
     ebsTeardown();
     ebsManualClose = false;
     if (!cfg.ebs || !cfg.ch) { ebsSetState("off"); return; }
+
+    /* No token yet is not the same as a token the EBS refuses.
+     *
+     * Opening the socket without one gets a 401, and ebsWhyClosed() reads that
+     * as a revoked pairing code and drops to a five-minute heartbeat — which is
+     * the right answer for a code the broadcaster has to replace by hand, and
+     * the wrong one here. A bar that loaded a moment before the overlay stored
+     * the token would sit blank for five minutes on the one screen the
+     * broadcaster is watching while setting up, and nothing anywhere would say
+     * why. Backing off from a second instead means it catches up as soon as the
+     * overlay has written it down.
+     *
+     * Said once. It is a state that normally lasts one retry, and a line per
+     * attempt would push the log's useful lines out. */
+    if (!ebsTokenNow()) {
+      ebsSetState("connecting");
+      if (!tokenWaitSaid) { tokenWaitSaid = true; log(t("log.ebs.notoken"), "warn"); }
+      // Ask the store again on the way past. It is opened once at load, and the
+      // bar can reach that moment before the overlay has written anything into
+      // it — so the retry is where "not yet" gets a second chance to become
+      // "here it is" (shared: secretsReopen, which refuses to start a second
+      // one while the first is still on its way).
+      secretsReopen();
+      ebsScheduleRetry();
+      return;
+    }
+    tokenWaitSaid = false;
 
     var url = ebsSocketUrl();
     ebsSetState("connecting");
@@ -5678,6 +7064,12 @@
             paid: m.paid && m.paid.bits > 0 ? m.paid : null,
             ignition: m.ignition || null
           });
+        } else if (m.ignition) {
+          // The ignition is the half of this message the bar does need. It is
+          // where the overlay starts the sequence that takes the bar away, and
+          // without it this source kept the goal on screen for the whole party
+          // — see barRunParty().
+          barRunParty(m.ignition);
         }
         applyWaiting(m);
         applyPhaseState(m);
@@ -5723,7 +7115,7 @@
     var base = String(cfg.ebs || "").trim().replace(/\/+$/, "");
     if (!base) return ebsScheduleRetry();
     var probe = base + "/stream?ch=" + encodeURIComponent(cfg.ch) +
-      "&t=" + encodeURIComponent(cfg.ebsToken || "");
+      "&t=" + encodeURIComponent(ebsTokenNow());
     fetch(probe, { method: "GET" }).then(function (res) {
       if (res.status === 401) {
         ebsSetState("dead");
@@ -5784,7 +7176,21 @@
         draining: BAR_ONLY ? false : paidDraining,
         // Reported, not decided here: the EBS is what refuses a press
         // (CLAUDE.md). This is a fact about the machine, like the other three.
-        open: sceneOpen()
+        open: sceneOpen(),
+        // Which release is drawing, and whether it is the one the address
+        // asked for. Facts about this machine like the rest — the EBS records
+        // them and decides nothing on them.
+        //
+        // A bar reports both too. It is the same file under the same cache,
+        // and a broadcaster whose bar is stale has exactly the problem this is
+        // for; skipping it here would hide half the sources.
+        //
+        // Neither is a guarantee: a hand-edited overlay can name any release
+        // it likes (docs/plan.md §3.2.2). What they catch is the two things
+        // that actually happen — a cache that answered with the old file, and
+        // an accidental edit.
+        build: BUILD,
+        staleCache: buildMismatch()
       }));
     } catch (e) { /* the link is optional; local capture still works */ }
   }
@@ -5794,6 +7200,176 @@
     var m = { off: t("ebs.off"), connecting: t("ebs.connecting"), live: t("ebs.live"), error: t("ebs.error") };
   }
 
+  /* ================= the sample =================
+
+     Loaded with #demo, this page is the overlay — all of it, the same code that
+     goes on the air — with the four wires to the outside cut (see DEMO in
+     30-configuration.js). What is missing is the one thing the wires used to
+     bring: presses. So the sample makes its own.
+
+     WHY IT DRIVES showPhoto() RATHER THAN DRAWING ANYTHING. showPhoto() is the
+     single door every real press comes through (60-capture.js is the only
+     caller). Going in there means the sample gets the flash, the sparks, the
+     sound routing, the wall, the widths, the caption and the paid frame from
+     the code that draws them for viewers — and gets them wrong the moment that
+     code is wrong, which is the point of showing it at all.
+
+     THE ONE THING IT HAS TO INVENT is the photograph. There is no OBS here, so
+     nothing can be captured; the subject is drawn below as a few hundred bytes
+     of SVG. That is a second implementation, and it is allowed to be: a
+     stand-in for the broadcaster's face is not an effect, and nothing breaks
+     when it drifts from a real capture. */
+
+  /* A subject, at the shape a real capture comes back in (16:9).
+   *
+   * Drawn rather than shipped: a file would go in the zip, and a photograph of
+   * a person would put someone's face in the product. Neutral on purpose — it
+   * stands where the broadcaster will be, so it must not compete with the
+   * frame, the caption or the paid border, which are the things being judged.
+   * No words in it, so it needs no dictionary. */
+  var DEMO_SUBJECT =
+    "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#2a3340"/><stop offset="1" stop-color="#141a22"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="960" height="540" fill="url(#g)"/>' +
+      '<circle cx="480" cy="232" r="86" fill="#4a5666"/>' +
+      '<path d="M330 540c0-88 67-150 150-150s150 62 150 150z" fill="#4a5666"/>' +
+      '</svg>');
+
+  // Names for the paid frames. Short, obviously placeholders, and the same in
+  // every language: a sample is not the place to invent a person, and a name
+  // is the one thing on a paid print that is nobody's business but the buyer's.
+  var DEMO_NAMES = ["AAA", "BBB", "CCC", "DDD"];
+  var demoName = 0;
+
+  /* How often a press lands.
+   *
+   * The flash is the constraint, not the pace. CLAUDE.md caps a full-screen
+   * flash at 3Hz, and unlike the real thing — where a flash is one press by one
+   * viewer — the sample repeats for as long as the tab is open. Measured at
+   * this interval the wash peaks well under the cap; anything faster starts to
+   * read as a strobe on a page somebody is reading (docs/look-tab-plan.md 未決6).
+   */
+  var DEMO_EVERY_MS = 2600;
+  var demoTimer = null;
+  var demoSeq = 0;
+
+  /* A goal for the bar to fill.
+   *
+   * A round number rather than one out of the catalogue: the real one comes
+   * from the EBS and is the broadcaster's own, so any figure here would be
+   * somebody else's. What the sample is showing is the shape — a strip that
+   * fills, changes colour near the top and empties — not an amount.
+   */
+  var DEMO_GOAL = 1000;
+
+  /** One press, drawn the way a viewer's press is drawn. */
+  function demoPress(bits) {
+    var paid = null;
+    if (bits) {
+      demoName = (demoName + 1) % DEMO_NAMES.length;
+      paid = { bits: bits, name: DEMO_NAMES[demoName] };
+      /* The bar takes the money, and drops it all when it crosses.
+       *
+       * Emptying rather than carrying the remainder over is the product's own
+       * rule (CLAUDE.md: 越えた分は持ち越さない), and following it here means
+       * the sample shows what a broadcaster will actually see rather than a
+       * bar that creeps past its own end. Crossing does not start a party —
+       * that is a button, because it runs for forty-six seconds and nobody
+       * choosing a colour wants to wait it out (未決2).
+       */
+      bar.pool += bits;
+      if (bar.pool >= bar.goal) bar.pool = 0;
+      updateBar();
+    }
+    // A believable crowd rather than one: the wall sizes prints by how many
+    // arrived together, so a sample that always says 1 never shows that.
+    var people = 1 + (demoSeq % 3);
+    demoSeq++;
+    showPhoto(DEMO_SUBJECT, people, paid);
+  }
+
+  /* The loop the broadcaster is actually judging.
+   *
+   * Free, free, paid, so all three widths and the paid frame turn up inside a
+   * few seconds without anybody pressing anything. The amounts walk up the
+   * catalogue so the colours the frames take are seen too. */
+  var DEMO_LADDER = [0, 0, 100, 0, 500, 0, 0, 1000];
+  var demoStep = 0;
+
+  function demoTick() {
+    demoPress(DEMO_LADDER[demoStep % DEMO_LADDER.length]);
+    demoStep++;
+  }
+
+  function startDemo() {
+    stopDemoLoop();
+    // Before the first press, so the bar is on screen empty rather than
+    // appearing out of nowhere when somebody happens to pay.
+    bar.goal = DEMO_GOAL;
+    bar.pool = 0;
+    updateBar();
+    demoTick();
+    demoTimer = setInterval(demoTick, DEMO_EVERY_MS);
+  }
+
+  function stopDemoLoop() {
+    clearInterval(demoTimer);
+    demoTimer = null;
+  }
+
+  /* The whole cycle, on request.
+   *
+   * Forty-six seconds is too long to sit through every time a colour changes,
+   * so it is a button rather than the default (docs/look-tab-plan.md 未決2).
+   * The sequence is the real one — ignite() runs the name card, the countdown,
+   * the banner and the sheet from the same timers the EBS drives — and the
+   * presses that arrive during it are the loop's own, which is what a party
+   * looks like from here.
+   *
+   * The timeline is handed in rather than left to the default so the sample
+   * cannot outlive the party: applyTimeline() is what closeParty() counts. */
+  function demoParty() {
+    // Emptied first, the way the real one is: the party is what the bar was
+    // counting towards, so it cannot still be counting while the party runs.
+    bar.pool = 0;
+    updateBar();
+    ignite({ name: DEMO_NAMES[0], timeline: null });
+  }
+
+  /* What the setup page is allowed to say.
+   *
+   * Only the four look settings and the language, and each is handed to the
+   * same apply* the real page uses. Nothing here reads the message as a
+   * command: a fragment cannot arrive and turn into a connection, because the
+   * only verbs are "party" and "stop".
+   *
+   * The origin is not checked, and cannot be: both pages are file://, which is
+   * an opaque origin — every message arrives from "null" (measured). That is
+   * safe here because this page has nothing left to take. It holds no password,
+   * no token, no storage and no socket; the worst a stray message can do is
+   * change the colour of a sample. */
+  window.addEventListener("message", function (e) {
+    var m = e && e.data;
+    if (!m || m.to !== "shutterparty-demo") return;
+    if (m.act === "party") { demoParty(); return; }
+    if (m.act === "stop") { stopDemoLoop(); return; }
+    if (m.act !== "look") return;
+    if (typeof m.preset === "string") applyPreset(m.preset);
+    if (typeof m.accent === "string") applyAccent(m.accent);
+    if (typeof m.place === "string") applyPlace(m.place);
+    if (typeof m.scale === "string") applyScale(m.scale);
+    // Straight onto cfg: the clock is read at the moment a caption is
+    // built, so the next press comes out with it or without it.
+    if (m.stampShot === "on" || m.stampShot === "off") cfg.stampShot = m.stampShot;
+    // No repaint call: every word on this page is fetched with t() at the
+    // moment it is drawn, so the next press comes out in the new language
+    // on its own. Nothing already on the wall changes, which is right —
+    // those prints were taken in the old one.
+    if (typeof m.lang === "string" && I18N[m.lang]) lang = m.lang;
+  });
   /* ================= go ================= */
 
   // ?debug=1 or #debug turns the status chip on. It is off by default because
@@ -5813,18 +7389,23 @@
 
      The bar left the overlay so that OBS could own its placement — including
      putting it in one scene and not another, which is the thing a bar inside
-     the overlay could never do (docs/plan.md §4.11). */
-  var BAR_ONLY = hashFlag("bar");
+     the overlay could never do (docs/plan.md §4.11).
+
+     The flag itself is read in 30-configuration.js, where storage is decided:
+     a bar must not write to the key the overlay keeps its password in, and
+     that has to be known before the first save rather than by the time the
+     page finishes starting. */
   if (BAR_ONLY) document.documentElement.setAttribute("data-baronly", "");
 
-  // Never the password itself — only whether there is one.
+  // Never the secrets themselves — only whether there are any. The two of them
+  // are missing from this line on purpose: they are not settled yet, and a
+  // boot line saying EMPTY about a password that arrives half a tick later is
+  // worse than not mentioning it (see the secrets line below).
   log("boot" +
     " src=" + (cfg.src || "(none)") +
     " obs=" + cfg.host + ":" + cfg.port +
-    " pw=" + (cfg.pw ? "set" : "EMPTY") +
     " ebs=" + (cfg.ebs || "(none)") +
     " ch=" + (cfg.ch || "(none)") +
-    " token=" + (cfg.ebsToken ? "set" : "EMPTY") +
     " save=" + (cfg.saveDir || "(off)") +
     " config=" + (pushed ? "from URL" : "from storage"));
 
@@ -5846,15 +7427,90 @@
     updateBar();
   }
 
+  /* Say it out loud when the address asked for a release these bytes are not.
+   *
+   * The EBS is told the same thing, but nothing in production reads that back
+   * yet, and the setup page's dock — which compares the ADDRESS — calls this
+   * exact case clean, because the address is fine; it is the file behind it
+   * that is old. So the OBS log is where a stale overlay can actually be
+   * caught while a stream is running, and it is the one surface this page has
+   * that costs nothing and is already where anybody looks when something is
+   * wrong (docs/plan.md §3.2.2 手当て2).
+   *
+   * Once, at load, at "bad" level so OBS keeps it: this is a fact about the
+   * file, so repeating it would only push the useful lines out of the log.
+   * Never from the sample or a bare open — askedBuild() is empty there, and
+   * buildMismatch() is false for it. */
+  if (buildMismatch()) log(t("log.stale", { a: askedBuild(), b: BUILD }), "bad");
+
   renderEbs();
-  if (cfg.ebs && cfg.ch) ebsConnect();
+
+  /* Both connections wait for the secrets.
+   *
+   * They are the only part of the config that is not ready when the page is:
+   * the store is IndexedDB and a decrypt (shared: secret-store.js). Connecting
+   * before it answers means authenticating with an empty password against an
+   * OBS that has one, and opening the EBS socket with an empty token — two
+   * failures that look exactly like a wrong password and a revoked pairing
+   * code, which is the wrong thing to tell a broadcaster whose settings are
+   * fine and half a tick away.
+   *
+   * secretsSettled never rejects, so there is no path where this page simply
+   * does not start: a store that cannot be opened resolves to "locked" and a
+   * browser without one resolves to "nostore", and both go on to connect with
+   * whatever the URL brought — which, for a page whose secrets were never
+   * scrubbed out of its URL, is everything it needs. */
+  secretsSettled.then(function (state) {
+    // Said once, after the answer exists. "locked" is the line that has to be
+    // distinguishable: it means there IS a password saved and this profile can
+    // no longer open it, which is not the same as never having had one and
+    // must not be left to look like 「パスワードが違います」.
+    if (state === "locked") log(t("log.secret.locked"), "bad");
+    else if (state === "nostore") log(t("log.secret.nostore"), "warn");
+    log("secrets " + state +
+      " pw=" + (cfg.pw ? "set" : "EMPTY") +
+      " token=" + (ebsTokenNow() ? "set" : "EMPTY"));
+
+    // Never from the sample: it has no channel worth reporting and nothing to
+    // photograph, and the token it would carry is not in its URL anyway.
+    if (!DEMO && cfg.ebs && cfg.ch) ebsConnect();
+    if (!DEMO && !BAR_ONLY) connect();
+  });
+
   // The bar source stops here. It has nothing to photograph with, nothing to
   // play, and no reason to hold a socket open to OBS.
-  if (!BAR_ONLY) {
+  if (DEMO) {
+    // The sample is not connected to anything, so the status light would sit
+    // on "waiting" for ever with nothing to wait for.
+    document.documentElement.setAttribute("data-demo", "");
+    startDemo();
+  } else if (!BAR_ONLY) {
     ensureAudio();        // decode the shutter samples before the first press
     status("wait", t("st.idle"), true);
-    // Connecting without a password only produces a guaranteed failure in the log.
-    if (cfg.pw) connect();
+    /* Always, and not `if (cfg.pw)`.
+     *
+     * The same wrong comment stood on the setup page, where it cost a button
+     * press per visit. Here it cost the product: this is the ONLY call to
+     * connect() on this page, so a broadcaster running OBS with authentication
+     * switched off had an overlay that never opened a socket and could never
+     * photograph anything. The EBS was told as much — 94-ebs-link.js reports
+     * `connected: identified` — so the viewers' button reads "not shooting
+     * right now" for ever, and the only trace is a log line inside a browser
+     * source nobody opens.
+     *
+     * obs-websocket does allow authentication to be turned off, and onHello()
+     * identifies straight away when no challenge is offered
+     * (src/shared/parts/obs-ws.js). There was never a guaranteed failure here.
+     *
+     * Failing on load is cheap on this page: OBS is by definition running (the
+     * page is one of its browser sources), and anything else backs off and
+     * retries, so a WebSocket server switched on later is picked up instead of
+     * needing the source to be reloaded.
+     *
+     * The call itself moved up into secretsSettled — the password is not in
+     * hand yet at this point in the file, and connecting without it is how a
+     * broadcaster with authentication switched ON gets told their password is
+     * wrong by a page that simply had not finished reading it. */
   }
 })();
 
