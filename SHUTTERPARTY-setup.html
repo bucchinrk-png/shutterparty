@@ -107,6 +107,14 @@
   :root[data-accent="forest"]           { --acc-rgb: 64,118,80;  --pre-rgb: 206,172,104; }
   :root[data-accent="violet"]           { --acc-rgb: 120,90,188; --pre-rgb: 230,196,124; }
   :root[data-accent="mono"]             { --acc-rgb: 88,94,106;  --pre-rgb: 226,186,108; }
+  :root[data-accent="pink"]             { --acc-rgb: 122,46,69;  --pre-rgb: 240,135,159; }
+  :root[data-accent="peach"]            { --acc-rgb: 122,74,30;  --pre-rgb: 242,172,104; }
+  :root[data-accent="lemon"]            { --acc-rgb: 119,102,26; --pre-rgb: 239,215,102; }
+  :root[data-accent="mint"]             { --acc-rgb: 38,96,60;   --pre-rgb: 132,206,153; }
+  :root[data-accent="sky"]              { --acc-rgb: 31,86,112;  --pre-rgb: 117,190,218; }
+  :root[data-accent="lavender"]         { --acc-rgb: 69,49,114;  --pre-rgb: 162,148,218; }
+  :root[data-accent="rose"]             { --acc-rgb: 110,43,87;  --pre-rgb: 226,148,198; }
+  :root[data-accent="apricot"]          { --acc-rgb: 122,59,38;  --pre-rgb: 241,156,124; }
   /* @end accents */
 
   * { box-sizing: border-box; }
@@ -386,6 +394,23 @@
     border-radius: var(--r);
     background: #000;
   }
+  /* What the sample is played over. Never black: no broadcast is, and the
+     effects are glass and outlined white, which black flatters and a real
+     scene does not. Two stand-ins, drawn rather than shipped (a picture would
+     go in the zip): a dim one — an evening room, a dark game — and a bright
+     one, sky and daylight, where white type and clear glass have the least to
+     stand on. Nothing in them is a subject, so they compete with nothing. */
+  .sampleBox[data-bg="dim"] {
+    background:
+      radial-gradient(ellipse 45% 40% at 62% 42%, rgba(255,200,150,.22), rgba(255,200,150,0) 70%),
+      radial-gradient(ellipse 30% 25% at 20% 25%, rgba(140,180,255,.14), rgba(140,180,255,0) 70%),
+      linear-gradient(180deg, #465460 0%, #3e4852 48%, #37352f 52%, #2c2b28 100%);
+  }
+  .sampleBox[data-bg="bright"] {
+    background:
+      radial-gradient(circle at 78% 18%, rgba(255,250,215,.9) 0 5%, rgba(255,250,215,0) 16%),
+      linear-gradient(180deg, #86c4f2 0%, #bfe2fa 50%, #e8f4fb 58%, #a9d68c 58.5%, #8cc36f 76%, #b49a74 100%);
+  }
   .sampleScale {
     position: absolute; left: 0; top: 0;
     width: 1920px; height: 1080px;
@@ -482,12 +507,20 @@
   .opts button.sw .a { background: rgb(var(--sw-a)); }
   .opts button.sw .p { background: rgb(var(--sw-p)); }
   /* @generated accent-swatches — src/shared/accents.json。手で書き換えない */
-  .opts button.sw[data-accent="safelight"] { --sw-a: 176,62,52;  --sw-p: 224,176,96; }
-  .opts button.sw[data-accent="neon"]      { --sw-a: 198,72,140; --sw-p: 116,202,218; }
-  .opts button.sw[data-accent="ocean"]     { --sw-a: 44,118,142; --sw-p: 226,178,102; }
-  .opts button.sw[data-accent="forest"]    { --sw-a: 64,118,80;  --sw-p: 206,172,104; }
-  .opts button.sw[data-accent="violet"]    { --sw-a: 120,90,188; --sw-p: 230,196,124; }
-  .opts button.sw[data-accent="mono"]      { --sw-a: 88,94,106;  --sw-p: 226,186,108; }
+  .opts button.sw[data-accent="safelight"] { --sw-a: 176,62,52;   --sw-p: 224,176,96; }
+  .opts button.sw[data-accent="neon"]      { --sw-a: 198,72,140;  --sw-p: 116,202,218; }
+  .opts button.sw[data-accent="ocean"]     { --sw-a: 44,118,142;  --sw-p: 226,178,102; }
+  .opts button.sw[data-accent="forest"]    { --sw-a: 64,118,80;   --sw-p: 206,172,104; }
+  .opts button.sw[data-accent="violet"]    { --sw-a: 120,90,188;  --sw-p: 230,196,124; }
+  .opts button.sw[data-accent="mono"]      { --sw-a: 88,94,106;   --sw-p: 226,186,108; }
+  .opts button.sw[data-accent="pink"]      { --sw-a: 255,179,199; --sw-p: 240,135,159; }
+  .opts button.sw[data-accent="peach"]     { --sw-a: 255,208,154; --sw-p: 242,172,104; }
+  .opts button.sw[data-accent="lemon"]     { --sw-a: 255,238,158; --sw-p: 239,215,102; }
+  .opts button.sw[data-accent="mint"]      { --sw-a: 180,231,194; --sw-p: 132,206,153; }
+  .opts button.sw[data-accent="sky"]       { --sw-a: 169,220,239; --sw-p: 117,190,218; }
+  .opts button.sw[data-accent="lavender"]  { --sw-a: 199,188,236; --sw-p: 162,148,218; }
+  .opts button.sw[data-accent="rose"]      { --sw-a: 247,192,224; --sw-p: 226,148,198; }
+  .opts button.sw[data-accent="apricot"]   { --sw-a: 255,197,174; --sw-p: 241,156,124; }
   /* @end accent-swatches */
   .opts button.sw[aria-pressed="true"] { background: #232935; border-color: #fff; }
 
@@ -862,6 +895,27 @@
                 <button type="button" class="sw" data-accent="forest"><i class="a"></i><i class="p"></i></button>
                 <button type="button" class="sw" data-accent="violet"><i class="a"></i><i class="p"></i></button>
                 <button type="button" class="sw" data-accent="mono"><i class="a"></i><i class="p"></i></button>
+                <!-- わーどどろっぷ (worddrop) の CANDY 8色。One colour each: the paid
+                     treatment takes the amount's colour, not a second hue. -->
+                <button type="button" class="sw" data-accent="pink"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="peach"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="lemon"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="mint"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="sky"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="lavender"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="rose"><i class="a"></i><i class="p"></i></button>
+                <button type="button" class="sw" data-accent="apricot"><i class="a"></i><i class="p"></i></button>
+              </div>
+            </div>
+            <!-- The goal bar is a clear tube, and the liquid in it takes the
+                 colour above. Clear lets the scene show through; the two tints
+                 are for a layout that wants the bar to sit on something. -->
+            <div class="grp">
+              <label id="lGlass"></label>
+              <div class="opts" id="grpGlass">
+                <button type="button" data-glass="clear" aria-pressed="true"></button>
+                <button type="button" data-glass="light"></button>
+                <button type="button" data-glass="dark"></button>
               </div>
             </div>
             <div class="grp">
@@ -908,10 +962,16 @@
         <section class="step" id="stepSample">
           <h2 id="sSample"></h2>
           <p class="note" id="nSample"></p>
-          <div class="sampleBox" id="sampleBox">
+          <div class="sampleBox" id="sampleBox" data-bg="dim">
             <div class="sampleScale" id="sample"></div>
           </div>
-          <div class="btns"><button class="mini" id="btnSampleParty"></button></div>
+          <div class="btns">
+            <div class="opts" id="grpSampleBg" role="group">
+              <button type="button" data-samplebg="dim" aria-pressed="true"></button>
+              <button type="button" data-samplebg="bright"></button>
+            </div>
+            <button class="mini" id="btnSampleParty"></button>
+          </div>
         </section>
 
       </section>
@@ -1135,6 +1195,7 @@
       "n.sample": "配信画面に出るものを、そのまま動かしています。設定を変えると、その場で切り替わります。OBS も配信も要りません。",
       "sample": "演出の見本",
       "sample.party": "SHUTTER PARTY を見る",
+      "sample.bg": "見本の背景", "sample.bg.dim": "暗めの背景", "sample.bg.bright": "明るめの背景",
       "s.save": "撮った写真の置き場所",
       "n.save": "既定では、写真は配信画面に出るだけでディスクには残りません。フォルダを決めると、撮るたびに OBS がそこへ書き出します。配信への負荷は変わりません。撮る回数は同じで、同じ 1 枚をファイルにも書くだけです。",
       "saveMode": "写真の残し方",
@@ -1147,6 +1208,7 @@
       "save.recdir": "OBS の録画先を入れる",
       "preset.standard": "標準", "preset.hype": "派手", "preset.subtle": "控えめ", "preset.quiet": "静か",
       "accent.safelight": "セーフライト", "accent.neon": "ネオン", "accent.ocean": "オーシャン", "accent.forest": "フォレスト", "accent.violet": "バイオレット", "accent.mono": "モノクロ",
+      "accent.pink": "ピンク", "accent.peach": "うすいオレンジ", "accent.lemon": "きいろ", "accent.mint": "みどり", "accent.sky": "みずいろ", "accent.lavender": "むらさき", "accent.rose": "ローズ", "accent.apricot": "アプリコット",
       "saveFrom": "残す写真",
       "saveFrom.all": "すべて（無料も）",
       "saveFrom.at": "{n} Bits 以上",
@@ -1164,6 +1226,8 @@
       "stampShot": "有料の写真の時刻",
       "stampShot.on": "入れる",
       "stampShot.off": "入れない",
+      "glass": "ガラス",
+      "glass.clear": "透明", "glass.light": "うすい白", "glass.dark": "うすい黒",
       "stampSave": "保存する写真の日付と時刻",
       "stampSave.datetime": "日付と時刻",
       "stampSave.date": "日付だけ",
@@ -1337,6 +1401,7 @@
       "n.sample": "What goes on the broadcast, running here. Change a setting and it changes here, at once. No OBS, no stream.",
       "sample": "Sample of the effects",
       "sample.party": "Watch a SHUTTER PARTY",
+      "sample.bg": "Sample background", "sample.bg.dim": "dim background", "sample.bg.bright": "bright background",
       "s.save": "Where the photos go",
       "n.save": "By default a photo appears on the broadcast and is not kept on disk. Choose a folder and OBS writes one there every time. It costs the broadcast nothing extra — the same shot is taken, and that same single frame is written to a file as well.",
       "saveMode": "Keeping the photos",
@@ -1349,6 +1414,7 @@
       "save.recdir": "Use the OBS recording folder",
       "preset.standard": "Standard", "preset.hype": "Hype", "preset.subtle": "Subtle", "preset.quiet": "Quiet",
       "accent.safelight": "Safelight", "accent.neon": "Neon", "accent.ocean": "Ocean", "accent.forest": "Forest", "accent.violet": "Violet", "accent.mono": "Mono",
+      "accent.pink": "Pink", "accent.peach": "Peach", "accent.lemon": "Lemon", "accent.mint": "Mint", "accent.sky": "Sky", "accent.lavender": "Lavender", "accent.rose": "Rose", "accent.apricot": "Apricot",
       "saveFrom": "Which photos to keep",
       "saveFrom.all": "all of them (free ones too)",
       "saveFrom.at": "{n} Bits and up",
@@ -1366,6 +1432,8 @@
       "stampShot": "Clock on paid photos",
       "stampShot.on": "show",
       "stampShot.off": "hide",
+      "glass": "Glass",
+      "glass.clear": "clear", "glass.light": "light tint", "glass.dark": "dark tint",
       "stampSave": "Date and time on saved photos",
       "stampSave.datetime": "date and time",
       "stampSave.date": "date only",
@@ -1539,6 +1607,7 @@
       "n.sample": "Lo que sale en la emisión, funcionando aquí. Cambia un ajuste y cambia aquí al instante. Sin OBS ni emisión.",
       "sample": "Muestra de los efectos",
       "sample.party": "Ver una SHUTTER PARTY",
+      "sample.bg": "Fondo de la muestra", "sample.bg.dim": "fondo oscuro", "sample.bg.bright": "fondo claro",
       "s.save": "Dónde van las fotos",
       "n.save": "Por defecto la foto sale en el directo y no se guarda en disco. Si eliges una carpeta, OBS escribe una ahí cada vez. No cuesta nada más al directo: se toma la misma foto, y ese mismo fotograma se escribe además en un archivo.",
       "saveMode": "Guardar las fotos",
@@ -1551,6 +1620,7 @@
       "save.recdir": "Usar la carpeta de grabación de OBS",
       "preset.standard": "Estándar", "preset.hype": "Intenso", "preset.subtle": "Sutil", "preset.quiet": "Silencioso",
       "accent.safelight": "Luz de seguridad", "accent.neon": "Neón", "accent.ocean": "Océano", "accent.forest": "Bosque", "accent.violet": "Violeta", "accent.mono": "Mono",
+      "accent.pink": "Rosa", "accent.peach": "Melocotón", "accent.lemon": "Limón", "accent.mint": "Menta", "accent.sky": "Celeste", "accent.lavender": "Lavanda", "accent.rose": "Malva", "accent.apricot": "Albaricoque",
       "saveFrom": "Qué fotos guardar",
       "saveFrom.all": "todas (también las gratis)",
       "saveFrom.at": "desde {n} Bits",
@@ -1568,6 +1638,8 @@
       "stampShot": "Hora en las fotos de pago",
       "stampShot.on": "mostrar",
       "stampShot.off": "ocultar",
+      "glass": "Cristal",
+      "glass.clear": "transparente", "glass.light": "tinte claro", "glass.dark": "tinte oscuro",
       "stampSave": "Fecha y hora en las fotos guardadas",
       "stampSave.datetime": "fecha y hora",
       "stampSave.date": "solo la fecha",
@@ -1741,6 +1813,7 @@
       "n.sample": "O que aparece na transmissão, funcionando aqui. Mude um ajuste e muda aqui na hora. Sem OBS, sem transmissão.",
       "sample": "Amostra dos efeitos",
       "sample.party": "Ver uma SHUTTER PARTY",
+      "sample.bg": "Fundo da amostra", "sample.bg.dim": "fundo escuro", "sample.bg.bright": "fundo claro",
       "s.save": "Para onde vão as fotos",
       "n.save": "Por padrão a foto aparece na live e não fica no disco. Escolha uma pasta e o OBS grava uma ali toda vez. Não pesa mais na live — é a mesma foto, e esse mesmo quadro também é escrito em arquivo.",
       "saveMode": "Guardar as fotos",
@@ -1753,6 +1826,7 @@
       "save.recdir": "Usar a pasta de gravação do OBS",
       "preset.standard": "Padrão", "preset.hype": "Intenso", "preset.subtle": "Sutil", "preset.quiet": "Silencioso",
       "accent.safelight": "Luz de segurança", "accent.neon": "Neon", "accent.ocean": "Oceano", "accent.forest": "Floresta", "accent.violet": "Violeta", "accent.mono": "Mono",
+      "accent.pink": "Rosa", "accent.peach": "Pêssego", "accent.lemon": "Limão", "accent.mint": "Menta", "accent.sky": "Céu", "accent.lavender": "Lavanda", "accent.rose": "Malva", "accent.apricot": "Damasco",
       "saveFrom": "Quais fotos guardar",
       "saveFrom.all": "todas (as gratuitas também)",
       "saveFrom.at": "a partir de {n} Bits",
@@ -1770,6 +1844,8 @@
       "stampShot": "Hora nas fotos pagas",
       "stampShot.on": "mostrar",
       "stampShot.off": "ocultar",
+      "glass": "Vidro",
+      "glass.clear": "transparente", "glass.light": "tom claro", "glass.dark": "tom escuro",
       "stampSave": "Data e hora nas fotos salvas",
       "stampSave.datetime": "data e hora",
       "stampSave.date": "só a data",
@@ -1943,6 +2019,7 @@
       "n.sample": "Was auf Sendung geht, hier laufend. Ändere eine Einstellung, und hier ändert es sich sofort. Ohne OBS, ohne Stream.",
       "sample": "Vorschau der Effekte",
       "sample.party": "Eine SHUTTER PARTY ansehen",
+      "sample.bg": "Hintergrund der Vorschau", "sample.bg.dim": "dunkler Hintergrund", "sample.bg.bright": "heller Hintergrund",
       "s.save": "Wohin die Fotos gehen",
       "n.save": "Standardmäßig erscheint ein Foto im Stream und wird nicht auf der Festplatte behalten. Wähle einen Ordner, und OBS schreibt jedes Mal eines dorthin. Den Stream kostet das nichts zusätzlich — es wird dieselbe Aufnahme gemacht, und dasselbe einzelne Bild wird auch in eine Datei geschrieben.",
       "saveMode": "Fotos behalten",
@@ -1955,6 +2032,7 @@
       "save.recdir": "Aufnahmeordner von OBS übernehmen",
       "preset.standard": "Standard", "preset.hype": "Intensiv", "preset.subtle": "Dezent", "preset.quiet": "Still",
       "accent.safelight": "Dunkelkammerlicht", "accent.neon": "Neon", "accent.ocean": "Ozean", "accent.forest": "Wald", "accent.violet": "Violett", "accent.mono": "Mono",
+      "accent.pink": "Rosa", "accent.peach": "Pfirsich", "accent.lemon": "Zitrone", "accent.mint": "Minze", "accent.sky": "Himmel", "accent.lavender": "Lavendel", "accent.rose": "Malve", "accent.apricot": "Aprikose",
       "saveFrom": "Welche Fotos behalten",
       "saveFrom.all": "alle (auch die kostenlosen)",
       "saveFrom.at": "ab {n} Bits",
@@ -1972,6 +2050,8 @@
       "stampShot": "Uhrzeit auf bezahlten Fotos",
       "stampShot.on": "zeigen",
       "stampShot.off": "weglassen",
+      "glass": "Glas",
+      "glass.clear": "klar", "glass.light": "hell getönt", "glass.dark": "dunkel getönt",
       "stampSave": "Datum und Uhrzeit auf gespeicherten Fotos",
       "stampSave.datetime": "Datum und Uhrzeit",
       "stampSave.date": "nur das Datum",
@@ -2145,6 +2225,7 @@
       "n.sample": "Ce qui passe à l'antenne, en marche ici. Change un réglage et ça change ici, tout de suite. Sans OBS, sans direct.",
       "sample": "Aperçu des effets",
       "sample.party": "Voir une SHUTTER PARTY",
+      "sample.bg": "Fond de l'aperçu", "sample.bg.dim": "fond sombre", "sample.bg.bright": "fond clair",
       "s.save": "Où vont les photos",
       "n.save": "Par défaut une photo apparaît à l'antenne et n'est pas gardée sur le disque. Choisis un dossier et OBS en écrit une là à chaque fois. Cela ne coûte rien de plus au direct : la même photo est prise, et cette même image est aussi écrite dans un fichier.",
       "saveMode": "Garder les photos",
@@ -2157,6 +2238,7 @@
       "save.recdir": "Utiliser le dossier d'enregistrement d'OBS",
       "preset.standard": "Standard", "preset.hype": "Intense", "preset.subtle": "Discret", "preset.quiet": "Silencieux",
       "accent.safelight": "Lumière inactinique", "accent.neon": "Néon", "accent.ocean": "Océan", "accent.forest": "Forêt", "accent.violet": "Violet", "accent.mono": "Mono",
+      "accent.pink": "Rose", "accent.peach": "Pêche", "accent.lemon": "Citron", "accent.mint": "Menthe", "accent.sky": "Ciel", "accent.lavender": "Lavande", "accent.rose": "Mauve", "accent.apricot": "Abricot",
       "saveFrom": "Quelles photos garder",
       "saveFrom.all": "toutes (les gratuites aussi)",
       "saveFrom.at": "à partir de {n} Bits",
@@ -2174,6 +2256,8 @@
       "stampShot": "Heure sur les photos payantes",
       "stampShot.on": "afficher",
       "stampShot.off": "masquer",
+      "glass": "Verre",
+      "glass.clear": "transparent", "glass.light": "teinte claire", "glass.dark": "teinte sombre",
       "stampSave": "Date et heure sur les photos enregistrées",
       "stampSave.datetime": "date et heure",
       "stampSave.date": "la date seule",
@@ -2347,6 +2431,7 @@
       "n.sample": "Quello che va in onda, in funzione qui. Cambia un'impostazione e qui cambia subito. Senza OBS, senza diretta.",
       "sample": "Anteprima degli effetti",
       "sample.party": "Guarda una SHUTTER PARTY",
+      "sample.bg": "Sfondo dell'anteprima", "sample.bg.dim": "sfondo scuro", "sample.bg.bright": "sfondo chiaro",
       "s.save": "Dove vanno le foto",
       "n.save": "Come impostazione predefinita la foto compare in diretta e non resta sul disco. Scegli una cartella e OBS ne scrive una lì ogni volta. Alla diretta non costa nulla in più: viene fatto lo stesso scatto, e quello stesso fotogramma viene anche scritto su file.",
       "saveMode": "Conservare le foto",
@@ -2359,6 +2444,7 @@
       "save.recdir": "Usa la cartella di registrazione di OBS",
       "preset.standard": "Standard", "preset.hype": "Intenso", "preset.subtle": "Discreto", "preset.quiet": "Silenzioso",
       "accent.safelight": "Luce di sicurezza", "accent.neon": "Neon", "accent.ocean": "Oceano", "accent.forest": "Foresta", "accent.violet": "Viola", "accent.mono": "Mono",
+      "accent.pink": "Rosa", "accent.peach": "Pesca", "accent.lemon": "Limone", "accent.mint": "Menta", "accent.sky": "Cielo", "accent.lavender": "Lavanda", "accent.rose": "Malva", "accent.apricot": "Albicocca",
       "saveFrom": "Quali foto conservare",
       "saveFrom.all": "tutte (anche quelle gratuite)",
       "saveFrom.at": "da {n} Bits in su",
@@ -2376,6 +2462,8 @@
       "stampShot": "Ora sulle foto a pagamento",
       "stampShot.on": "mostrare",
       "stampShot.off": "nascondere",
+      "glass": "Vetro",
+      "glass.clear": "trasparente", "glass.light": "tinta chiara", "glass.dark": "tinta scura",
       "stampSave": "Data e ora sulle foto salvate",
       "stampSave.datetime": "data e ora",
       "stampSave.date": "solo la data",
@@ -2549,6 +2637,7 @@
       "n.sample": "방송에 나가는 것을 그대로 움직이고 있습니다. 설정을 바꾸면 여기서 바로 바뀝니다. OBS도 방송도 필요 없습니다.",
       "sample": "연출 미리보기",
       "sample.party": "SHUTTER PARTY 보기",
+      "sample.bg": "미리보기 배경", "sample.bg.dim": "어두운 배경", "sample.bg.bright": "밝은 배경",
       "s.save": "찍은 사진의 보관 장소",
       "n.save": "기본값에서는 사진이 방송 화면에 나올 뿐 디스크에는 남지 않습니다. 폴더를 정하면 찍을 때마다 OBS 가 그곳에 기록합니다. 방송에 주는 부담은 그대로입니다 — 찍는 횟수는 같고, 같은 한 장을 파일로도 쓸 뿐입니다.",
       "saveMode": "사진을 남기는 방식",
@@ -2561,6 +2650,7 @@
       "save.recdir": "OBS 의 녹화 폴더 넣기",
       "preset.standard": "표준", "preset.hype": "화려하게", "preset.subtle": "은은하게", "preset.quiet": "조용하게",
       "accent.safelight": "암실등", "accent.neon": "네온", "accent.ocean": "오션", "accent.forest": "포레스트", "accent.violet": "바이올렛", "accent.mono": "모노",
+      "accent.pink": "핑크", "accent.peach": "피치", "accent.lemon": "레몬", "accent.mint": "민트", "accent.sky": "스카이", "accent.lavender": "라벤더", "accent.rose": "로즈", "accent.apricot": "애프리콧",
       "saveFrom": "남길 사진",
       "saveFrom.all": "전부 (무료도)",
       "saveFrom.at": "{n} Bits 이상",
@@ -2578,6 +2668,8 @@
       "stampShot": "유료 사진의 시각",
       "stampShot.on": "넣기",
       "stampShot.off": "넣지 않기",
+      "glass": "유리",
+      "glass.clear": "투명", "glass.light": "옅은 흰색", "glass.dark": "옅은 검정",
       "stampSave": "저장하는 사진의 날짜와 시각",
       "stampSave.datetime": "날짜와 시각",
       "stampSave.date": "날짜만",
@@ -2751,6 +2843,7 @@
       "n.sample": "直播画面上会出现的东西，在这里实际运行。改动设置，这里立刻跟着变。不需要 OBS，也不需要开播。",
       "sample": "演出示例",
       "sample.party": "看一次 SHUTTER PARTY",
+      "sample.bg": "示例背景", "sample.bg.dim": "偏暗背景", "sample.bg.bright": "明亮背景",
       "s.save": "拍好的照片放哪里",
       "n.save": "默认情况下照片只出现在直播画面上，不会留在硬盘里。定下文件夹后，每次拍照 OBS 都会写一张过去。对直播的负担不变 — 拍的次数一样，只是把同一张也写成文件。",
       "saveMode": "照片的保留方式",
@@ -2763,6 +2856,7 @@
       "save.recdir": "填入 OBS 的录制文件夹",
       "preset.standard": "标准", "preset.hype": "热闹", "preset.subtle": "柔和", "preset.quiet": "安静",
       "accent.safelight": "暗房红光", "accent.neon": "霓虹", "accent.ocean": "海洋", "accent.forest": "森林", "accent.violet": "紫罗兰", "accent.mono": "单色",
+      "accent.pink": "粉色", "accent.peach": "蜜桃", "accent.lemon": "柠檬", "accent.mint": "薄荷", "accent.sky": "天蓝", "accent.lavender": "薰衣草", "accent.rose": "玫瑰", "accent.apricot": "杏色",
       "saveFrom": "保留哪些照片",
       "saveFrom.all": "全部（包括免费的）",
       "saveFrom.at": "{n} Bits 及以上",
@@ -2780,6 +2874,8 @@
       "stampShot": "付费照片上的时间",
       "stampShot.on": "显示",
       "stampShot.off": "不显示",
+      "glass": "玻璃",
+      "glass.clear": "透明", "glass.light": "浅色", "glass.dark": "深色",
       "stampSave": "保存的照片上的日期和时间",
       "stampSave.datetime": "日期和时间",
       "stampSave.date": "只要日期",
@@ -2953,6 +3049,7 @@
       "n.sample": "То, что идёт в эфир, работает прямо здесь. Измените настройку — и здесь сразу изменится. Без OBS и без эфира.",
       "sample": "Образец эффектов",
       "sample.party": "Посмотреть SHUTTER PARTY",
+      "sample.bg": "Фон образца", "sample.bg.dim": "тёмный фон", "sample.bg.bright": "светлый фон",
       "s.save": "Куда попадают фотографии",
       "n.save": "По умолчанию фотография появляется в эфире и не остаётся на диске. Выберите папку — и OBS будет каждый раз записывать туда файл. Эфиру это ничего не добавляет: снимок делается тот же самый, и тот же самый кадр просто ещё и пишется в файл.",
       "saveMode": "Хранение фотографий",
@@ -2965,6 +3062,7 @@
       "save.recdir": "Взять папку записи OBS",
       "preset.standard": "Стандарт", "preset.hype": "Ярко", "preset.subtle": "Сдержанно", "preset.quiet": "Тихо",
       "accent.safelight": "Свет тёмной комнаты", "accent.neon": "Неон", "accent.ocean": "Океан", "accent.forest": "Лес", "accent.violet": "Фиолетовый", "accent.mono": "Моно",
+      "accent.pink": "Розовый", "accent.peach": "Персик", "accent.lemon": "Лимон", "accent.mint": "Мята", "accent.sky": "Небо", "accent.lavender": "Лаванда", "accent.rose": "Мальва", "accent.apricot": "Абрикос",
       "saveFrom": "Какие фото оставлять",
       "saveFrom.all": "все (в том числе бесплатные)",
       "saveFrom.at": "от {n} Bits",
@@ -2982,6 +3080,8 @@
       "stampShot": "Время на платных фото",
       "stampShot.on": "показывать",
       "stampShot.off": "не показывать",
+      "glass": "Стекло",
+      "glass.clear": "прозрачное", "glass.light": "светлый тон", "glass.dark": "тёмный тон",
       "stampSave": "Дата и время на сохранённых фото",
       "stampSave.datetime": "дата и время",
       "stampSave.date": "только дата",
@@ -3155,6 +3255,7 @@
       "n.sample": "To, co idzie na antenę, działa tutaj. Zmień ustawienie, a tutaj od razu się zmieni. Bez OBS i bez transmisji.",
       "sample": "Podgląd efektów",
       "sample.party": "Zobacz SHUTTER PARTY",
+      "sample.bg": "Tło podglądu", "sample.bg.dim": "ciemne tło", "sample.bg.bright": "jasne tło",
       "s.save": "Gdzie trafiają zdjęcia",
       "n.save": "Domyślnie zdjęcie pojawia się na streamie i nie zostaje na dysku. Wybierz folder, a OBS będzie za każdym razem zapisywał tam plik. Stream nic na tym nie traci — robione jest to samo zdjęcie, a ta sama klatka zapisywana jest dodatkowo do pliku.",
       "saveMode": "Przechowywanie zdjęć",
@@ -3167,6 +3268,7 @@
       "save.recdir": "Użyj folderu nagrań OBS",
       "preset.standard": "Standard", "preset.hype": "Mocno", "preset.subtle": "Subtelnie", "preset.quiet": "Cicho",
       "accent.safelight": "Światło ciemni", "accent.neon": "Neon", "accent.ocean": "Ocean", "accent.forest": "Las", "accent.violet": "Fiolet", "accent.mono": "Mono",
+      "accent.pink": "Róż", "accent.peach": "Brzoskwinia", "accent.lemon": "Cytryna", "accent.mint": "Mięta", "accent.sky": "Niebo", "accent.lavender": "Lawenda", "accent.rose": "Malwa", "accent.apricot": "Morela",
       "saveFrom": "Które zdjęcia zachować",
       "saveFrom.all": "wszystkie (także darmowe)",
       "saveFrom.at": "od {n} Bits",
@@ -3184,6 +3286,8 @@
       "stampShot": "Godzina na płatnych zdjęciach",
       "stampShot.on": "pokazuj",
       "stampShot.off": "nie pokazuj",
+      "glass": "Szkło",
+      "glass.clear": "przezroczyste", "glass.light": "jasny odcień", "glass.dark": "ciemny odcień",
       "stampSave": "Data i godzina na zapisanych zdjęciach",
       "stampSave.datetime": "data i godzina",
       "stampSave.date": "tylko data",
@@ -3357,6 +3461,7 @@
       "n.sample": "Yayında görünenler, burada çalışıyor. Bir ayarı değiştirin, burası hemen değişir. OBS de yayın da gerekmez.",
       "sample": "Efektlerin örneği",
       "sample.party": "Bir SHUTTER PARTY izle",
+      "sample.bg": "Örnek arka planı", "sample.bg.dim": "koyu arka plan", "sample.bg.bright": "açık arka plan",
       "s.save": "Fotoğraflar nereye gidiyor",
       "n.save": "Varsayılan olarak fotoğraf yayında görünür ve diskte kalmaz. Bir klasör seçerseniz OBS her seferinde oraya bir dosya yazar. Yayına ek bir yük binmez — aynı çekim yapılır, aynı tek kare ayrıca dosyaya da yazılır.",
       "saveMode": "Fotoğrafları saklama",
@@ -3369,6 +3474,7 @@
       "save.recdir": "OBS'nin kayıt klasörünü kullan",
       "preset.standard": "Standart", "preset.hype": "Coşkulu", "preset.subtle": "Sade", "preset.quiet": "Sessiz",
       "accent.safelight": "Karanlık oda ışığı", "accent.neon": "Neon", "accent.ocean": "Okyanus", "accent.forest": "Orman", "accent.violet": "Menekşe", "accent.mono": "Mono",
+      "accent.pink": "Pembe", "accent.peach": "Şeftali", "accent.lemon": "Limon", "accent.mint": "Nane", "accent.sky": "Gök", "accent.lavender": "Lavanta", "accent.rose": "Gül", "accent.apricot": "Kayısı",
       "saveFrom": "Hangi fotoğraflar saklansın",
       "saveFrom.all": "hepsi (ücretsizler dahil)",
       "saveFrom.at": "{n} Bits ve üzeri",
@@ -3386,6 +3492,8 @@
       "stampShot": "Ücretli fotoğraflarda saat",
       "stampShot.on": "göster",
       "stampShot.off": "gösterme",
+      "glass": "Cam",
+      "glass.clear": "şeffaf", "glass.light": "açık ton", "glass.dark": "koyu ton",
       "stampSave": "Kaydedilen fotoğraflarda tarih ve saat",
       "stampSave.datetime": "tarih ve saat",
       "stampSave.date": "yalnızca tarih",
@@ -3490,7 +3598,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-663b67753745";
+  var BUILD = "sp-9e6c385ee215";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -4058,8 +4166,8 @@
     preset: "standard", accent: "safelight", place: "bl", scale: "1",
     lang: "", ebs: "", ch: "", ebsToken: "",
     saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
-    stampShot: "on", stampSave: "datetime", scenes: "", gateSet: "",
-    testUntil: ""
+    stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
+    gateSet: "", testUntil: ""
   };
   /* @end config-defaults */
 
@@ -4068,7 +4176,7 @@
      to OBS: the moment it were included, recording it would change the thing
      it is a record of, and the dock would never once say "written". */
   var UI_KEY = "sp-setup-ui";
-  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "" };
+  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim" };
 
   function defaultCfg() {
     var base = {};
@@ -4096,7 +4204,7 @@
     // on purpose — a key belongs here by decision — but the list is checked
     // against the defaults (tools/contract-check.mjs), because the failure of
     // forgetting one is silence.
-    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "scenes", "gateSet", "testUntil"].forEach(function (k) {
+    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil"].forEach(function (k) {
       if (q.get(k)) base[k] = q.get(k);
     });
     return base;
@@ -4355,11 +4463,19 @@
     setText("sSample", "s.sample");
     setText("nSample", "n.sample");
     el.sampleParty.textContent = t("sample.party");
+    $("grpSampleBg").setAttribute("aria-label", t("sample.bg"));
+    Array.prototype.forEach.call(document.querySelectorAll("#grpSampleBg button"), function (b) {
+      b.textContent = t("sample.bg." + b.getAttribute("data-samplebg"));
+    });
     setText("lPreset", "preset");
     setText("lAccent", "accent");
     setText("lPlace", "place");
     setText("lScale", "scale");
     setText("lStampShot", "stampShot");
+    setText("lGlass", "glass");
+    Array.prototype.forEach.call(document.querySelectorAll("#grpGlass button"), function (b) {
+      b.textContent = t("glass." + b.getAttribute("data-glass"));
+    });
     Array.prototype.forEach.call(document.querySelectorAll("#grpPreset button"), function (b) {
       b.textContent = t("preset." + b.getAttribute("data-preset"));
     });
@@ -5608,7 +5724,12 @@
             var barExists = inputNames.indexOf(barName) !== -1;
             // barUrl(), not the overlay's: a bar never connects to OBS, so it
             // never takes the password back out of its own URL.
-            return makeOrWrite(hostScene, barName, barExists, barUrl(), 560, 64, false)
+            // 480x56: one row, smaller than the 560x64 it replaced. The bar is a
+            // small part of the effect, not its headline; the type gets its
+            // size from filling the row rather than from a bigger box. An
+            // existing 560x64 source still fits — the strip sizes itself off
+            // whatever box it is given (overlay shell.html, the #bar block).
+            return makeOrWrite(hostScene, barName, barExists, barUrl(), 480, 56, false)
               .then(function () { log(t("log.barcreated", { n: barName }), "ok"); })
               .catch(function (e) {
                 // The overlay is the half that matters. A bar that failed to
@@ -5733,7 +5854,11 @@
       // What the prints say underneath. Two settings, because the two answer
       // different questions: on screen the clock is competing with a name for
       // width, and on disk it is competing with nothing.
-      stampShot: cfg.stampShot, stampSave: cfg.stampSave
+      stampShot: cfg.stampShot, stampSave: cfg.stampSave,
+      // The bar's glass. Only the bar source draws it, but it rides with
+      // everything else: barConfig() is overlayConfig() with pieces taken
+      // out, so a key that is not here never reaches the bar either.
+      glass: cfg.glass
     };
     /* An empty password is "I do not have one", never "erase the one you have".
      *
@@ -6134,6 +6259,16 @@
     tellSample();
   }
 
+  /* What the glass is made of — the goal bar's tube and the party's plates
+     share this one setting (本人の決定 2026-09-11). The liquid inside takes the
+     accent. It rides to both sources like everything else. */
+  function applyGlass(v) {
+    cfg.glass = v === "light" || v === "dark" ? v : "clear";
+    setRadio("grpGlass", "glass", cfg.glass);
+    saveCfg(cfg);
+    tellSample();
+  }
+
   function wireGroup(id, attr, fn) {
     $(id).addEventListener("click", function (e) {
       var b = e.target.closest("button");
@@ -6145,6 +6280,7 @@
   wireGroup("grpAccent", "accent", applyAccent);
   wireGroup("grpScale", "scale", applyScale);
   wireGroup("grpStampShot", "stampshot", applyStampShot);
+  wireGroup("grpGlass", "glass", applyGlass);
   wireGroup("grpPlace", "place", applyPlace);
 
   /* ================= the sample =================
@@ -6208,7 +6344,10 @@
       // The clock is part of how a print looks, so the sample has to be told
       // about it. stampSave is not here: the sample has no OBS and saves
       // nothing, so it would be a key that travels and does nothing.
-      stampShot: cfg.stampShot
+      stampShot: cfg.stampShot,
+      // The sample draws the bar too (92-bar-and-party.js), so it has to know
+      // what the glass is made of.
+      glass: cfg.glass
     };
   }
 
@@ -6289,6 +6428,20 @@
   function sampleParty() {
     tellSample({ act: "party" });
   }
+
+  /* What the sample is played over (shell.html, .sampleBox[data-bg]).
+   *
+   * This page's, not the overlay's: the overlay is transparent and OBS puts
+   * the broadcast under it, so the backdrop is drawn behind the frame and the
+   * sample is told nothing. Kept with the open tab (ui), not with the
+   * settings: it is how the broadcaster is looking, not what goes on air. */
+  function applySampleBg(v) {
+    ui.sampleBg = v === "bright" ? "bright" : "dim";
+    el.sampleBox.setAttribute("data-bg", ui.sampleBg);
+    setRadio("grpSampleBg", "samplebg", ui.sampleBg);
+    saveUi();
+  }
+  wireGroup("grpSampleBg", "samplebg", applySampleBg);
 
   // The language is part of what the sample is told, so a change reaches it
   // like any other. It is drawn with t() at the moment each word appears, so
@@ -7065,7 +7218,7 @@
     ui = loadUi();
     el.pairCode.value = ""; el.pairInfo.hidden = true;
     applyPreset(cfg.preset); applyAccent(cfg.accent); applyScale(cfg.scale); applyPlace(cfg.place);
-    applyStampShot(cfg.stampShot);
+    applyStampShot(cfg.stampShot); applyGlass(cfg.glass);
     el.host.value = cfg.host;
     el.port.value = cfg.port;
     el.pw.value = "";
@@ -7097,6 +7250,7 @@
      * again at the next reload. It also scrolls to the top, which is the right
      * place to be standing after starting over. */
     showPane(ui.pane);
+    applySampleBg(ui.sampleBg);
     /* Said last, and said differently when it did not finish.
      *
      * Pressing Reset again retries: nothing here is half-applied, and the
@@ -7155,8 +7309,10 @@
   applyScale(cfg.scale);
   applyPlace(cfg.place);
   applyStampShot(cfg.stampShot);
+  applyGlass(cfg.glass);
   applySaveMode();
   showPane(ui.pane);
+  applySampleBg(ui.sampleBg);
   paint();
   /* Always, and not `if (cfg.pw)`.
    *

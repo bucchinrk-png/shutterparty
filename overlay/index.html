@@ -95,10 +95,17 @@
   }
 
   /* ---------- concept colours ----------
-     --acc is the brand / session colour, --pre is the "someone paid" treatment.
-     Every preset keeps the two distinct, or the paid frame dissolves into the
-     background once Phase 4 lands. Values are the desaturated set from the
-     prototype; a broadcast overlay at full chroma is fatiguing to watch. */
+     --acc is the brand / session colour. --pre is an emphasis (the counter's
+     figure, a notice's number) and may be the same hue as --acc.
+
+     It used to be the "someone paid" colour, and every preset had to keep the
+     two apart or a paid print dissolved into the session. That rule is gone
+     (本人の決定 2026-09-11): a paid print has worn the colour of its AMOUNT for
+     a while now (the bits-* blocks below, from skus.json), and the rest of the
+     paid treatment — the glow, the ring, the sparks, the receipt — follows it
+     through --glow-rgb, set on each of them from the purchase. What money
+     looks like no longer depends on which colour the broadcaster picked, which
+     is what lets a preset be a single colour. */
   /* Each preset carries a deep and a bright end of both colours. The bar, the
      gold wash and the paid photo all need a gradient rather than a flat fill,
      and mixing those shades in code would put six palettes in JavaScript. */
@@ -119,34 +126,74 @@
 
   /* @generated accents — src/shared/accents.json。手で書き換えない */
   :root, :root[data-accent="safelight"] {
-    --acc-rgb: 176,62,52;   --acc-deep-rgb: 104,32,26;  --acc-hi-rgb: 244,208,150;
-    --pre-rgb: 224,176,96;  --pre-deep-rgb: 168,102,26; --pre-hi-rgb: 240,206,140;
-    --pre-ink: #7d5c15;
+    --acc-rgb: 176,62,52;   --acc-deep-rgb: 104,32,26;   --acc-hi-rgb: 244,208,150;
+    --pre-rgb: 224,176,96;  --pre-deep-rgb: 168,102,26;  --pre-hi-rgb: 240,206,140;
+    --pre-ink: #7d5c15;     --edge-rgb: 24,18,32;        --la: .62;
   }
   :root[data-accent="neon"] {
-    --acc-rgb: 198,72,140;  --acc-deep-rgb: 100,26,72;  --acc-hi-rgb: 240,182,216;
-    --pre-rgb: 116,202,218; --pre-deep-rgb: 30,116,136; --pre-hi-rgb: 156,224,236;
-    --pre-ink: #17606e;
+    --acc-rgb: 198,72,140;  --acc-deep-rgb: 100,26,72;   --acc-hi-rgb: 240,182,216;
+    --pre-rgb: 116,202,218; --pre-deep-rgb: 30,116,136;  --pre-hi-rgb: 156,224,236;
+    --pre-ink: #17606e;     --edge-rgb: 24,18,32;        --la: .62;
   }
   :root[data-accent="ocean"] {
-    --acc-rgb: 44,118,142;  --acc-deep-rgb: 14,56,72;   --acc-hi-rgb: 178,218,230;
-    --pre-rgb: 226,178,102; --pre-deep-rgb: 156,104,26; --pre-hi-rgb: 240,206,150;
-    --pre-ink: #74561a;
+    --acc-rgb: 44,118,142;  --acc-deep-rgb: 14,56,72;    --acc-hi-rgb: 178,218,230;
+    --pre-rgb: 226,178,102; --pre-deep-rgb: 156,104,26;  --pre-hi-rgb: 240,206,150;
+    --pre-ink: #74561a;     --edge-rgb: 24,18,32;        --la: .62;
   }
   :root[data-accent="forest"] {
-    --acc-rgb: 64,118,80;   --acc-deep-rgb: 22,54,36;   --acc-hi-rgb: 190,220,180;
-    --pre-rgb: 206,172,104; --pre-deep-rgb: 132,98,34;  --pre-hi-rgb: 228,202,150;
-    --pre-ink: #66501c;
+    --acc-rgb: 64,118,80;   --acc-deep-rgb: 22,54,36;    --acc-hi-rgb: 190,220,180;
+    --pre-rgb: 206,172,104; --pre-deep-rgb: 132,98,34;   --pre-hi-rgb: 228,202,150;
+    --pre-ink: #66501c;     --edge-rgb: 24,18,32;        --la: .62;
   }
   :root[data-accent="violet"] {
-    --acc-rgb: 120,90,188;  --acc-deep-rgb: 54,34,100;  --acc-hi-rgb: 204,190,238;
-    --pre-rgb: 230,196,124; --pre-deep-rgb: 154,114,26; --pre-hi-rgb: 240,214,158;
-    --pre-ink: #6f561a;
+    --acc-rgb: 120,90,188;  --acc-deep-rgb: 54,34,100;   --acc-hi-rgb: 204,190,238;
+    --pre-rgb: 230,196,124; --pre-deep-rgb: 154,114,26;  --pre-hi-rgb: 240,214,158;
+    --pre-ink: #6f561a;     --edge-rgb: 24,18,32;        --la: .62;
   }
   :root[data-accent="mono"] {
-    --acc-rgb: 88,94,106;   --acc-deep-rgb: 28,32,40;   --acc-hi-rgb: 224,228,236;
-    --pre-rgb: 226,186,108; --pre-deep-rgb: 150,106,26; --pre-hi-rgb: 238,208,150;
-    --pre-ink: #6a5015;
+    --acc-rgb: 88,94,106;   --acc-deep-rgb: 28,32,40;    --acc-hi-rgb: 224,228,236;
+    --pre-rgb: 226,186,108; --pre-deep-rgb: 150,106,26;  --pre-hi-rgb: 238,208,150;
+    --pre-ink: #6a5015;     --edge-rgb: 24,18,32;        --la: .62;
+  }
+  :root[data-accent="pink"] {
+    --acc-rgb: 255,179,199; --acc-deep-rgb: 240,135,159; --acc-hi-rgb: 255,240,244;
+    --pre-rgb: 240,135,159; --pre-deep-rgb: 122,46,69;   --pre-hi-rgb: 255,179,199;
+    --pre-ink: #7a2e45;     --edge-rgb: 122,46,69;       --la: .82;
+  }
+  :root[data-accent="peach"] {
+    --acc-rgb: 255,208,154; --acc-deep-rgb: 242,172,104; --acc-hi-rgb: 255,246,234;
+    --pre-rgb: 242,172,104; --pre-deep-rgb: 122,74,30;   --pre-hi-rgb: 255,208,154;
+    --pre-ink: #7a4a1e;     --edge-rgb: 122,74,30;       --la: .82;
+  }
+  :root[data-accent="lemon"] {
+    --acc-rgb: 255,238,158; --acc-deep-rgb: 239,215,102; --acc-hi-rgb: 255,252,235;
+    --pre-rgb: 239,215,102; --pre-deep-rgb: 119,102,26;  --pre-hi-rgb: 255,238,158;
+    --pre-ink: #77661a;     --edge-rgb: 119,102,26;      --la: .82;
+  }
+  :root[data-accent="mint"] {
+    --acc-rgb: 180,231,194; --acc-deep-rgb: 132,206,153; --acc-hi-rgb: 239,251,242;
+    --pre-rgb: 132,206,153; --pre-deep-rgb: 38,96,60;    --pre-hi-rgb: 180,231,194;
+    --pre-ink: #26603c;     --edge-rgb: 38,96,60;        --la: .82;
+  }
+  :root[data-accent="sky"] {
+    --acc-rgb: 169,220,239; --acc-deep-rgb: 117,190,218; --acc-hi-rgb: 237,249,253;
+    --pre-rgb: 117,190,218; --pre-deep-rgb: 31,86,112;   --pre-hi-rgb: 169,220,239;
+    --pre-ink: #1f5670;     --edge-rgb: 31,86,112;       --la: .82;
+  }
+  :root[data-accent="lavender"] {
+    --acc-rgb: 199,188,236; --acc-deep-rgb: 162,148,218; --acc-hi-rgb: 244,241,253;
+    --pre-rgb: 162,148,218; --pre-deep-rgb: 69,49,114;   --pre-hi-rgb: 199,188,236;
+    --pre-ink: #453172;     --edge-rgb: 69,49,114;       --la: .82;
+  }
+  :root[data-accent="rose"] {
+    --acc-rgb: 247,192,224; --acc-deep-rgb: 226,148,198; --acc-hi-rgb: 254,240,248;
+    --pre-rgb: 226,148,198; --pre-deep-rgb: 110,43,87;   --pre-hi-rgb: 247,192,224;
+    --pre-ink: #6e2b57;     --edge-rgb: 110,43,87;       --la: .82;
+  }
+  :root[data-accent="apricot"] {
+    --acc-rgb: 255,197,174; --acc-deep-rgb: 241,156,124; --acc-hi-rgb: 255,243,238;
+    --pre-rgb: 241,156,124; --pre-deep-rgb: 122,59,38;   --pre-hi-rgb: 255,197,174;
+    --pre-ink: #7a3b26;     --edge-rgb: 122,59,38;       --la: .82;
   }
   /* @end accents */
 
@@ -209,8 +256,10 @@
     opacity: 0;
     will-change: opacity, transform;
   }
+  /* A paid spark wears the amount's colour (--glow-rgb, set on it in
+     70-effects.js). */
   .spark.gold {
-    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(var(--pre-hi-rgb),.9) 30%, rgba(var(--pre-rgb),0) 70%);
+    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(var(--glow-rgb),.9) 30%, rgba(var(--glow-rgb),0) 70%);
   }
 
   /* Full-frame flash. Peak opacity and rate are capped in JS; see docs/plan.md §4.6. */
@@ -412,7 +461,7 @@
   /* The frame carries the amount. --tone falls back to the session's own paid
      colour, so a photo that arrives without an amount — an older EBS, a receipt
      whose value did not survive — still looks bought rather than unfinished. */
-  .photo.paid, .card.paid { --tone: var(--pre-rgb); }
+  .photo.paid, .card.paid { --tone: var(--b10); }
   /* .paid on these, not the attribute alone: the fallback above is a class and
      would otherwise outrank them. */
   /* @generated bits-tones — src/shared/skus.json。手で書き換えない */
@@ -464,231 +513,254 @@
   }
 
   /* ---------- the goal bar ---------- */
-  /* Sizes here follow the canvas, not a fixed pixel count. The prototype was
-     drawn at 1920×1080 and its px values read fine there — on a real stream, at
-     the distance people watch from and after the encoder has been at it, the
-     same numbers are unreadable. The counter already scaled this way; the bar
-     and the badges were the two places that did not. */
+  /* A clear glass tube, filled by the session colour like a liquid
+     (docs/plan.md §4.11, 2026-09-11 本人の決定).
+
+     A small part of the effect, not its headline. One row: the camera stands
+     on its own to the left, the label is the event's name and never changes,
+     and the right end says how much has come in over what the goal is — the
+     figure grows as the liquid does. Who pushed it and by how much is not
+     said here: the photographs on the overlay already carry both.
+
+     Every size is in --u, 1% of the strip's height, capped by its width at
+     the 860:100 the row is drawn for. The two places the bar is drawn set --u
+     and nothing else:
+
+       #bar     the strip IS the viewport (below), so the source's own box
+                decides. Created 480x56 (setup: 60-building-the-pieces.js); an
+                older 560x64 source still fits and simply comes out larger.
+       #demo    the sample draws it in the corner of the 1920 canvas at the
+                size the bar source is created: 480x56 of 1920x1080.
+
+     The overlay proper never shows it (92-bar-and-party.js: `.on` needs
+     BAR_ONLY or DEMO).
+
+     History, so the next change does not walk back into it:
+       - 2026-08-26: the strip was 560x64 with a label row over a pill, and
+         the label was 16px. Making the box bigger was tried in a mock and
+         rejected by the broadcaster — the bar must not be the headline. The
+         type gets its size from filling ONE row instead: 21px label and 28px
+         figure at 480x56, a smaller box than before.
+       - the panel-vs-outline question (2026-08-26: no slab, outlines) is kept
+         and extended: the tube is clear, so the type still carries its own
+         edge. */
+  :root { --glass: transparent; --la: .62; }
+  /* The paid colour when an element has not been handed one (70-effects.js,
+     92-bar-and-party.js set it from the amount). Defined here, not as a var()
+     fallback: tools/overlay-invariants.mjs reads the #ovGold centre stop as
+     rgba(<no comma>, .6), and a fallback puts a comma inside it. */
+  :root { --glow-rgb: var(--b10); }
+  :root[data-glass="light"] { --glass: rgba(255,255,255,.16); }
+  :root[data-glass="dark"]  { --glass: rgba(12,10,20,.3); }
+
+  /* ---- the glass parts ----
+     The bar was the first thing drawn in this vocabulary, and the party
+     banner is its twin (docs/party-look-plan.md §2.1): the same camera, the
+     same tube, the same liquid, the same outlined type. So the parts carry g-
+     names (g for glass) rather than the bar's, and live here once — written
+     twice, one copy gets fixed and the other does not. A user of the parts
+     supplies two things: --u, the unit every size below is counted in, and
+     where it sits on the page. The bar's own rules follow the parts. */
+
+  /* A camera, then a tube: one row. */
+  .g-row {
+    display: grid;
+    grid-template-columns: calc(90 * var(--u)) minmax(0, 1fr);
+    column-gap: calc(6 * var(--u));
+    align-items: start;
+    padding-right: calc(6 * var(--u));
+    font-family: var(--font);
+    color: #fff;
+  }
+
+  /* The camera, on its own: no frame, a solid glyph in the session colour
+     with a white die-cut edge drawn under it, so it holds on any scene. */
+  .g-cam {
+    display: block;
+    margin-top: calc(3 * var(--u));
+    width: calc(90 * var(--u));
+    height: calc(90 * var(--u));
+    overflow: visible;
+    color: rgb(var(--acc-rgb));
+    filter: drop-shadow(0 calc(3 * var(--u)) calc(3 * var(--u)) rgba(0,0,0,.32));
+  }
+
+  /* ---- the tube ----
+     OBS cannot blur what is behind a browser source (backdrop-filter only
+     sees this page's own transparency), so the glass frosts nothing. It is
+     clear, and it is made visible by its edges: a rim light on one side and
+     dark on the other, and shading along the bottom. That holds over a bright
+     scene and a dark one.
+
+     No reflection (本人の決定 2026-09-11). There was a white streak along the
+     top and a white bloom inside the top edge; in the mock they read as an
+     illustration of glass rather than as glass, and the rim alone carries the
+     shape. Do not put them back without asking. */
+  .g-tube {
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    height: calc(78 * var(--u));
+    margin: calc(7 * var(--u)) 0 0 calc(2 * var(--u));
+    border-radius: 999px;
+    background: var(--glass);
+    box-shadow: 0 0 0 calc(1.3 * var(--u)) rgba(0,0,0,.3), 0 calc(4 * var(--u)) calc(10 * var(--u)) rgba(0,0,0,.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(16 * var(--u));
+    padding: 0 calc(28 * var(--u)) 0 calc(30 * var(--u));
+  }
+  /* The glass sits OVER the liquid: the rim and the shading. */
+  .g-tube::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    box-shadow:
+      inset 0 0 0 calc(2.4 * var(--u)) rgba(255,255,255,.55),
+      inset 0 calc(-9 * var(--u)) calc(12 * var(--u)) rgba(0,0,0,.26);
+  }
+
+  /* ---- the liquid ----
+     See-through, not a painted slab (本人の指摘 2026-09-11: 「ベタ塗り感が強い」):
+     the scene shows through it. Body comes from three things instead of
+     opacity — a bright skin at the surface, light caught at the bottom, and a
+     colour that deepens with depth. --la is how thick it is; the pale palettes
+     will carry more of it. The front is a
+     wave cut by a mask that scrolls, so the colour holds still while the edge
+     moves. The wave is an SVG in a data: URI, which img-src already allows.
+     How far it reaches is --r (0..1) on an ancestor, so the same two layers
+     fill the bar and empty the banner.
+
+     The body of the mask stops 9.5u short of the end, not 12u: the wave tile
+     is solid for its first 2.6u at every height (the trough of the curve), so
+     the two layers overlap there without flattening the wave. Butted edge to
+     edge they met on a fractional pixel and left a see-through hairline down
+     the liquid (本人の指摘 2026-09-11, in the mock). */
+  .g-liq {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    display: block;
+    --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 40' preserveAspectRatio='none'%3E%3Cpath d='M0 0H6C10.5 5 10.5 15 6 20S1.5 35 6 40H0Z'/%3E%3C/svg%3E");
+    -webkit-mask:
+      linear-gradient(#000, #000) 0 0 / calc(100% - 9.5 * var(--u)) 100% no-repeat,
+      var(--wave) 100% 0 / calc(12 * var(--u)) calc(40 * var(--u)) repeat-y;
+    transition: width .7s cubic-bezier(.3,1.25,.5,1);
+  }
+  .g-front {
+    width: calc((100% + 12 * var(--u)) * var(--r, 0));
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.55) 0 5%, rgba(255,255,255,0) 14%),
+      linear-gradient(0deg, rgba(255,255,255,.28) 0 5%, rgba(255,255,255,0) 16%),
+      linear-gradient(180deg,
+        rgba(var(--acc-rgb), calc(var(--la) * .6)) 0%,
+        rgba(var(--acc-rgb), var(--la)) 45%,
+        rgba(var(--acc-deep-rgb), calc(var(--la) + .16)) 100%);
+    animation: gWave 2.2s linear infinite;
+  }
+  /* A paler wave just behind the front, moving the other way: depth. */
+  .g-back {
+    width: calc((100% + 12 * var(--u)) * var(--r, 0) + 8 * var(--u) * var(--on, 0));
+    background: rgba(var(--acc-hi-rgb), .34);
+    animation: gWave 3.1s linear infinite reverse;
+  }
+  @keyframes gWave {
+    from { -webkit-mask-position: 0 0, 100% 0; }
+    to   { -webkit-mask-position: 0 0, 100% calc(40 * var(--u)); }
+  }
+  /* Close to the end — the goal, or the party's last seconds — the liquid
+     moves faster, and bubbles on its own (92-bar-and-party.js). */
+  .near .g-front { animation-duration: 1s; }
+  .near .g-back { animation-duration: 1.4s; }
+
+  .g-bub { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .g-bubble {
+    position: absolute;
+    bottom: calc(8 * var(--u));
+    border-radius: 50%;
+    border: calc(1.6 * var(--u)) solid rgba(255,255,255,.75);
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.7) 0 18%, rgba(255,255,255,.12) 42%, transparent 70%);
+  }
+
+  /* ---- the words ----
+     The tube is clear, so the type carries its own edge: white with a dark
+     outline reads on the liquid, on a dark scene and on a white one.
+     text-shadow rather than -webkit-text-stroke: a stroke is centred on the
+     glyph edge and eats into the letterforms without paint-order. */
+  .g-ol {
+    position: relative;
+    z-index: 3;
+    color: #fff;
+    --e: calc(3.2 * var(--u));
+    text-shadow:
+      calc(var(--e) * -1) 0 0 rgba(var(--edge-rgb),.9), var(--e) 0 0 rgba(var(--edge-rgb),.9),
+      0 calc(var(--e) * -1) 0 rgba(var(--edge-rgb),.9), 0 var(--e) 0 rgba(var(--edge-rgb),.9),
+      calc(var(--e) * -.7) calc(var(--e) * -.7) 0 rgba(var(--edge-rgb),.9),
+      calc(var(--e) * .7) calc(var(--e) * -.7) 0 rgba(var(--edge-rgb),.9),
+      calc(var(--e) * -.7) calc(var(--e) * .7) 0 rgba(var(--edge-rgb),.9),
+      calc(var(--e) * .7) calc(var(--e) * .7) 0 rgba(var(--edge-rgb),.9),
+      0 calc(3 * var(--u)) calc(6 * var(--u)) rgba(0,0,0,.35);
+  }
+  /* The name on the left of the tube, and the figure on the right. */
+  .g-label {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: calc(36 * var(--u));
+    line-height: calc(60 * var(--u));
+    font-weight: 800;
+  }
+  .g-fig {
+    flex: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: calc(5 * var(--u));
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-fig b { font-size: calc(50 * var(--u)); line-height: 1; font-weight: 900; }
+
+  /* ---- the goal bar ---- */
   .bitsbar {
+    --u: calc(56vw / 1920);
     position: fixed;
     top: 14px; left: 14px;
-    /* The bar has its own scale and its own corner, separate from --ov-scale
-       and the photo stack. It is the one thing on screen that has to be legible
-       at a glance from a couch, and where it can go depends on what the
-       channel's layout already occupies — not on where the photos land. */
-    width: min(38%, 560px);
-    padding: 11px 15px 12px;
-    border-radius: 8px;
-    background: rgba(10,12,16,.68);
-    border: 1px solid rgba(255,255,255,.09);
-    color: #fff;
+    width: calc(860 * var(--u));
+    height: calc(100 * var(--u));
     opacity: 0;
-    transform: translateY(-8px);
+    /* It leaves the way a sticker is peeled: lifted, a little crooked. */
+    transform: translateY(calc(-40 * var(--u))) rotate(-3deg) scale(.96);
     /* visibility, not just opacity: an element that is merely transparent is
        still part of the page's text, and "nothing is on screen" is checked by
        reading that text (tools/overlay-invariants.mjs). */
     visibility: hidden;
-    transition: opacity .25s ease, transform .25s ease, visibility .25s;
+    transition: opacity .4s ease-in, transform .5s cubic-bezier(.5,0,.75,0), visibility 0s linear .5s;
     pointer-events: none;
   }
-  .bitsbar.on { opacity: 1; transform: translateY(0); visibility: visible; }
+  .bitsbar.on {
+    opacity: 1; transform: none; visibility: visible;
+    transition: opacity .4s ease-out, transform .55s cubic-bezier(.3,1.3,.5,1), visibility 0s;
+  }
 
   /* ---- #bar: this page IS the bar ----
-
      A browser source of its own, so OBS can place it, size it, and put it in
-     one scene and not another. A bar drawn inside the overlay could do none of
-     those things: it lived wherever the overlay's canvas put it, at whatever
-     size the settings allowed, in every scene the overlay was in.
-
-     Here it fills the source instead of sitting in a corner of a 1920x1080
-     canvas, and everything else the overlay draws is not in this source at
-     all. */
-  /* The bar as a source of its own, where the strip IS the viewport.
-   *
-   * Everything above is sized in `vw`, and `vw` is whatever the SOURCE is wide.
-   * Those numbers were written for 1920, where .95vw is 18px. This source is
-   * created 560 wide (setup page), so the same rules resolve to 5.3px and every
-   * one of them lands on its clamp floor: 14px label, 16px number, 8px track
-   * (実測 2026-08-26). The bar is the longest-lived thing this extension puts on
-   * a broadcast and it was the smallest thing on it.
-   *
-   * Worth saying plainly, because it makes the rules above misleading to read:
-   * the bar is only ever DRAWN here. `.bitsbar.on` is toggled with BAR_ONLY in
-   * the condition (92-bar-and-party.js), so inside the overlay the element
-   * exists and is never shown. The 1920 sizes those clamps were tuned for are
-   * not a smaller version of this — they are a state nobody sees.
-   *
-   * Two things were wrong and only one of them was the units. The other was
-   * that 23px of the 64px strip went to padding — 36% of the height spent on
-   * empty space — so there was nowhere for the type to grow into even if the
-   * units had been right.
-   *
-   * So the strip sizes itself off its own box. Height leads — that is the
-   * dimension that decides how big type can be on a strip — but every size is
-   * min()'d against a width term as well, because height alone is not enough:
-   * at 560x128 the label grew to 42px, outgrew the 560 it had to fit across,
-   * wrapped, and the bar rendered 167px tall inside a 128px source (実測
-   * 2026-08-26). The two terms are equal at the created 560x64, so the default
-   * is unaffected and either dimension can only ever hold the other back.
-   *
-   * It scales with whatever the broadcaster sets the source to, and an existing
-   * 560x64 gets bigger type without anybody touching OBS. */
+     one scene and not another (§4.11). Here the strip fills the source, and
+     `vh` / `vw` are the source's own box. */
   :root[data-baronly] .bitsbar {
+    --u: min(1vh, calc(100vw / 860));
     position: relative;
-    width: 100%;
-    max-width: none;
-    padding: min(6.25vh, 0.71vw) min(6.25vh, 0.71vw) min(6.25vh, 0.71vw);
-    /* No panel. The reference this was measured against (Sticker Party) carries
-       no card at all — every piece of it is legible because it is OUTLINED, not
-       because it sits on a slab. A slab is the safer-looking answer and the
-       worse one: it puts a dark rectangle on the broadcast for as long as the
-       channel is live, and it still fails over a bright scene wherever the type
-       is thin. Outlines cost nothing and work on any background. */
-    background: none;
-    border: 0;
-    border-radius: 0;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
   }
 
-  /* The title, above the pill. */
-  :root[data-baronly] .bb-row {
-    font-size: min(25vh, 2.86vw);
-    /* Height and line-height written down rather than left to the content.
-       The row is baseline-aligned and holds an SVG, so its intrinsic height
-       depends on the mark and the font's metrics — and the strip's total has to
-       be predictable, because it has to fit a source of a size somebody else
-       chose. Left to itself it came to 129px inside a 128px source (実測). */
-    height: min(28vh, 3.2vw);
-    line-height: min(28vh, 3.2vw);
-    align-items: center;
-    margin-bottom: min(3.1vh, 0.36vw);
-    justify-content: flex-start;
-    gap: .4em;
-    letter-spacing: .04em;
-    text-shadow: none;                 /* replaced by the outline below */
-  }
-  :root[data-baronly] .bb-cam {
-    width: min(25vh, 2.86vw); height: min(25vh, 2.86vw);
-    align-self: center;
-  }
-
-  /* The pill, and the number inside it.
-   *
-   * Inside, not beside. That is the whole of why the reference reads at a
-   * glance: the value is bounded by the height of the bar rather than by
-   * whatever is left over above it, so it is the biggest thing in the strip
-   * instead of the smallest. Ours was a 25px number over an 8px line; this is a
-   * 22px number inside a 33px pill, on a 64px source. */
-  :root[data-baronly] .bb-track {
-    height: min(50vh, 5.71vw);
-    border-radius: 999px;
-    background: rgba(8,10,14,.72);
-    box-shadow: inset 0 0 0 max(1px, .12em) rgba(0,0,0,.55);
-    overflow: hidden;
-  }
-  :root[data-baronly] .bb-track i {
-    border-radius: 999px;
-    /* The two tokens, kept apart on purpose: a single colour makes the paid end
-       of the bar disappear into the free end (CLAUDE.md). */
-    background: linear-gradient(90deg, rgb(var(--acc-rgb)), rgb(var(--pre-hi-rgb)));
-    box-shadow: inset 0 .35em .5em rgba(255,255,255,.22);
-  }
-  :root[data-baronly] .bb-num {
-    position: absolute;
-    left: 0; right: 0;
-    bottom: min(6.25vh, 0.71vw);
-    height: min(50vh, 5.71vw);
-    /* Centred with line-height, not with flex. The number and its unit are
-       `<b>500</b> pt` — a text node with a leading space — and a flex container
-       turns that into an anonymous item with the whitespace stripped, so it
-       came out as "500pt" (実測 2026-08-26, first render). */
-    display: block; text-align: center;
-    line-height: min(50vh, 5.71vw);
-    font-size: min(34.4vh, 3.93vw);
-    /* Above the pill. In the markup the number sits inside .bb-row, which comes
-       BEFORE .bb-track — so without this the fill paints over it and all that
-       shows is whatever hangs past the fill's right edge (実測 2026-08-26). */
-    z-index: 2;
-    /* The number is the reading, so it does not take the premium colour the
-       way it does inside the overlay — white over the fill, outlined. */
-    color: #fff;
-    pointer-events: none;
-  }
-
-  /* One outline, applied to every piece of type in the strip.
-   *
-   * text-shadow rather than -webkit-text-stroke + paint-order: the stroke
-   * property is centred on the glyph edge, so without paint-order it eats into
-   * the letterforms, and paint-order on HTML text is the newer of the two. This
-   * costs eight shadows and works everywhere. `em` so it scales with the type,
-   * which is itself scaling with the source. */
-  :root[data-baronly] .bb-row,
-  :root[data-baronly] .bb-num {
-    --edge: .075em;
-    text-shadow:
-      calc(var(--edge) * -1) 0 0 #05070a,  var(--edge) 0 0 #05070a,
-      0 calc(var(--edge) * -1) 0 #05070a,  0 var(--edge) 0 #05070a,
-      calc(var(--edge) * -0.7) calc(var(--edge) * -0.7) 0 #05070a,
-      var(--edge) calc(var(--edge) * -0.7) 0 #05070a,
-      calc(var(--edge) * -0.7) var(--edge) 0 #05070a,
-      var(--edge) var(--edge) 0 #05070a,
-      0 .09em .22em rgba(0,0,0,.7);
-  }
-  /* The mark gets the same treatment, as a shadow rather than a stroke. */
-  :root[data-baronly] .bb-cam {
-    filter:
-      drop-shadow(1px 0 0 #05070a) drop-shadow(-1px 0 0 #05070a)
-      drop-shadow(0 1px 0 #05070a) drop-shadow(0 -1px 0 #05070a);
-  }
-
-  /* The mark sits with the label; the number is pushed to the far end. With
-     three children, space-between would spread all three evenly and put the
-     camera at one edge of its own. */
-  .bb-cam {
-    flex: none;
-    align-self: center;              /* the row is baseline-aligned; an icon has none */
-    width: clamp(15px, 1vw, 24px);
-    height: clamp(15px, 1vw, 24px);
-    color: rgb(var(--pre-hi-rgb));
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.85));
-  }
-  .bb-num { margin-left: auto; }
-
-  .bb-row {
-    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-    /* The label is a phrase, not a readout, so it takes the body face rather
-       than the monospace one — letterforms over column alignment. Only the
-       number needs to line up with itself between updates. */
-    font-family: var(--font);
-    font-size: clamp(14px, .95vw, 23px);
-    font-weight: 700;
-    letter-spacing: .02em;
-    color: #fff;
-    margin-bottom: 7px;
-    text-shadow: 0 2px 6px rgba(0,0,0,.85);
-  }
-  .bb-row .bb-num {
-    font-family: var(--mono);
-    color: rgb(var(--pre-hi-rgb));
-    font-size: clamp(16px, 1.15vw, 28px);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-  .bb-track {
-    height: clamp(8px, .58vw, 14px);
-    border-radius: 99px;
-    background: rgba(255,255,255,.16);
-    overflow: hidden;
-  }
-  .bb-track i {
-    display: block; height: 100%; width: 100%;
-    background: linear-gradient(90deg, rgb(var(--pre-rgb)), rgb(var(--pre-hi-rgb)));
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform .5s cubic-bezier(.2,.9,.3,1);
-  }
-  .bitsbar.near { border-color: rgba(var(--pre-rgb),.5); }
-  .bitsbar.near .bb-track i { background: linear-gradient(90deg, rgb(var(--acc-rgb)), rgb(var(--pre-hi-rgb))); }
+  /* The goal in the same ink at a smaller size, so the eye lands on the count. */
+  .bb-goal { font-size: calc(30 * var(--u)); line-height: 1; font-weight: 800; margin-left: calc(-1 * var(--u)); }
+  .bb-unit { font-size: calc(26 * var(--u)); line-height: 1; font-weight: 800; }
 
   /* the receipt that floats up when somebody pays */
   .bitspop {
@@ -696,187 +768,296 @@
     font-family: var(--mono);
     font-size: 13px;
     font-weight: 700;
-    color: rgb(var(--pre-hi-rgb));
+    color: rgb(var(--glow-rgb));
     text-shadow: 0 2px 8px rgba(0,0,0,.8);
     white-space: nowrap;
     pointer-events: none;
     font-variant-numeric: tabular-nums;
   }
 
-  /* ---------- last hit ---------- */
+  /* ---------- last hit, then 3 - 2 - 1: one plate ----------
+     A clear glass plate with the name on it, filling with liquid from the
+     bottom over the name card's three seconds: the press that tipped the bar
+     over is the one that fills it. Then the name steps back and the count
+     comes forward — the plate itself never moves, and the liquid stays full,
+     because the party is what empties anything (docs/party-look-plan.md §2.2).
+
+     Sized in --u, one pixel of a 1920 canvas, so a 1280 source draws the same
+     plate two thirds as big. The liquid is a canvas (91-the-liquid.js): a
+     tiled wave can only repeat one shape, and this surface is three.
+
+     Every way in and out is a transition. .pre is where it comes in FROM,
+     which is not where it leaves TO; visibility waits for the fade on the way
+     out, so the page's text is empty whenever nothing is on screen (the
+     "nothing is on screen" check reads the text). */
   .lasthit {
+    --u: calc(100vw / 1920);
     position: fixed; inset: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px;
-    text-align: center;
+    display: grid; place-items: center;
     color: #fff;
+    font-family: var(--font);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    transition: opacity 1s ease, visibility 0s linear 1s;
   }
-  .lasthit.on { opacity: 1; visibility: visible; }
-  .lh-eyebrow {
-    font-family: var(--mono);
-    font-size: clamp(12px, 1.8vw, 20px);
-    letter-spacing: .3em;
-    color: rgb(var(--pre-hi-rgb));
-  }
-  .lh-name {
-    /* The whole point of the moment: one person's name, on a full screen, for
-       three seconds. At 5.6vw it read as a caption rather than an announcement. */
-    font-size: clamp(34px, 8vw, 96px);
-    font-weight: 900;
-    line-height: 1.1;
-    text-shadow: 0 4px 24px rgba(0,0,0,.7);
-    word-break: break-all;
-  }
-  .lh-sub {
-    font-size: clamp(14px, 2.2vw, 26px);
-    font-weight: 700;
-    text-shadow: 0 2px 12px rgba(0,0,0,.7);
-  }
+  .lasthit.on { opacity: 1; visibility: visible; transition: opacity .45s ease, visibility 0s; }
+  .lasthit.pre, .lasthit.pre * { transition: none !important; }
 
-  /* ---------- 3 - 2 - 1 ---------- */
-  .countdown {
-    position: fixed; inset: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 4px;
-    color: #fff;
-    background: radial-gradient(circle at 50% 48%, rgba(0,0,0,.5), rgba(0,0,0,0) 62%);
+  .plate {
+    position: relative;
+    overflow: hidden;
+    display: grid; place-items: center;
+    min-width: calc(720 * var(--u));
+    max-width: calc(1560 * var(--u));
+    padding: calc(30 * var(--u)) calc(84 * var(--u)) calc(40 * var(--u));
+    border-radius: calc(64 * var(--u));
+    background: var(--glass);
+    box-shadow: 0 0 0 calc(2.4 * var(--u)) rgba(0,0,0,.3), 0 calc(10 * var(--u)) calc(28 * var(--u)) rgba(0,0,0,.28);
+    transform: scale(.97);
     opacity: 0;
-    visibility: hidden;
-    transition: opacity .22s ease, visibility .22s;
+    transition: transform 1s ease, opacity 1s ease;
+  }
+  .lasthit.on .plate {
+    transform: none;
+    opacity: 1;
+    transition: transform .5s cubic-bezier(.3,1.35,.5,1), opacity .35s ease;
+  }
+  .lasthit.pre .plate { transform: translateY(calc(34 * var(--u))) scale(.94); opacity: 0; }
+  /* The glass over the liquid: the rim, the shading at the bottom and the
+     light it catches there. No reflection along the top, as on the bar. */
+  .plate::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
     pointer-events: none;
+    z-index: 2;
+    box-shadow:
+      inset 0 0 0 calc(4 * var(--u)) rgba(255,255,255,.55),
+      inset 0 calc(-16 * var(--u)) calc(22 * var(--u)) rgba(0,0,0,.26),
+      inset 0 calc(-4 * var(--u)) 0 rgba(255,255,255,.22);
   }
-  .countdown.on { opacity: 1; visibility: visible; }
-  /* A party nobody bought has nobody to name, and the two lines above the
-     number are about a person. Hidden rather than blank: "LAST HIT" over an
-     empty line announces somebody who is not there. */
-  .countdown [hidden] { display: none; }
-  .cd-eyebrow {
-    font-family: var(--mono);
-    font-size: clamp(9px, 1.1vw, 12px);
-    letter-spacing: .3em;
-    color: rgb(var(--pre-hi-rgb));
-    text-shadow: 0 2px 10px rgba(0,0,0,.85);
+  .plate-liq { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
+  /* The edge scales with the type here, not with --u: the plate's words run
+     from 30 to 150 canvas pixels, far wider than the bar's two sizes. */
+  .plate .g-ol { --e: .055em; }
+
+  /* The name face. */
+  .lh-face {
+    position: relative; z-index: 3;
+    display: grid; justify-items: center;
+    transition: opacity .35s ease, transform .35s ease;
   }
-  .cd-name {
-    font-size: clamp(18px, 3.4vw, 38px);
-    font-weight: 900;
-    line-height: 1.15;
-    text-shadow: 0 3px 20px rgba(0,0,0,.8);
-    word-break: break-all;
-    margin-bottom: 2px;
+  .lh-eyebrow { font-size: calc(36 * var(--u)); font-weight: 800; color: rgb(var(--acc-hi-rgb)); }
+  /* One line, always: the name is measured and the type shrunk to fit
+     (showLastHit). Wrapping put a long name on two lines of a card whose
+     whole job is to show one person. */
+  .lh-name { font-weight: 900; line-height: 1.14; white-space: nowrap; }
+  .lh-sub { font-size: calc(40 * var(--u)); font-weight: 800; }
+  .lh-sub:empty { display: none; }
+
+  /* The count face, over the name face in the same plate. */
+  .cd-face {
+    position: absolute; inset: 0; z-index: 3;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: calc(2 * var(--u));
+    opacity: 0;
+    transform: scale(1.06);
+    transition: opacity .35s ease .1s, transform .45s cubic-bezier(.3,1.3,.5,1) .1s;
   }
-  .cd-num {
-    font-size: clamp(52px, 12vw, 138px);
-    font-weight: 900;
-    line-height: 1.05;
-    color: rgb(var(--acc-hi-rgb));
-    font-variant-numeric: tabular-nums;
-    text-shadow: 0 6px 44px rgba(0,0,0,.8);
+  .lasthit.cd .lh-face { opacity: 0; transform: scale(.94); }
+  .lasthit.cd .cd-face { opacity: 1; transform: none; }
+  .cd-who { font-size: calc(30 * var(--u)); font-weight: 800; display: flex; gap: .45em; align-items: baseline; }
+  .cd-who b { color: rgb(var(--acc-hi-rgb)); font-weight: 800; }
+  .cd-num { font-size: calc(150 * var(--u)); font-weight: 900; line-height: .92; font-variant-numeric: tabular-nums; }
+  .cd-sub { font-size: calc(34 * var(--u)); font-weight: 800; }
+
+  /* A party nobody bought has nobody to name: the heading that labels a
+     person goes, on both faces, rather than announcing somebody who is not
+     there. The event's own name stands in the name's place (showLastHit). */
+  .lasthit.nameless .lh-eyebrow,
+  .lasthit.nameless .cd-who { display: none; }
+  .lasthit.nameless .plate { padding-block: calc(44 * var(--u)) calc(52 * var(--u)); }
+
+  /* The self-timer lamp: a small dot, faster each second — 1, 2, then 2.9
+     flashes a second. Under the full-frame 3Hz line on its own terms too,
+     though it is a dot in a corner and not a flash of the frame (§4.6). */
+  .plate-lamp {
+    position: absolute; z-index: 4;
+    top: calc(18 * var(--u)); right: calc(34 * var(--u));
+    width: calc(20 * var(--u)); height: calc(20 * var(--u));
+    border-radius: 50%;
+    background: rgb(var(--acc-rgb));
+    box-shadow: 0 0 0 calc(3 * var(--u)) #fff, 0 0 calc(14 * var(--u)) rgba(var(--acc-rgb),.9);
+    opacity: 0;
+    transition: opacity .3s;
   }
-  .cd-sub {
-    font-family: var(--mono);
-    font-size: clamp(11px, 1.7vw, 17px);
-    letter-spacing: .24em;
-    text-shadow: 0 2px 14px rgba(0,0,0,.85);
+  .lasthit.cd .plate-lamp { opacity: 1; animation: plateLamp 1s steps(1, end) infinite; }
+  .lasthit[data-n="2"] .plate-lamp { animation-duration: .5s; }
+  .lasthit[data-n="1"] .plate-lamp { animation-duration: .34s; }
+  .lasthit[data-n="0"] .plate-lamp {
+    animation: none;
+    background: rgb(var(--acc-deep-rgb));
+    box-shadow: 0 0 0 calc(3 * var(--u)) rgba(255,255,255,.75);
+  }
+  @keyframes plateLamp {
+    50% { background: rgb(var(--acc-deep-rgb)); box-shadow: 0 0 0 calc(3 * var(--u)) rgba(255,255,255,.75); }
   }
 
-  /* ---------- the party banner ---------- */
+  /* ---------- the party banner ----------
+     The goal bar's twin, top centre: the same camera, the same tube at the
+     same height, the same type — the liquid the viewers filled, emptying over
+     the party. On the right, the seconds left; under it, the one line.
+     Built from the glass parts (g-), so the two cannot drift apart. --u is
+     the bar's own (a 1080p frame draws a 44px tube, the height of a 480x56
+     bar source). The liquid's reach, --r, is set by the banner's clock
+     (92-bar-and-party.js) four times a second, and the width transition is
+     that quarter second, linear, so the steps run together into one drain. */
   .banner {
+    --u: calc(56vw / 1920);
     position: fixed;
-    top: 0; left: 0; right: 0;
-    padding: 16px 20px 13px;
-    background: linear-gradient(180deg, rgba(var(--acc-rgb),.86) 0%, rgba(var(--acc-deep-rgb),.74) 70%, rgba(var(--acc-deep-rgb),0) 100%);
-    color: #fff;
-    transform: translateY(-100%);
-    visibility: hidden;
-    transition: transform .42s cubic-bezier(.2,.9,.3,1), visibility .42s;
-    pointer-events: none;
-  }
-  .banner.on { transform: translateY(0); visibility: visible; }
-  .banner .ttl {
-    font-size: clamp(19px, 2.9vw, 30px);
-    font-weight: 900;
-    letter-spacing: .06em;
-    text-shadow: 0 2px 12px rgba(0,0,0,.4);
-    margin: 0;
-    line-height: 1.2;
-  }
-  .banner .lede { font-family: var(--mono); font-size: clamp(11px, 1.3vw, 13px); opacity: .92; margin-top: 2px; }
-  .banner .bar { height: 4px; margin-top: 10px; background: rgba(255,255,255,.28); border-radius: 2px; overflow: hidden; }
-  .banner .bar i { display: block; height: 100%; width: 100%; background: rgb(var(--acc-hi-rgb)); transform-origin: left center; }
-
-  /* ---------- contact sheet ---------- */
-  .sheet {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(6,8,11,.78);
+    top: calc(54 * var(--u)); left: 50%;
+    width: calc(1140 * var(--u));
+    margin-left: calc(-570 * var(--u));
+    display: grid; justify-items: center;
+    row-gap: calc(8 * var(--u));
     opacity: 0;
     visibility: hidden;
-    transition: opacity .3s ease, visibility .3s;
     pointer-events: none;
+    transform: translateY(calc(-268 * var(--u)));
+    transition: opacity .5s ease, visibility 0s linear .5s, transform .5s cubic-bezier(.5,0,.75,0);
   }
-  .sheet.on { opacity: 1; visibility: visible; }
-  .sheet-inner {
-    background: #14120f;
-    border: 1px solid #3a332a;
-    padding: clamp(12px, 2vw, 20px);
-    border-radius: 4px;
-    width: min(78%, 640px);
-    transform: scale(.92);
-    transition: transform .34s cubic-bezier(.2,1.2,.35,1);
+  .banner.on {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity .35s ease, visibility 0s, transform .55s cubic-bezier(.3,1.25,.5,1);
   }
-  .sheet.on .sheet-inner { transform: scale(1); }
-  .sheet-head {
+  .banner .g-row { width: 100%; }
+  .banner .g-liq { transition: width .26s linear; }
+  /* Set without motion when the banner first comes down or rejoins. */
+  .banner.pre .g-liq { transition: none; }
+  .banner-sec { align-items: center; }
+  .banner-sec svg {
+    width: calc(38 * var(--u)); height: calc(38 * var(--u));
+    overflow: visible;
+    filter: drop-shadow(0 0 calc(2.9 * var(--u)) rgba(var(--edge-rgb),.95)) drop-shadow(0 0 calc(2.9 * var(--u)) rgba(var(--edge-rgb),.95));
+  }
+  .banner-lede { font-size: calc(38 * var(--u)); font-weight: 800; white-space: nowrap; }
+
+  /* ---------- contact sheet ----------
+     Nine prints laid on a glass tray: the same clear glass as the plate and
+     the bar, the prints on paper with a white margin, the heading, the time
+     and the tally in outlined white. The middle of the frame darkens a
+     little in the palette's own ink; the rest of the stream stays.
+
+     One layout for the broadcast and for the saved file. Everything is in
+     --u, and the tray is 900u wide in both: on stream --u is a pixel of a
+     1920 frame, in the card source it is whatever makes the tray fill the
+     file (card mode, below). sheetSizeFor() (60-capture.js) computes the
+     file's height from the same numbers — the tray's padding, the row gaps,
+     the fixed heights of the heading and the tally, the grid's gaps and the
+     paper — so a change here is a change there, or the bottom of the saved
+     sheet is cut off. The heading and the tally have fixed heights for that
+     reason: a line box that grows with the font would make it a guess.
+
+     The prints are the grid's canvases themselves, with the paper as their
+     padding — no wrapper, so the card's copy of the sheet is built the same
+     way (10-card-mode.js). A paid print is on the same neutral paper: the
+     sheet knows which nine were paid for but not how much
+     (docs/party-look-plan.md §5 の2). */
+  .sheet {
+    --u: calc(100vw / 1920);
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background: radial-gradient(ellipse at 50% 50%, rgba(var(--edge-rgb),.36), rgba(var(--edge-rgb),.08) 70%);
+    color: #fff;
+    font-family: var(--font);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .6s ease, visibility 0s linear .6s;
+  }
+  .sheet.on { opacity: 1; visibility: visible; transition: opacity .4s ease, visibility 0s; }
+  .sheet.pre, .sheet.pre * { transition: none !important; }
+
+  .sheet-tray {
+    position: relative;
+    width: calc(900 * var(--u));
+    box-sizing: border-box;
+    padding: calc(28 * var(--u)) calc(44 * var(--u)) calc(30 * var(--u));
+    display: grid;
+    row-gap: calc(14 * var(--u));
+    border-radius: calc(44 * var(--u));
+    background: var(--glass);
+    box-shadow: 0 0 0 calc(2.4 * var(--u)) rgba(0,0,0,.3), 0 calc(10 * var(--u)) calc(28 * var(--u)) rgba(0,0,0,.28);
+    /* It sinks on the way out. */
+    transform: translateY(calc(30 * var(--u))) scale(.97);
+    transition: transform .6s cubic-bezier(.5,0,.75,0);
+  }
+  .sheet.on .sheet-tray { transform: none; transition: transform .5s cubic-bezier(.3,1.3,.5,1); }
+  .sheet.pre .sheet-tray { transform: scale(.92); }
+  .sheet-tray::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 calc(4 * var(--u)) rgba(255,255,255,.55),
+      inset 0 calc(-16 * var(--u)) calc(22 * var(--u)) rgba(0,0,0,.26),
+      inset 0 calc(-4 * var(--u)) 0 rgba(255,255,255,.22);
+  }
+  .sheet .g-ol { --e: .055em; }
+  .sheet-head, .sheet-foot {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-family: var(--mono);
-    font-size: clamp(10px, 1.2vw, 12px);
-    color: rgb(var(--pre-rgb));
-    letter-spacing: .12em;
-    margin-bottom: 9px;
-    text-transform: uppercase;
+    font-weight: 800;
+    line-height: 1;
   }
-  .sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-  /* No object-fit and no aspect-ratio: each cell is already just the subject,
-     and every cell comes from the same capture, so they line up. */
+  .sheet-head { height: calc(52 * var(--u)); font-size: calc(32 * var(--u)); }
+  .sheet-head span:first-child { font-size: calc(46 * var(--u)); font-weight: 900; }
+  .sheet-foot { height: calc(40 * var(--u)); font-size: calc(32 * var(--u)); justify-content: flex-end; font-variant-numeric: tabular-nums; }
+
+  .sheet-grid {
+    position: relative; z-index: 3;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: calc(18 * var(--u)) calc(16 * var(--u));
+  }
   /* Scattered rather than ruled. A contact sheet is a printer's object and
      this is the end of a party — the nine came out of twenty seconds of
      everybody shooting at once, and a perfect grid says the opposite.
-     The tilt is per-cell and fixed, not random: the sheet is drawn twice, once
-     on the broadcast and once inside the card source that gets saved, and the
-     two have to be the same picture.
-     Only rotation and shadow, so the grid keeps its measurements — sheetSizeFor()
-     computes the saved source's height from SHEET_GAP and the cell size, and
-     anything that moved the boxes would have to be repeated there. At 3 degrees
-     a cell overhangs by about a quarter of the gap. */
+     The tilt is per-print and fixed, not random: the sheet is drawn twice,
+     once on the broadcast and once inside the card source that gets saved,
+     and the two have to be the same picture. Only rotation and shadow, so
+     the grid keeps its measurements (sheetSizeFor). */
   .sheet-grid canvas {
-    display: block; width: 100%; height: auto; background: #222;
+    display: block;
+    width: 100%; height: auto;
+    box-sizing: border-box;
+    padding: calc(8 * var(--u));
+    background: #fbfaf6;
+    border-radius: calc(3 * var(--u));
     position: relative;
     transform: rotate(var(--tilt, 0deg));
-    /* The first shadow is the print's white edge; the second lifts it off the
-       one underneath, which is what makes the overlap read as a pile. */
-    box-shadow: 0 0 0 3px #fbf8f2, 0 4px 12px rgba(0,0,0,.55);
+    box-shadow: 0 calc(6 * var(--u)) calc(16 * var(--u)) rgba(0,0,0,.4);
   }
-  .sheet-grid canvas:nth-child(1) { --tilt: -3deg;  z-index: 3; }
-  .sheet-grid canvas:nth-child(2) { --tilt: 1.8deg; z-index: 6; }
-  .sheet-grid canvas:nth-child(3) { --tilt: -1.2deg; z-index: 2; }
-  .sheet-grid canvas:nth-child(4) { --tilt: 2.6deg; z-index: 7; }
-  .sheet-grid canvas:nth-child(5) { --tilt: -2.2deg; z-index: 9; }
-  .sheet-grid canvas:nth-child(6) { --tilt: 1.4deg; z-index: 4; }
-  .sheet-grid canvas:nth-child(7) { --tilt: -2.7deg; z-index: 8; }
-  .sheet-grid canvas:nth-child(8) { --tilt: 2.2deg; z-index: 5; }
-  .sheet-grid canvas:nth-child(9) { --tilt: -1.6deg; z-index: 1; }
-  .sheet-foot {
-    margin-top: 10px;
-    color: #f3ece0;
-    font-family: var(--mono);
-    font-size: clamp(11px, 1.4vw, 14px);
-    font-variant-numeric: tabular-nums;
-    display: flex; justify-content: flex-end;
+  .sheet-grid canvas:nth-child(1) { --tilt: -3deg;  --i: 0; z-index: 3; }
+  .sheet-grid canvas:nth-child(2) { --tilt: 1.8deg; --i: 1; z-index: 6; }
+  .sheet-grid canvas:nth-child(3) { --tilt: -1.2deg; --i: 2; z-index: 2; }
+  .sheet-grid canvas:nth-child(4) { --tilt: 2.6deg; --i: 3; z-index: 7; }
+  .sheet-grid canvas:nth-child(5) { --tilt: -2.2deg; --i: 4; z-index: 9; }
+  .sheet-grid canvas:nth-child(6) { --tilt: 1.4deg; --i: 5; z-index: 4; }
+  .sheet-grid canvas:nth-child(7) { --tilt: -2.7deg; --i: 6; z-index: 8; }
+  .sheet-grid canvas:nth-child(8) { --tilt: 2.2deg; --i: 7; z-index: 5; }
+  .sheet-grid canvas:nth-child(9) { --tilt: -1.6deg; --i: 8; z-index: 1; }
+  /* The prints drop onto the tray one after another. */
+  .sheet.on .sheet-grid canvas {
+    animation: sheetDrop .42s cubic-bezier(.3,1.3,.5,1) both;
+    animation-delay: calc(.2s + var(--i, 0) * 70ms);
   }
-  .sheet-foot b { color: rgb(var(--pre-hi-rgb)); }
+  @keyframes sheetDrop {
+    from { opacity: 0; transform: translateY(calc(-60 * var(--u))) rotate(calc(var(--tilt, 0deg) * 3)) scale(1.15); }
+    to   { opacity: 1; transform: rotate(var(--tilt, 0deg)); }
+  }
 
   /* ---------- card mode (docs/plan.md §6, framed saving) ----------
 
@@ -895,30 +1076,25 @@
   :root[data-card] .phase-state,
   :root[data-card] .bitsbar,
   :root[data-card] .lasthit,
-  :root[data-card] .countdown,
   :root[data-card] .banner,
   :root[data-card] .sheet { display: none !important; }
 
   /* The contact sheet has a second life as a file. Same markup, same layout —
-     what is saved is what the channel just watched — but sized to fill its own
-     source, opened rather than faded in, and on a solid ground: the version on
-     stream is a scrim over the video, and a scrim over nothing is just muddy. */
+     what is saved is what the channel just watched — but filling its own
+     source, there at once rather than coming in, and on solid ground: a clear
+     tray over nothing is no tray. The ground and the tray are the "thin
+     black" glass made opaque; the rim draws the tray's edge on it.
+     --u makes the 900u tray fill the width less SHEET_PAD on each side
+     (60-capture.js sheetSizeFor sizes the source from the same numbers). */
   :root[data-card][data-sheet] .card { display: none !important; }
   :root[data-card][data-sheet] .sheet {
-    display: flex !important;
+    --u: calc((100vw - 80px) / 900);
+    display: grid !important;
     opacity: 1; visibility: visible; transition: none;
-    background: #0b0d10;
-    padding: 26px;
+    background: rgb(12,10,20);
   }
-  :root[data-card][data-sheet] .sheet-inner {
-    width: 100%; transform: none; transition: none; padding: 22px;
-  }
-  /* Fixed sizes, not the stream's clamp()/vw: the source is measured in JS to
-     hold exactly this, and a font that resizes with the viewport would make
-     that measurement a guess. */
-  :root[data-card][data-sheet] .sheet-head { font-size: 15px; margin-bottom: 12px; }
-  :root[data-card][data-sheet] .sheet-grid { gap: 8px; }
-  :root[data-card][data-sheet] .sheet-foot { font-size: 18px; margin-top: 14px; }
+  :root[data-card][data-sheet] .sheet-tray { transform: none; transition: none; background: rgb(12,10,20); }
+  :root[data-card][data-sheet] .sheet-grid canvas { animation: none; }
 
   .card { display: none; }
   :root[data-card] .card {
@@ -1062,21 +1238,29 @@
     aspect-ratio: 1;
     transform: translate(-50%, -50%) scale(.12);
     border-radius: 50%;
-    border: 7px solid rgba(var(--pre-hi-rgb),.95);
-    box-shadow: 0 0 60px rgba(var(--pre-rgb),.85), inset 0 0 40px rgba(var(--pre-rgb),.55);
+    border: 7px solid rgba(var(--glow-rgb),.95);
+    box-shadow: 0 0 60px rgba(var(--glow-rgb),.85), inset 0 0 40px rgba(var(--glow-rgb),.55);
     opacity: 0;
     pointer-events: none;
     will-change: transform, opacity;
   }
 
-  /* the gold afterglow of a large purchase; the white punch is #ovFlash */
+  /* the afterglow of a large purchase, in the amount's colour; the white punch
+     is #ovFlash. The centre stop (.6) is read by tools/overlay-invariants.mjs
+     for the two-layer ceiling, so it stays the first rgba() here. */
   #ovGold {
-    background: radial-gradient(circle at 50% 55%, rgba(var(--pre-hi-rgb),.6), rgba(var(--pre-rgb),.28) 45%, rgba(var(--pre-deep-rgb),0) 72%);
+    background: radial-gradient(circle at 50% 55%, rgba(var(--glow-rgb),.6), rgba(var(--glow-rgb),.28) 45%, rgba(var(--glow-rgb),0) 72%);
     opacity: 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .bitsbar, .banner, .sheet, .sheet-inner, .countdown { transition: none; }
+    .bitsbar, .bitsbar.on, .banner, .sheet, .sheet-tray { transition: none; }
+    .sheet.on .sheet-grid canvas { animation: none; }
+    /* The plate still comes and goes, without moving; the lamp holds still. */
+    .lasthit, .lasthit *, .plate { transition: none !important; }
+    .plate-lamp, .lasthit.cd .plate-lamp { animation: none; }
+    /* The liquid stands still: no wave, no slide. The level still changes. */
+    .g-liq { animation: none; transition: none; }
   }
 
   /* The status chip is the only thing this page can draw that is not an effect,
@@ -1094,54 +1278,87 @@
 
 <!-- The bar, and the sequence it sets off. Everything here is driven by the
      EBS: this page owns none of the arithmetic, only the playback. -->
-<div class="bitsbar" id="bitsBar">
-  <div class="bb-row">
-    <!-- The one mark on the broadcast that says what this bar is for. The bar
-         is the longest-lived thing this extension puts on screen, and without
-         it the strip is a number counting down to a phrase. -->
-    <svg class="bb-cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M14.5 4h-5L8 6.5H4.5A1.5 1.5 0 0 0 3 8v10a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V8a1.5 1.5 0 0 0-1.5-1.5H16z"/>
-      <circle cx="12" cy="12.5" r="3.4"/>
-    </svg>
-    <span id="bbLabel"></span>
+<div class="bitsbar g-row" id="bitsBar">
+  <!-- The one mark on the broadcast that says what this bar is for. The bar
+       is the longest-lived thing this extension puts on screen, and without
+       it the strip is a number filling towards a phrase. Solid, with a white
+       edge drawn under it (paint-order), so it needs no frame to be seen. -->
+  <svg class="g-cam" viewBox="0 0 24 24" aria-hidden="true">
+    <!-- Named white rather than written as a hex code in quotes:
+         tools/contract-check.mjs reads every quoted hash-and-word in this file
+         as a URL mode flag (bar, card, demo), comments included. -->
+    <path d="M14.5 4h-5L8 6.5H4.5A1.5 1.5 0 0 0 3 8v10a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V8a1.5 1.5 0 0 0-1.5-1.5H16z"
+          fill="currentColor" stroke="white" stroke-width="3.2" stroke-linejoin="round" paint-order="stroke"/>
+    <circle cx="12" cy="12.6" r="4.3" fill="white"/>
+    <circle cx="12" cy="12.6" r="2.5" fill="currentColor"/>
+    <rect x="5.2" y="8.5" width="2.6" height="1.5" rx=".6" fill="white"/>
+  </svg>
+  <div class="g-tube">
+    <i class="g-liq g-back"></i>
+    <i class="g-liq g-front"></i>
+    <span class="g-bub" id="bbBub"></span>
+    <!-- The event's name, which is English in every language (CLAUDE.md), so
+         the bar has no word to translate — the same as the banner and the
+         contact sheet below. -->
+    <span class="g-ol g-label">SHUTTER PARTY</span>
     <!-- pt, not Bits. A free press moves this bar too (freeWeight), so the
          number is a total of both and calling it Bits was wrong: a viewer could
          read "380 Bits" and conclude that only Bits get there. Not translated,
          for the same reason Bits is not — it is a unit, and one that has to
          mean the same thing on every channel. -->
-    <span class="bb-num"><b id="bbRemain">0</b> pt</span>
+    <span class="g-ol g-fig"><b id="bbPool">0</b><span class="bb-goal" id="bbGoal"></span><span class="bb-unit">pt</span></span>
   </div>
-  <div class="bb-track"><i id="bbFill"></i></div>
 </div>
 
+<!-- The name card and the 3-2-1 are one plate: the name steps back and the
+     count comes forward in the same glass. LAST HIT is English in every
+     language, like SHUTTER PARTY (CLAUDE.md); the line under each is not. -->
 <div class="lasthit" id="lastHit">
-  <span class="lh-eyebrow">LAST HIT</span>
-  <span class="lh-name" id="lhName"></span>
-  <span class="lh-sub" id="lhSub"></span>
+  <div class="plate">
+    <canvas class="plate-liq" id="lhLiquid"></canvas>
+    <i class="plate-lamp"></i>
+    <div class="lh-face">
+      <span class="g-ol lh-eyebrow">LAST HIT</span>
+      <span class="g-ol lh-name" id="lhName"></span>
+      <span class="g-ol lh-sub" id="lhSub"></span>
+    </div>
+    <div class="cd-face">
+      <span class="g-ol cd-who"><b>LAST HIT</b><span id="cdName"></span></span>
+      <span class="g-ol cd-num" id="cdNum">3</span>
+      <span class="g-ol cd-sub" id="cdSub"></span>
+    </div>
+  </div>
 </div>
 
-<div class="countdown" id="countdown">
-  <span class="cd-eyebrow" id="cdEyebrow">LAST HIT</span>
-  <span class="cd-name" id="cdName"></span>
-  <span class="cd-num" id="cdNum">3</span>
-  <span class="cd-sub" id="cdSub"></span>
-</div>
-
+<!-- The goal bar's twin: the liquid the viewers filled, emptying over the
+     party. The seconds are a number and a stopwatch, not a word: nothing here
+     needs translating but the one line under it. -->
 <div class="banner" id="banner">
-  <p class="ttl">SHUTTER PARTY</p>
-  <p class="lede" id="bannerLede"></p>
-  <div class="bar"><i id="bannerBar"></i></div>
+  <div class="g-row">
+    <!-- The camera is the bar's own, cloned in at load (92-bar-and-party.js):
+         one drawing of it, not two. -->
+    <div class="g-tube">
+      <i class="g-liq g-back"></i>
+      <i class="g-liq g-front"></i>
+      <span class="g-bub" id="bannerBub"></span>
+      <span class="g-ol g-label">SHUTTER PARTY</span>
+      <span class="g-ol g-fig banner-sec">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="8" fill="none" stroke="white" stroke-width="2.8"/><path d="M12 13.5V9.2M9.5 2.8h5M18.6 6.6l1.3-1.3" stroke="white" stroke-width="2.8" stroke-linecap="round" fill="none"/></svg>
+        <b id="bannerSec">20</b>
+      </span>
+    </div>
+  </div>
+  <span class="g-ol banner-lede" id="bannerLede"></span>
 </div>
 
 <div class="sheet" id="sheet">
-  <div class="sheet-inner">
+  <div class="sheet-tray">
     <div class="sheet-head">
-      <span>SHUTTER PARTY</span>
-      <span id="sheetTime"></span>
+      <span class="g-ol">SHUTTER PARTY</span>
+      <span class="g-ol" id="sheetTime"></span>
     </div>
     <div class="sheet-grid" id="sheetGrid"></div>
-    <div class="sheet-foot">
+    <div class="sheet-foot g-ol">
       <span id="sheetTally"></span>
     </div>
   </div>
@@ -1202,7 +1419,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-663b67753745";
+  var BUILD = "sp-9e6c385ee215";
   /* @end build */
 
   /**
@@ -1514,7 +1731,6 @@
   var I18N = {
     ja: {
       /* STAGE — on the air, all twelve languages */
-      "bar.label": "SHUTTER PARTY まで",
       "lasthit.sub": "が SHUTTER PARTY を開いた",
       "countdown.sub": "まもなく SHUTTER PARTY",
       "banner.lede": "20秒間 撮り放題・クールダウン解除",
@@ -1576,7 +1792,6 @@
     },
     en: {
       /* STAGE */
-      "bar.label": "TO SHUTTER PARTY",
       "lasthit.sub": "opened the SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY STARTING",
       "banner.lede": "20 seconds, shoot all you like — cooldown lifted",
@@ -1643,7 +1858,6 @@
        English everywhere; only Japanese renames the product itself. */
     zh: {
       "counter": "{n} 人正在拍摄",
-      "bar.label": "距离 SHUTTER PARTY",
       "lasthit.sub": "开启了 SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY 即将开始",
       "banner.lede": "20 秒随便拍 — 冷却解除",
@@ -1711,7 +1925,6 @@
     },
     es: {
       "counter": "{n} disparando ahora",
-      "bar.label": "HASTA SHUTTER PARTY",
       "lasthit.sub": "abrió la SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY A PUNTO DE EMPEZAR",
       "banner.lede": "20 segundos para disparar sin límite — enfriamiento levantado",
@@ -1779,7 +1992,6 @@
     },
     pt: {
       "counter": "{n} fotografando agora",
-      "bar.label": "ATÉ A SHUTTER PARTY",
       "lasthit.sub": "abriu a SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY COMEÇANDO",
       "banner.lede": "20 segundos para fotografar à vontade — recarga liberada",
@@ -1847,7 +2059,6 @@
     },
     de: {
       "counter": "{n} fotografieren gerade",
-      "bar.label": "BIS ZUR SHUTTER PARTY",
       "lasthit.sub": "hat die SHUTTER PARTY eröffnet",
       "countdown.sub": "SHUTTER PARTY STARTET GLEICH",
       "banner.lede": "20 Sekunden freies Fotografieren — Abklingzeit aufgehoben",
@@ -1915,7 +2126,6 @@
     },
     fr: {
       "counter": "{n} en train de photographier",
-      "bar.label": "AVANT LA SHUTTER PARTY",
       "lasthit.sub": "a lancé la SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY IMMINENTE",
       "banner.lede": "20 secondes de photos à volonté — délai levé",
@@ -1983,7 +2193,6 @@
     },
     ru: {
       "counter": "снимают: {n}",
-      "bar.label": "ДО SHUTTER PARTY",
       "lasthit.sub": "открыл SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY НАЧИНАЕТСЯ",
       "banner.lede": "20 секунд — снимайте сколько угодно, перезарядка снята",
@@ -2051,7 +2260,6 @@
     },
     ko: {
       "counter": "{n}명이 촬영 중",
-      "bar.label": "SHUTTER PARTY 까지",
       "lasthit.sub": "님이 SHUTTER PARTY 를 열었습니다",
       "countdown.sub": "곧 SHUTTER PARTY 시작",
       "banner.lede": "20초 동안 마음껏 촬영 — 쿨다운 해제",
@@ -2119,7 +2327,6 @@
     },
     it: {
       "counter": "{n} stanno scattando",
-      "bar.label": "ALLA SHUTTER PARTY",
       "lasthit.sub": "ha aperto la SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY IN ARRIVO",
       "banner.lede": "20 secondi di scatti liberi — ricarica azzerata",
@@ -2187,7 +2394,6 @@
     },
     pl: {
       "counter": "{n} właśnie fotografuje",
-      "bar.label": "DO SHUTTER PARTY",
       "lasthit.sub": "otworzył SHUTTER PARTY",
       "countdown.sub": "SHUTTER PARTY ZARAZ RUSZA",
       "banner.lede": "20 sekund zdjęć bez limitu — odnowienie zniesione",
@@ -2255,7 +2461,6 @@
     },
     tr: {
       "counter": "{n} kişi çekiyor",
-      "bar.label": "SHUTTER PARTY'YE KALAN",
       "lasthit.sub": "SHUTTER PARTY'yi başlattı",
       "countdown.sub": "SHUTTER PARTY BAŞLIYOR",
       "banner.lede": "20 saniye boyunca serbest çekim — bekleme kalktı",
@@ -2902,8 +3107,8 @@
     preset: "standard", accent: "safelight", place: "bl", scale: "1",
     lang: "", ebs: "", ch: "", ebsToken: "",
     saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
-    stampShot: "on", stampSave: "datetime", scenes: "", gateSet: "",
-    testUntil: ""
+    stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
+    gateSet: "", testUntil: ""
   };
   /* @end config-defaults */
 
@@ -4614,22 +4819,37 @@
     return s + " · " + p;
   }
 
-  /** The size the sheet source has to be to hold this many subjects. */
-  var SHEET_PAD = 26;          // .sheet padding, card mode
-  var SHEET_BOX = 22;          // .sheet-inner padding
-  var SHEET_GAP = 8;           // .sheet-grid gap
-  var SHEET_HEAD = 30;         // head line + its margin
-  var SHEET_FOOT = 36;         // foot line + its margin
+  /** The size the sheet source has to be to hold this many subjects.
+   *
+   * The same numbers as the sheet's CSS (shell.html, contact sheet), counted
+   * in the tray's unit: the tray is SHEET_TRAY units wide, and in the card
+   * source it fills the width less SHEET_PAD on each side. Change one side
+   * and not the other and the bottom of the saved sheet is cut off. */
+  var SHEET_PAD = 40;          // the ground around the tray, px (card mode: 100vw - 80px)
+  var SHEET_TRAY = 900;        // .sheet-tray width, u
+  var SHEET_BOX_X = 44;        // .sheet-tray side padding, u
+  var SHEET_BOX_Y = 28 + 30;   // .sheet-tray top + bottom padding, u
+  var SHEET_ROWS_GAP = 14;     // .sheet-tray row-gap (head / grid / foot), u
+  var SHEET_HEAD = 52;         // .sheet-head height, u
+  var SHEET_FOOT = 40;         // .sheet-foot height, u
+  var SHEET_GAP_X = 16;        // .sheet-grid column gap, u
+  var SHEET_GAP_Y = 18;        // .sheet-grid row gap, u
+  var SHEET_PAPER = 8;         // a print's white margin (canvas padding), u
   var SHEET_COLS = 3;
 
   function sheetSizeFor(ratio, count) {
-    var innerW = CARD_W - 2 * SHEET_PAD - 2 * SHEET_BOX;
-    var cellW = (innerW - (SHEET_COLS - 1) * SHEET_GAP) / SHEET_COLS;
+    var u = (CARD_W - 2 * SHEET_PAD) / SHEET_TRAY;
+    var innerW = (SHEET_TRAY - 2 * SHEET_BOX_X) * u;
+    var cellW = (innerW - (SHEET_COLS - 1) * SHEET_GAP_X * u) / SHEET_COLS;
+    var paper = SHEET_PAPER * u;
+    var cellH = (cellW - 2 * paper) / ratio + 2 * paper;
     var rows = Math.max(1, Math.ceil(count / SHEET_COLS));
-    var gridH = rows * (cellW / ratio) + (rows - 1) * SHEET_GAP;
+    var gridH = rows * cellH + (rows - 1) * SHEET_GAP_Y * u;
+    var trayH = (SHEET_BOX_Y + SHEET_HEAD + SHEET_FOOT + 2 * SHEET_ROWS_GAP) * u + gridH;
     return {
       w: CARD_W,
-      h: Math.round(2 * SHEET_PAD + 2 * SHEET_BOX + SHEET_HEAD + gridH + SHEET_FOOT)
+      // Up, never down: a pixel short is the row of the last prints cut off.
+      h: Math.ceil(2 * SHEET_PAD + trayH)
     };
   }
 
@@ -5051,11 +5271,14 @@
   var liveSparks = 0;
   var lastFullFlash = 0;
 
+  // gold, when given, is the amount's colour step ("10" … "1000"): a paid
+  // spark is drawn in the colour of what was bought.
   function spark(delay, gain, gold) {
     if (liveSparks >= MAX_SPARKS) return;
     liveSparks++;
     var el = document.createElement("div");
     el.className = gold ? "spark gold" : "spark";
+    if (gold) el.style.setProperty("--glow-rgb", "var(--b" + gold + ")");
     var depth = Math.random();
     var size = ((H * 0.018) + depth * (H * 0.036)) * ovScale;
     el.style.width = size + "px";
@@ -5283,11 +5506,14 @@
     // can tell money arrived without reading a number (§4.4). The point lights
     // are silent — gain 0 — or every purchase would fire extra shutters.
     if (paid && paid.bits > 0) {
+      // The amount's colour, the same one its print is framed in. An amount
+      // below every step still glows — in the lowest one.
+      var tone = bitsTone(paid.bits) || String(BITS_STEPS[0]);
       var golds = Math.ceil((paid.bits >= 250 ? 22 : paid.bits >= 100 ? 13 : 7) * P.sparkMul);
-      for (var g = 0; g < golds; g++) spark(100 + Math.random() * 420, 0, true);
+      for (var g = 0; g < golds; g++) spark(100 + Math.random() * 420, 0, tone);
       chime(paid.bits);
-      bitsPop(paid.bits, paid.name);
-      if (paid.bits >= 250) goldPulse();
+      bitsPop(paid.bits, paid.name, tone);
+      if (paid.bits >= 250) goldPulse(tone);
     }
 
     if (tier >= P.flashFromTier) fullFlash(Math.min(1, rolling / 40));
@@ -5327,6 +5553,23 @@
   function applyAccent(name) {
     cfg.accent = name;
     document.documentElement.setAttribute("data-accent", name);
+    saveCfg(cfg);
+  }
+
+  /**
+   * What every piece of glass is made of — the goal bar's tube today, and the
+   * party's plates as they move onto the same glass (one setting for all of
+   * it, 本人の決定 2026-09-11).
+   *
+   * Clear by default: the glass is drawn by its rim, and the scene shows
+   * through it. The two tints are for a channel whose layout wants the glass
+   * to sit on something. Anything unknown is clear — a value from a
+   * newer setup page must not leave the bar without glass at all.
+   */
+  var GLASS_KINDS = ["clear", "light", "dark"];
+  function applyGlass(v) {
+    cfg.glass = GLASS_KINDS.indexOf(v) !== -1 ? v : "clear";
+    document.documentElement.setAttribute("data-glass", cfg.glass);
     saveCfg(cfg);
   }
 
@@ -6404,6 +6647,145 @@
     layoutStack();
   }
 
+  /* ================= the liquid in the last-hit plate =================
+
+     A liquid that looks poured rather than tiled. The goal bar and the banner
+     cut their wave with a mask that scrolls, and a mask can only ever repeat
+     one shape; the plate is big enough, and on screen long enough, for that to
+     show. So its surface is drawn: three waves of unrelated lengths and speeds
+     added together, so it never repeats, and roughened by how fast the level
+     is moving — a pour stirs it up, and it settles once the level stops. On
+     top of that the whole surface rocks slowly from side to side, a damped
+     slosh the pour keeps nudging. The numbers are the mock's
+     (docs/party-look-plan.md §2.1.1).
+
+     It draws only while it has something to do: fill() starts the frames and
+     stop() ends them. An animation frame left running for a plate nobody can
+     see is a frame CEF paints on every tick of the broadcast. */
+
+  function Liquid(canvas) {
+    this.cv = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.level = 0; this.from = 0; this.to = 0; this.t0 = 0; this.dur = 1;
+    this.energy = 0.22; this.tilt = 0; this.tiltV = 0;
+    this.raf = 0; this.last = 0;
+    // Random on purpose: two plates should not pour the same way.
+    this.phase = Math.random() * 100;
+  }
+
+  // Read at every pour rather than once: the palette can change between two
+  // parties (the setup page's sample changes it under a running page).
+  Liquid.prototype.colors = function () {
+    var cs = getComputedStyle(this.cv);
+    this.acc = cs.getPropertyValue("--acc-rgb").trim();
+    this.deep = cs.getPropertyValue("--acc-deep-rgb").trim();
+    this.hi = cs.getPropertyValue("--acc-hi-rgb").trim();
+    this.la = parseFloat(cs.getPropertyValue("--la")) || 0.62;
+  };
+
+  Liquid.prototype.size = function () {
+    var w = this.cv.offsetWidth, h = this.cv.offsetHeight;
+    if (this.cv.width !== w || this.cv.height !== h) { this.cv.width = w; this.cv.height = h; }
+    this.w = w; this.h = h;
+  };
+
+  /* Pour to `to` (0..1) over `dur` ms. Reduced motion draws the end state
+     once and asks for no frames at all. */
+  Liquid.prototype.fill = function (to, dur) {
+    this.colors();
+    this.size();
+    this.stop();
+    if (reduceMotion) {
+      this.level = to; this.energy = 0.22; this.tilt = 0.15;
+      this.draw(3.3);
+      return;
+    }
+    this.from = this.level; this.to = to; this.dur = Math.max(1, dur);
+    this.t0 = this.last = performance.now();
+    var self = this;
+    (function frame(now) {
+      self.step(now);
+      self.raf = requestAnimationFrame(frame);
+    })(this.t0);
+  };
+
+  Liquid.prototype.stop = function () {
+    cancelAnimationFrame(this.raf);
+    this.raf = 0;
+  };
+
+  Liquid.prototype.clear = function () {
+    this.stop();
+    this.level = 0;
+    if (this.w) this.ctx.clearRect(0, 0, this.w, this.h);
+  };
+
+  Liquid.prototype.step = function (now) {
+    var dt = Math.min(0.05, Math.max(0.001, (now - this.last) / 1000));
+    this.last = now;
+    var k = Math.min(1, (now - this.t0) / this.dur), prev = this.level;
+    this.level = this.from + (this.to - this.from) * (1 - Math.pow(1 - k, 3));
+    var speed = Math.abs(this.level - prev) / dt;        // levels per second
+    this.energy = Math.max(0.22, this.energy * Math.pow(0.4, dt), Math.min(1, speed * 1.6));
+    this.tiltV += (-this.tilt * 9 - this.tiltV * 1.5) * dt + (Math.random() - 0.5) * speed * 22 * dt;
+    this.tilt += this.tiltV * dt;
+    this.draw(now / 1000);
+  };
+
+  Liquid.prototype.surface = function (x, t, off) {
+    var w = this.w, h = this.h, a = h * 0.045 * this.energy;
+    var u = x / w * Math.PI * 2, p = this.phase + (off || 0);
+    return Math.sin(u * 1.3 + t * 1.9 + p) * a +
+           Math.sin(u * 2.9 - t * 2.7 + p * 1.7) * a * 0.55 +
+           Math.sin(u * 5.3 + t * 4.1 + p * 0.6) * a * 0.22 +
+           this.tilt * h * 0.16 * (x / w - 0.5);
+  };
+
+  Liquid.prototype.path = function (base, t, off) {
+    var c = this.ctx, w = this.w, h = this.h;
+    c.beginPath();
+    c.moveTo(0, h);
+    for (var x = 0; x <= w + 8; x += 8) c.lineTo(x, base + this.surface(x, t, off));
+    c.lineTo(w, h);
+    c.closePath();
+  };
+
+  Liquid.prototype.draw = function (t) {
+    var c = this.ctx, w = this.w, h = this.h;
+    c.clearRect(0, 0, w, h);
+    if (this.level <= 0.002 || !w || !h) return;
+    var base = h * (1 - this.level * 0.94);
+    // A paler surface just behind, on its own phase: depth.
+    this.path(base - h * 0.035, t * 0.8, 2.3);
+    c.fillStyle = "rgba(" + this.hi + ",.26)";
+    c.fill();
+    // The body, deepening downwards.
+    this.path(base, t, 0);
+    var g = c.createLinearGradient(0, base - h * 0.06, 0, h);
+    g.addColorStop(0, "rgba(" + this.acc + "," + (this.la * 0.6) + ")");
+    g.addColorStop(0.45, "rgba(" + this.acc + "," + this.la + ")");
+    g.addColorStop(1, "rgba(" + this.deep + "," + Math.min(1, this.la + 0.16) + ")");
+    c.fillStyle = g;
+    c.fill();
+    // Light caught just under the surface, kept inside the liquid.
+    c.save();
+    c.clip();
+    var g2 = c.createLinearGradient(0, base - h * 0.07, 0, base + h * 0.14);
+    g2.addColorStop(0, "rgba(255,255,255,.32)");
+    g2.addColorStop(1, "rgba(255,255,255,0)");
+    c.fillStyle = g2;
+    c.fillRect(0, base - h * 0.1, w, h * 0.26);
+    c.restore();
+    // And the surface itself: one thin bright line.
+    c.beginPath();
+    for (var x = 0; x <= w + 8; x += 8) {
+      var y = base + this.surface(x, t, 0);
+      if (x === 0) c.moveTo(x, y); else c.lineTo(x, y);
+    }
+    c.strokeStyle = "rgba(255,255,255,.5)";
+    c.lineWidth = 2.5;
+    c.stroke();
+  };
   /* ================= the goal bar and the SHUTTER PARTY =================
 
      Nothing here decides anything. The EBS owns the arithmetic — the threshold,
@@ -6417,20 +6799,26 @@
      — would put the object back in the loop for no gain. */
 
   var elBar = document.getElementById("bitsBar");
-  var elBarLabel = document.getElementById("bbLabel");
-  var elBarRemain = document.getElementById("bbRemain");
-  var elBarFill = document.getElementById("bbFill");
+  var elBarPool = document.getElementById("bbPool");
+  var elBarGoal = document.getElementById("bbGoal");
+  var elBarBub = document.getElementById("bbBub");
+  var elBarCam = elBar.querySelector(".g-cam");
+  var elBarNum = elBar.querySelector(".g-fig");
+  var elBarTrack = elBar.querySelector(".g-tube");
   var elLastHit = document.getElementById("lastHit");
   var elLhName = document.getElementById("lhName");
   var elLhSub = document.getElementById("lhSub");
-  var elCd = document.getElementById("countdown");
   var elCdName = document.getElementById("cdName");
-  var elCdEyebrow = document.getElementById("cdEyebrow");
   var elCdNum = document.getElementById("cdNum");
   var elCdSub = document.getElementById("cdSub");
+  var lhLiquid = new Liquid(document.getElementById("lhLiquid"));
   var elBanner = document.getElementById("banner");
   var elBannerLede = document.getElementById("bannerLede");
-  var elBannerBar = document.getElementById("bannerBar");
+  var elBannerSec = document.getElementById("bannerSec");
+  var elBannerBub = document.getElementById("bannerBub");
+  var elBannerTrack = elBanner.querySelector(".g-tube");
+  // One drawing of the camera: the banner wears a copy of the bar's.
+  elBanner.querySelector(".g-row").insertBefore(elBarCam.cloneNode(true), elBannerTrack);
   var elSheet = document.getElementById("sheet");
   var elSheetGrid = document.getElementById("sheetGrid");
   var elSheetTime = document.getElementById("sheetTime");
@@ -6482,6 +6870,7 @@
   var pendingSheet = null;
   var pendingSheetTimer = null;
   var seqTimers = [];
+  var bannerClock = 0;       // the one timer that counts the banner down
 
   function seqDelay(fn, ms) { seqTimers.push(setTimeout(fn, ms)); }
 
@@ -6491,6 +6880,7 @@
     clearTimeout(pendingSheetTimer);
     pendingSheetTimer = null;
     pendingSheet = null;
+    stopBannerClock();
   }
 
   /**
@@ -6531,13 +6921,31 @@
     barPartyTimers.push(setTimeout(function () { barParty = false; updateBar(); }, opensIn + TIMELINE.partyMs));
   }
 
+  /* What the strip last drew, so a rise can be told apart from a redraw. */
+  var barDrawn = { pool: -1, goal: -1 };
+  var barFigure = 0;          // the number on screen, which rolls towards bar.pool
+  var barRollRaf = 0;
+
   function updateBar() {
-    elBarLabel.textContent = t("bar.label");
-    var remain = Math.max(0, bar.goal - bar.pool);
-    elBarRemain.textContent = remain;
-    var ratio = bar.goal > 0 ? Math.min(1, bar.pool / bar.goal) : 0;
-    elBarFill.style.transform = "scaleX(" + ratio + ")";
-    elBar.classList.toggle("near", ratio >= 0.8);
+    var goal = Math.max(0, bar.goal);
+    // What has come in over what the goal is — the figure grows with the
+    // liquid. Held at the goal: the EBS zeroes the pool when a party lights
+    // (enterStandby), so a count past the goal only exists for one message.
+    var count = Math.max(0, goal > 0 ? Math.min(bar.pool, goal) : bar.pool);
+    var ratio = goal > 0 ? Math.min(1, bar.pool / goal) : 0;
+    elBar.style.setProperty("--r", String(ratio));
+    elBar.style.setProperty("--on", ratio > 0 ? "1" : "0");
+    elBar.classList.toggle("near", ratio >= 0.8 && ratio < 1);
+    elBarGoal.textContent = "/" + goal;
+    // A rise against the same goal is a press arriving: the camera clicks once,
+    // bubbles go up through the liquid and the figure rolls to its new value.
+    // Anything else — the first message, a new goal, the drop to zero after a
+    // party — is a redraw and is simply drawn.
+    var rose = barDrawn.goal === goal && count > barDrawn.pool;
+    barDrawn.pool = count;
+    barDrawn.goal = goal;
+    if (rose && elBar.classList.contains("on")) barPressed(ratio, count);
+    else setBarFigure(count);
     // Hidden while the party is running: the bar has nothing to count towards
     // and the banner is standing where it sits.
     // Only the bar source draws it. In the overlay the element still exists —
@@ -6554,6 +6962,75 @@
     // state nobody ever saw (see the #bar block in shell.html).
     elBar.classList.toggle("on", (BAR_ONLY || DEMO) && (barForced || bar.goal > 0) && !party && !barParty);
   }
+
+  function setBarFigure(n) {
+    cancelAnimationFrame(barRollRaf);
+    barFigure = n;
+    elBarPool.textContent = n;
+  }
+
+  /**
+   * Everything the bar says about a press: the level rises (CSS, off --r),
+   * the camera clicks once, a few bubbles go up, the figure rolls.
+   *
+   * No name and no "+N". Who pushed it and by how much is the overlay's news —
+   * the photographs carry both — and the bar only answers "how far is it"
+   * (本人の決定 2026-09-11). All of it is small-area, so none of it counts
+   * against the full-frame flash allowance (§4.6).
+   */
+  function barPressed(ratio, count) {
+    if (reduceMotion) { setBarFigure(count); return; }
+    elBarCam.animate(
+      [{ transform: "scale(1)" }, { transform: "scale(.88)", offset: 0.22 }, { transform: "scale(1.05)", offset: 0.6 }, { transform: "scale(1)" }],
+      { duration: 380, easing: "ease-out" }
+    );
+    setTimeout(function () { barBubbles(ratio >= 1 ? 12 : 3); }, 180);
+    var from = barFigure, t0 = performance.now();
+    cancelAnimationFrame(barRollRaf);
+    (function step(now) {
+      // Clamped at 0 as well as 1: a frame's timestamp can predate t0, and an
+      // unclamped cubic runs the figure off into the thousands for a frame.
+      var k = Math.max(0, Math.min(1, ((now || t0) - t0) / 450));
+      barFigure = count;
+      elBarPool.textContent = Math.round(from + (count - from) * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) { barRollRaf = requestAnimationFrame(step); return; }
+      elBarNum.animate([{ transform: "scale(1.12)" }, { transform: "scale(1)" }],
+        { duration: 300, easing: "cubic-bezier(.3,1.6,.5,1)" });
+    })();
+  }
+
+  /* Bubbles rise through the liquid and never past its front. Made with
+     createElement like every other node here — the page has no innerHTML.
+     Any glass tube: the bar's, or the banner's (host carries --r and "on"). */
+  function barBubbles(n) { tubeBubbles(elBar, elBarTrack, elBarBub, n); }
+  function tubeBubbles(host, track, box, n) {
+    if (reduceMotion || !host.classList.contains("on")) return;
+    var u = track.clientHeight / 78;      // the tube is 78u tall (shell.html .g-tube)
+    var r = Number(host.style.getPropertyValue("--r")) || 0;
+    var w = track.clientWidth * r - 14 * u;
+    if (w < 12 * u) return;
+    for (var i = 0; i < n; i++) {
+      var b = document.createElement("i");
+      var d = (6 + Math.random() * 7) * u;
+      b.className = "g-bubble";
+      b.style.width = b.style.height = d + "px";
+      b.style.left = (6 * u + Math.random() * (w - d)) + "px";
+      box.appendChild(b);
+      var rise = (38 + Math.random() * 18) * u, sway = (Math.random() * 8 - 4) * u;
+      var a = b.animate([
+        { transform: "translate(0,0) scale(.6)", opacity: 0 },
+        { transform: "translate(" + sway * 0.5 + "px," + (-rise * 0.3) + "px) scale(1)", opacity: 1, offset: 0.2 },
+        { transform: "translate(" + sway + "px," + (-rise) + "px) scale(1.1)", opacity: 0 }
+      ], { duration: 900 + Math.random() * 600, delay: Math.random() * 200, easing: "cubic-bezier(.3,.1,.6,1)", fill: "both" });
+      a.onfinish = a.oncancel = (function (x) { return function () { x.remove(); }; })(b);
+    }
+  }
+
+  // Past 80% the liquid bubbles on its own: the party is close. Only where the
+  // bar is drawn at all, and never while it is hidden.
+  if (BAR_ONLY || DEMO) setInterval(function () {
+    if (elBar.classList.contains("near") && Math.random() < 0.6) barBubbles(1);
+  }, 420);
 
   /** Take the bar the EBS just sent. It is the only thing that knows. */
   function applyBarState(m) {
@@ -6609,16 +7086,14 @@
     elBannerLede.textContent = t("banner.lede");
     elBanner.classList.add("on");
     placeCounter();
-    elBannerBar.animate(
-      [{ transform: "scaleX(" + Math.min(1, remainMs / TIMELINE.partyMs) + ")" }, { transform: "scaleX(0)" }],
-      { duration: remainMs, easing: "linear", fill: "forwards" }
-    );
+    startBannerClock();         // from what is left, not from full
     seqDelay(closeParty, remainMs);
   }
 
-  function bitsPop(amount, name) {
+  function bitsPop(amount, name, tone) {
     var el = document.createElement("div");
     el.className = "bitspop";
+    if (tone) el.style.setProperty("--glow-rgb", "var(--b" + tone + ")");
     el.textContent = "+" + amount + " Bits  " + (name || t("someone"));
     el.style.left = (W * 0.035) + "px";
     el.style.top = (H * 0.12) + "px";
@@ -6695,7 +7170,11 @@
   var GOLD_WASH = 0.30;        // #ovGold element opacity; × .6 gradient = .18
   var GOLD_WASH_TAIL = 0.22;   // the afterglow it settles to; the white is gone by then
 
-  function goldPulse() {
+  function goldPulse(tone) {
+    // The amount's colour, on both the wash and the ring. Set before the claim
+    // so the wash is already the right colour on its first frame.
+    var glow = "var(--b" + (tone || BITS_STEPS[0]) + ")";
+    ovGold.style.setProperty("--glow-rgb", glow);
     if (flashMode === "off") return;
     var soft = flashMode === "soft";
 
@@ -6716,6 +7195,7 @@
 
     var ring = document.createElement("div");
     ring.className = "goldring";
+    ring.style.setProperty("--glow-rgb", glow);
     ovSparks.appendChild(ring);
     var a = ring.animate(
       [
@@ -6738,8 +7218,8 @@
     // these away, so the new last-hit card would draw over the old sheet.
     elSheet.classList.remove("on");
     elBanner.classList.remove("on");
-    elCd.classList.remove("on");
     elLastHit.classList.remove("on");
+    lhLiquid.stop();
     if (ign) applyTimeline(ign.timeline);
     // Empty rather than "someone": a party lit by free presses has nobody to
     // name, and the card below says so by naming the event instead.
@@ -6769,17 +7249,34 @@
   function showLastHit(name) {
     elLhName.textContent = name || "SHUTTER PARTY";
     elLhSub.textContent = name ? t("lasthit.sub") : "";
+    elLastHit.classList.toggle("nameless", !name);
+    elLastHit.classList.remove("cd");
+    elLastHit.removeAttribute("data-n");
+    fitPlateName();
+    // In from .pre: the way in is not the way out.
+    elLastHit.classList.remove("on");
+    elLastHit.classList.add("pre");
+    void elLastHit.offsetWidth;
+    elLastHit.classList.remove("pre");
     elLastHit.classList.add("on");
-    var a = elLastHit.animate(
-      [
-        { opacity: 0, transform: "scale(.86)" },
-        { opacity: 1, transform: "scale(1)", offset: 0.11 },
-        { opacity: 1, transform: "scale(1)", offset: 0.86 },
-        { opacity: 0, transform: "scale(1.05)" }
-      ],
-      { duration: reduceMotion ? 1 : TIMELINE.lastHitMs, easing: "cubic-bezier(.2,1.1,.3,1)" }
-    );
-    a.onfinish = a.oncancel = function () { elLastHit.classList.remove("on"); };
+    // Empty on the way in, full by the end of the card: the press that tipped
+    // the bar is the one that fills it. Most of the card's length, so the
+    // surface has time to settle before the count comes up.
+    lhLiquid.clear();
+    seqDelay(function () { lhLiquid.fill(1, TIMELINE.lastHitMs * 0.7); }, 250);
+  }
+
+  /* One name, one line. The type shrinks until the name fits the widest the
+     plate may be, down to a floor; wrapping put a long name over two lines
+     of a card whose whole job is one person. Measured in canvas pixels of a
+     1920 frame, the plate's own unit (--u). */
+  var plateMeasure = document.createElement("canvas").getContext("2d");
+  function fitPlateName() {
+    var cs = getComputedStyle(elLhName);
+    plateMeasure.font = "900 100px " + cs.fontFamily;
+    var w = plateMeasure.measureText(elLhName.textContent).width || 1;
+    var px = Math.max(48, Math.min(124, Math.floor(100 * 1380 / w)));
+    elLhName.style.fontSize = "calc(" + px + " * var(--u))";
   }
 
   function runCountdown(name, done) {
@@ -6788,28 +7285,39 @@
     var step = 1000;
     var n = Math.max(1, Math.round(TIMELINE.countdownMs / step));
     elCdName.textContent = name;
-    // Both, because the eyebrow is the label for the name below it.
-    elCdName.hidden = !name;
-    elCdEyebrow.hidden = !name;
     elCdSub.textContent = t("countdown.sub");
-    elCd.classList.add("on");
+    // The same plate, still full: the name steps back and the count comes
+    // forward. The liquid is not touched — the party is what empties anything.
+    elLastHit.classList.add("cd");
 
     (function tick() {
       if (n <= 0) {
-        elCd.classList.remove("on");
+        // The count stops here, and the party opens here, at once. The plate
+        // takes a second to go (the .lasthit transition), and that second
+        // runs alongside the party rather than in front of it: done() is not
+        // moved behind the fade. Moved, this page would open a second late,
+        // while the bar source hides the bar at lastHitMs + countdownMs
+        // exactly (barRunParty) — docs/party-look-plan.md §2.2.
+        elLastHit.setAttribute("data-n", "0");
+        elLastHit.classList.remove("on");
+        seqDelay(function () { lhLiquid.stop(); }, 1100);
         blip(1080, 0.34, 0.42);      // the party is open
         done();
         return;
       }
+      elLastHit.setAttribute("data-n", String(n));
       elCdNum.textContent = n;
       elCdNum.animate(
+        // The spring is on the way in only. As an option it bends the whole
+        // second, and the digit reaches its fade by the middle of it — a
+        // number that is half see-through for most of the time it is up.
         [
-          { opacity: 0, transform: "scale(1.5)" },
+          { opacity: 0, transform: "scale(1.3)", easing: "cubic-bezier(.2,1,.3,1)" },
           { opacity: 1, transform: "scale(1)", offset: 0.22 },
-          { opacity: 1, transform: "scale(1)", offset: 0.78 },
-          { opacity: 0.15, transform: "scale(.94)" }
+          { opacity: 1, transform: "scale(1)", offset: 0.8, easing: "ease-in" },
+          { opacity: 0.3, transform: "scale(.94)" }
         ],
-        { duration: reduceMotion ? 1 : 950, easing: "cubic-bezier(.2,1,.3,1)" }
+        { duration: reduceMotion ? 1 : 950 }
       );
       blip(720, 0.13, 0.34);
       n--;
@@ -6817,10 +7325,53 @@
     })();
   }
 
+  /* The banner's clock: the seconds left, and how much liquid is left.
+   *
+   * One timer, owned here, stopped in one place (stopBannerClock). It is
+   * started by openParty() and by resumeParty(), and each start stops the
+   * last one first; closeParty() and clearSequence() — the path ignite()
+   * takes — both stop it. A clock left running writes the seconds of a
+   * party that is over onto a banner nobody can see, or onto the next one
+   * (docs/party-look-plan.md §2.3).
+   *
+   * It reads party.endsAt rather than counting down from its own start, so a
+   * rejoin and a fresh party are the same arithmetic.
+   */
+  function tickBanner() {
+    if (!party) return;
+    var left = Math.max(0, party.endsAt - Date.now());
+    elBanner.style.setProperty("--r", Math.min(1, left / TIMELINE.partyMs));
+    elBanner.style.setProperty("--on", left > 0 ? 1 : 0);
+    elBannerSec.textContent = Math.ceil(left / 1000);
+    // The last five seconds: the waves hurry and the liquid bubbles.
+    var near = left > 0 && left <= 5000;
+    elBanner.classList.toggle("near", near);
+    if (near && Math.random() < 0.35) tubeBubbles(elBanner, elBannerTrack, elBannerBub, 1);
+  }
+
+  function startBannerClock() {
+    stopBannerClock();
+    // The first level lands without the drain's quarter-second slide, or the
+    // banner would fill up from the last party's empty tube as it came down.
+    elBanner.classList.add("pre");
+    tickBanner();
+    void elBanner.offsetWidth;
+    elBanner.classList.remove("pre");
+    bannerClock = setInterval(tickBanner, 250);
+  }
+
+  function stopBannerClock() {
+    clearInterval(bannerClock);
+    bannerClock = 0;
+    elBanner.classList.remove("near");
+  }
+
   // The banner takes the top strip, which is where the counter normally sits.
   // Push the counter below it for as long as the banner is down.
   function placeCounter() {
-    if (party) counterEl.style.top = (elBanner.offsetHeight + 8) + "px";
+    // offsetTop, not the box on screen: the banner is still sliding down when
+    // this runs, and its transform would put the counter where it started.
+    if (party) counterEl.style.top = (elBanner.offsetTop + elBanner.offsetHeight + 8) + "px";
     else if (queueToastEl.classList.contains("on")) counterEl.style.top = (queueToastEl.offsetHeight + 20) + "px";
     else counterEl.style.top = "";
   }
@@ -6844,10 +7395,7 @@
     elBannerLede.textContent = t("banner.lede");
     elBanner.classList.add("on");
     placeCounter();
-    elBannerBar.animate(
-      [{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }],
-      { duration: TIMELINE.partyMs, easing: "linear", fill: "forwards" }
-    );
+    startBannerClock();
     seqDelay(closeParty, TIMELINE.partyMs);
   }
 
@@ -6855,6 +7403,7 @@
     if (!party) return;
     var done = party;
     party = null;
+    stopBannerClock();
     elBanner.classList.remove("on");
     placeCounter();
     updateBar();
@@ -6899,6 +7448,11 @@
     // and a broadcaster who does not want the time on screen does not want it
     // on the sheet either.
     elSheetTime.textContent = cfg.stampShot === "off" ? "" : stamp();
+    // In from .pre: the way in is not the way out (it sinks on the way out).
+    elSheet.classList.remove("on");
+    elSheet.classList.add("pre");
+    void elSheet.offsetWidth;
+    elSheet.classList.remove("pre");
     elSheet.classList.add("on");
     seqDelay(function () { elSheet.classList.remove("on"); }, TIMELINE.sheetMs);
     // Off the critical path: the sheet is already on the channel, and this only
@@ -7177,6 +7731,11 @@
         // Reported, not decided here: the EBS is what refuses a press
         // (CLAUDE.md). This is a fact about the machine, like the other three.
         open: sceneOpen(),
+        // Why it is shut, by name, when it is. The EBS passes it on to the
+        // button instead of folding four causes into one sentence
+        // (docs/events-plan.md 段1). After open on purpose: sceneOpen() is
+        // what brings it up to date, and a literal is evaluated in order.
+        closedWhy: BAR_ONLY ? "" : (closedWhy || ""),
         // Which release is drawing, and whether it is the one the address
         // asked for. Facts about this machine like the rest — the EBS records
         // them and decides nothing on them.
@@ -7364,6 +7923,7 @@
     // Straight onto cfg: the clock is read at the moment a caption is
     // built, so the next press comes out with it or without it.
     if (m.stampShot === "on" || m.stampShot === "off") cfg.stampShot = m.stampShot;
+    if (typeof m.glass === "string") applyGlass(m.glass);
     // No repaint call: every word on this page is fetched with t() at the
     // moment it is drawn, so the next press comes out in the new language
     // on its own. Nothing already on the wall changes, which is right —
@@ -7413,6 +7973,7 @@
   applyAccent(cfg.accent);
   applyScale(cfg.scale);
   applyPlace(cfg.place);
+  applyGlass(cfg.glass);
   updateBar();            // hidden until the EBS says what the goal is
 
   // #preview draws the bar at full size with a stand-in goal, so the
