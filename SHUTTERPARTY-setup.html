@@ -392,7 +392,9 @@
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--r);
-    background: #000;
+    /* The page's own ground, not black: what sits beside a vertical canvas is
+       this page, and a black margin would read as part of the picture. */
+    background: var(--panel);
   }
   /* What the sample is played over. Never black: no broadcast is, and the
      effects are glass and outlined white, which black flatters and a real
@@ -400,13 +402,19 @@
      go in the zip): a dim one — an evening room, a dark game — and a bright
      one, sky and daylight, where white type and clear glass have the least to
      stand on. Nothing in them is a subject, so they compete with nothing. */
-  .sampleBox[data-bg="dim"] {
+  /* Drawn on the frame, not on the box around it. They were the same thing
+     while there was one canvas — the frame filled the column — but a vertical
+     canvas is about half as wide as the column it sits in, and a backdrop that
+     spanned the box would say the broadcast reached places it does not. The
+     scale applies to it like everything else, which is right: this is what is
+     BEHIND the overlay, so it belongs to the canvas. */
+  .sampleBox[data-bg="dim"] .sampleScale {
     background:
       radial-gradient(ellipse 45% 40% at 62% 42%, rgba(255,200,150,.22), rgba(255,200,150,0) 70%),
       radial-gradient(ellipse 30% 25% at 20% 25%, rgba(140,180,255,.14), rgba(140,180,255,0) 70%),
       linear-gradient(180deg, #465460 0%, #3e4852 48%, #37352f 52%, #2c2b28 100%);
   }
-  .sampleBox[data-bg="bright"] {
+  .sampleBox[data-bg="bright"] .sampleScale {
     background:
       radial-gradient(circle at 78% 18%, rgba(255,250,215,.9) 0 5%, rgba(255,250,215,0) 16%),
       linear-gradient(180deg, #86c4f2 0%, #bfe2fa 50%, #e8f4fb 58%, #a9d68c 58.5%, #8cc36f 76%, #b49a74 100%);
@@ -416,10 +424,24 @@
     width: 1920px; height: 1080px;
     transform-origin: top left;
   }
-  #sampleFrame { display: block; width: 1920px; height: 1080px; border: 0; }
+  /* The size is written by 72-the-sample.js now, because there are two: the
+     16:9 canvas and the 9:16 one a dual-format broadcaster builds for mobile
+     (docs/vertical-plan.md). Left here as the starting shape so the first
+     paint is not 0x0 before the script runs. */
+  .sampleScale, #sampleFrame { width: 1920px; height: 1080px; }
+  #sampleFrame { display: block; border: 0; }
+
+  /* Which canvas the sample stands on has no style of its own: it is .opts,
+     the same row of buttons the presets and the sizes use. Two buttons rather
+     than a toggle, because the broadcaster is choosing a thing to look at —
+     and nothing about the overlay changes when they press it. */
 
   /* ---------- buttons ---------- */
   .btns { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+  /* The pasted theme code and the button that empties it, on one line. */
+  .packRow { display: flex; gap: 9px; align-items: stretch; }
+  .packRow .field { flex: 1 1 auto; }
+  .packRow .field input { width: 100%; box-sizing: border-box; }
   button {
     font-family: var(--font);
     font-size: 14px;
@@ -918,6 +940,28 @@
                 <button type="button" data-glass="dark"></button>
               </div>
             </div>
+            <!-- The theme the glass is drawn in, and a pack of the broadcaster's
+                 own images laid on it (docs/theme-pack-plan.md). The theme
+                 buttons are made from the list this build knows
+                 (70-broadcaster-settings.js renderThemeButtons); the pack
+                 arrives as a code the site made — the folder's name and which
+                 files are in it, never the images, which stay on this machine
+                 (道 B). The sample cannot show them: a sandboxed frame is
+                 refused file: images (measured), so the note says to look in
+                 OBS. -->
+            <div class="grp">
+              <label id="lTheme"></label>
+              <div class="opts" id="grpTheme"></div>
+            </div>
+            <div class="grp">
+              <label for="themeCode" id="lPack"></label>
+              <div class="packRow">
+                <div class="field"><input id="themeCode" spellcheck="false" placeholder="sp-theme/1/…"></div>
+                <button type="button" id="btnPackNone"></button>
+              </div>
+              <p class="note" id="packInfo"></p>
+              <p class="note" id="hPack"></p>
+            </div>
             <div class="grp">
               <label id="lPlace"></label>
               <div class="opts" id="grpPlace">
@@ -962,6 +1006,10 @@
         <section class="step" id="stepSample">
           <h2 id="sSample"></h2>
           <p class="note" id="nSample"></p>
+          <div class="opts" id="sampleShape" role="group">
+            <button type="button" data-shape="wide" aria-pressed="true" id="bShapeWide"></button>
+            <button type="button" data-shape="tall" aria-pressed="false" id="bShapeTall"></button>
+          </div>
           <div class="sampleBox" id="sampleBox" data-bg="dim">
             <div class="sampleScale" id="sample"></div>
           </div>
@@ -1195,6 +1243,7 @@
       "n.sample": "配信画面に出るものを、そのまま動かしています。設定を変えると、その場で切り替わります。OBS も配信も要りません。",
       "sample": "演出の見本",
       "sample.party": "SHUTTER PARTY を見る",
+      "sample.shape": "見本の形", "sample.shape.wide": "横型", "sample.shape.tall": "縦型",
       "sample.bg": "見本の背景", "sample.bg.dim": "暗めの背景", "sample.bg.bright": "明るめの背景",
       "s.save": "撮った写真の置き場所",
       "n.save": "既定では、写真は配信画面に出るだけでディスクには残りません。フォルダを決めると、撮るたびに OBS がそこへ書き出します。配信への負荷は変わりません。撮る回数は同じで、同じ 1 枚をファイルにも書くだけです。",
@@ -1228,6 +1277,19 @@
       "stampShot.off": "入れない",
       "glass": "ガラス",
       "glass.clear": "透明", "glass.light": "うすい白", "glass.dark": "うすい黒",
+      "theme": "テーマ", "theme.liquid": "液体",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "星空",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "テーマパック", "pack.none": "無し",
+      "pack.empty": "パックは無し。テーマの描き方のままです",
+      "pack.bad": "コードが読めません。サイトで作ったコードをそのまま貼ってください",
+      "pack.checking": "画像を確かめています…",
+      "pack.found": "overlay/themes/{p}/ の画像 {n} 枚が読めました",
+      "pack.missing": "見つからない画像: {l}（そのスロットはテーマの描き方になります）",
+      "pack.big": "大きすぎる画像: {l}（そのスロットはテーマの描き方になります）",
+      "h.pack": "サイトでDLしたパックの zip をオーバーレイの隣の overlay/themes/ に展開し、コードをここに貼ってください。見本にはパックの画像は出ません。OBS で確かめてください。",
       "stampSave": "保存する写真の日付と時刻",
       "stampSave.datetime": "日付と時刻",
       "stampSave.date": "日付だけ",
@@ -1249,7 +1311,11 @@
       "log.blankstop": "書き込みをやめました。OBS の設定はそのままです",
       "log.scan": "ブラウザソースを {n} 件見つけました",
       "log.barcreated": "ゴールバーの「{n}」も作りました。OBS で好きな場所に動かしてください",
+      "log.verticalcreated": "縦型用の「{n}」も作りました（1080×1920・いまはオフ）。縦型プラグインの「+」から縦型シーンに追加してください",
+      "log.verticalskipped": "「{n}」という名前が別のもので使われていたので、縦型用のソースは作りませんでした",
+      "log.verticalfail": "縦型用のソースを作れませんでした（{m}）。あとから手で足せます",
       "log.barcreatefail": "ゴールバーのソースは作れませんでした（{m}）。オーバーレイは動いています",
+      "log.barskipped": "ゴールバーは作りませんでした。オーバーレイは動いています",
       "log.created": "「{s}」に「{n}」を作って設定を書き込みました",
       "log.createfail": "作れませんでした: {m}（同じ名前のソースがあると作れません）",
       "log.needscene": "作る先のシーンを選んでください",
@@ -1401,6 +1467,7 @@
       "n.sample": "What goes on the broadcast, running here. Change a setting and it changes here, at once. No OBS, no stream.",
       "sample": "Sample of the effects",
       "sample.party": "Watch a SHUTTER PARTY",
+      "sample.shape": "Sample shape", "sample.shape.wide": "landscape", "sample.shape.tall": "vertical",
       "sample.bg": "Sample background", "sample.bg.dim": "dim background", "sample.bg.bright": "bright background",
       "s.save": "Where the photos go",
       "n.save": "By default a photo appears on the broadcast and is not kept on disk. Choose a folder and OBS writes one there every time. It costs the broadcast nothing extra — the same shot is taken, and that same single frame is written to a file as well.",
@@ -1434,6 +1501,19 @@
       "stampShot.off": "hide",
       "glass": "Glass",
       "glass.clear": "clear", "glass.light": "light tint", "glass.dark": "dark tint",
+      "theme": "Theme", "theme.liquid": "Liquid",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Celestial",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Theme pack", "pack.none": "None",
+      "pack.empty": "No pack: the theme draws everything",
+      "pack.bad": "Cannot read this code. Paste the code the site made, as it is",
+      "pack.checking": "Checking the images…",
+      "pack.found": "{n} image(s) read from overlay/themes/{p}/",
+      "pack.missing": "Not found: {l} (those slots fall back to the theme)",
+      "pack.big": "Too large: {l} (those slots fall back to the theme)",
+      "h.pack": "Unzip the pack the site made into overlay/themes/ next to the overlay, then paste its code here. The sample does not show pack images; check in OBS.",
       "stampSave": "Date and time on saved photos",
       "stampSave.datetime": "date and time",
       "stampSave.date": "date only",
@@ -1455,7 +1535,11 @@
       "log.blankstop": "stopped — nothing was written, and OBS keeps what it had",
       "log.scan": "found {n} browser source(s)",
       "log.barcreated": "made the goal bar “{n}” as well — move it wherever you like in OBS",
+      "log.verticalcreated": "made “{n}” for the vertical scene as well (1080×1920, switched off) — add it to your vertical scene with the plugin’s “+”",
+      "log.verticalskipped": "did not make the vertical source: the name “{n}” is already in use by something else",
+      "log.verticalfail": "could not make the vertical source ({m}) — you can add it by hand later",
       "log.barcreatefail": "could not make the goal bar source ({m}). The overlay itself is fine",
+      "log.barskipped": "the goal bar was not made. The overlay itself is fine",
       "log.created": "made “{n}” in “{s}” and wrote the settings into it",
       "log.createfail": "could not make it: {m} (a source of the same name blocks it)",
       "log.needscene": "choose the scene to make it in",
@@ -1607,6 +1691,7 @@
       "n.sample": "Lo que sale en la emisión, funcionando aquí. Cambia un ajuste y cambia aquí al instante. Sin OBS ni emisión.",
       "sample": "Muestra de los efectos",
       "sample.party": "Ver una SHUTTER PARTY",
+      "sample.shape": "Forma de la muestra", "sample.shape.wide": "horizontal", "sample.shape.tall": "vertical",
       "sample.bg": "Fondo de la muestra", "sample.bg.dim": "fondo oscuro", "sample.bg.bright": "fondo claro",
       "s.save": "Dónde van las fotos",
       "n.save": "Por defecto la foto sale en el directo y no se guarda en disco. Si eliges una carpeta, OBS escribe una ahí cada vez. No cuesta nada más al directo: se toma la misma foto, y ese mismo fotograma se escribe además en un archivo.",
@@ -1640,6 +1725,19 @@
       "stampShot.off": "ocultar",
       "glass": "Cristal",
       "glass.clear": "transparente", "glass.light": "tinte claro", "glass.dark": "tinte oscuro",
+      "theme": "Tema", "theme.liquid": "Líquido",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Cielo estrellado",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Paquete de tema", "pack.none": "Ninguno",
+      "pack.empty": "Sin paquete: el tema lo dibuja todo",
+      "pack.bad": "No se puede leer este código. Pega tal cual el código que creó el sitio",
+      "pack.checking": "Comprobando las imágenes…",
+      "pack.found": "{n} imagen(es) leída(s) de overlay/themes/{p}/",
+      "pack.missing": "No encontradas: {l} (esas ranuras vuelven al tema)",
+      "pack.big": "Demasiado grandes: {l} (esas ranuras vuelven al tema)",
+      "h.pack": "Descomprime el paquete creado en el sitio en overlay/themes/, junto al overlay, y pega aquí su código. La muestra no enseña las imágenes del paquete; compruébalas en OBS.",
       "stampSave": "Fecha y hora en las fotos guardadas",
       "stampSave.datetime": "fecha y hora",
       "stampSave.date": "solo la fecha",
@@ -1661,7 +1759,11 @@
       "log.blankstop": "detenido: no se escribió nada y OBS conserva lo que tenía",
       "log.scan": "encontradas {n} fuentes de navegador",
       "log.barcreated": "también se creó la barra «{n}»: colócala donde quieras en OBS",
+      "log.verticalcreated": "también se creó «{n}» para la escena vertical (1080×1920, desactivada): añádela a tu escena vertical con el «+» del complemento",
+      "log.verticalskipped": "no se creó la fuente vertical: el nombre «{n}» ya está en uso por otra cosa",
+      "log.verticalfail": "no se pudo crear la fuente vertical ({m}); puedes añadirla a mano más tarde",
       "log.barcreatefail": "no se pudo crear la fuente de la barra ({m}). El overlay funciona igual",
+      "log.barskipped": "no se creó la barra. El overlay funciona igual",
       "log.created": "se creó «{n}» en «{s}» y se le escribieron los ajustes",
       "log.createfail": "no se pudo crear: {m} (una fuente con el mismo nombre lo impide)",
       "log.needscene": "elige la escena donde crearlo",
@@ -1813,6 +1915,7 @@
       "n.sample": "O que aparece na transmissão, funcionando aqui. Mude um ajuste e muda aqui na hora. Sem OBS, sem transmissão.",
       "sample": "Amostra dos efeitos",
       "sample.party": "Ver uma SHUTTER PARTY",
+      "sample.shape": "Formato da amostra", "sample.shape.wide": "horizontal", "sample.shape.tall": "vertical",
       "sample.bg": "Fundo da amostra", "sample.bg.dim": "fundo escuro", "sample.bg.bright": "fundo claro",
       "s.save": "Para onde vão as fotos",
       "n.save": "Por padrão a foto aparece na live e não fica no disco. Escolha uma pasta e o OBS grava uma ali toda vez. Não pesa mais na live — é a mesma foto, e esse mesmo quadro também é escrito em arquivo.",
@@ -1846,6 +1949,19 @@
       "stampShot.off": "ocultar",
       "glass": "Vidro",
       "glass.clear": "transparente", "glass.light": "tom claro", "glass.dark": "tom escuro",
+      "theme": "Tema", "theme.liquid": "Líquido",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Céu estrelado",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Pacote de tema", "pack.none": "Nenhum",
+      "pack.empty": "Sem pacote: o tema desenha tudo",
+      "pack.bad": "Não foi possível ler este código. Cole o código criado no site, sem alterar",
+      "pack.checking": "Verificando as imagens…",
+      "pack.found": "{n} imagem(ns) lida(s) de overlay/themes/{p}/",
+      "pack.missing": "Não encontradas: {l} (esses slots voltam ao tema)",
+      "pack.big": "Grandes demais: {l} (esses slots voltam ao tema)",
+      "h.pack": "Descompacte o pacote criado no site em overlay/themes/, ao lado do overlay, e cole o código aqui. A amostra não mostra as imagens do pacote; confira no OBS.",
       "stampSave": "Data e hora nas fotos salvas",
       "stampSave.datetime": "data e hora",
       "stampSave.date": "só a data",
@@ -1867,7 +1983,11 @@
       "log.blankstop": "parado: nada foi escrito e o OBS mantém o que tinha",
       "log.scan": "{n} fonte(s) de navegador encontrada(s)",
       "log.barcreated": "a barra «{n}» também foi criada — mova-a para onde quiser no OBS",
+      "log.verticalcreated": "«{n}» também foi criada para a cena vertical (1080×1920, desativada) — adicione-a à sua cena vertical pelo «+» do plugin",
+      "log.verticalskipped": "a fonte vertical não foi criada: o nome «{n}» já está em uso por outra coisa",
+      "log.verticalfail": "não foi possível criar a fonte vertical ({m}) — dá para adicionar à mão depois",
       "log.barcreatefail": "não deu para criar a fonte da barra ({m}). O overlay está funcionando",
+      "log.barskipped": "a barra não foi criada. O overlay está funcionando",
       "log.created": "«{n}» criada em «{s}» com as configurações escritas",
       "log.createfail": "não foi possível criar: {m} (uma fonte com o mesmo nome impede)",
       "log.needscene": "escolha a cena onde criar",
@@ -2019,6 +2139,7 @@
       "n.sample": "Was auf Sendung geht, hier laufend. Ändere eine Einstellung, und hier ändert es sich sofort. Ohne OBS, ohne Stream.",
       "sample": "Vorschau der Effekte",
       "sample.party": "Eine SHUTTER PARTY ansehen",
+      "sample.shape": "Format der Vorschau", "sample.shape.wide": "quer", "sample.shape.tall": "hochkant",
       "sample.bg": "Hintergrund der Vorschau", "sample.bg.dim": "dunkler Hintergrund", "sample.bg.bright": "heller Hintergrund",
       "s.save": "Wohin die Fotos gehen",
       "n.save": "Standardmäßig erscheint ein Foto im Stream und wird nicht auf der Festplatte behalten. Wähle einen Ordner, und OBS schreibt jedes Mal eines dorthin. Den Stream kostet das nichts zusätzlich — es wird dieselbe Aufnahme gemacht, und dasselbe einzelne Bild wird auch in eine Datei geschrieben.",
@@ -2052,6 +2173,19 @@
       "stampShot.off": "weglassen",
       "glass": "Glas",
       "glass.clear": "klar", "glass.light": "hell getönt", "glass.dark": "dunkel getönt",
+      "theme": "Thema", "theme.liquid": "Flüssig",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Sternenhimmel",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Themenpaket", "pack.none": "Keins",
+      "pack.empty": "Kein Paket: das Thema zeichnet alles",
+      "pack.bad": "Dieser Code ist nicht lesbar. Füge den Code der Website unverändert ein",
+      "pack.checking": "Bilder werden geprüft…",
+      "pack.found": "{n} Bild(er) aus overlay/themes/{p}/ gelesen",
+      "pack.missing": "Nicht gefunden: {l} (diese Slots fallen auf das Thema zurück)",
+      "pack.big": "Zu groß: {l} (diese Slots fallen auf das Thema zurück)",
+      "h.pack": "Entpacke das auf der Website erstellte Paket nach overlay/themes/ neben dem Overlay und füge hier seinen Code ein. Die Vorschau zeigt keine Paketbilder; prüfe sie in OBS.",
       "stampSave": "Datum und Uhrzeit auf gespeicherten Fotos",
       "stampSave.datetime": "Datum und Uhrzeit",
       "stampSave.date": "nur das Datum",
@@ -2073,7 +2207,11 @@
       "log.blankstop": "abgebrochen — nichts geschrieben, OBS behält, was es hatte",
       "log.scan": "{n} Browserquelle(n) gefunden",
       "log.barcreated": "die Ziel-Leiste „{n}“ ist ebenfalls angelegt — schieb sie in OBS dorthin, wo du sie haben willst",
+      "log.verticalcreated": "„{n}“ für die vertikale Szene ist ebenfalls angelegt (1080×1920, ausgeschaltet) — füge sie über das „+“ des Plugins deiner vertikalen Szene hinzu",
+      "log.verticalskipped": "die vertikale Quelle wurde nicht angelegt: der Name „{n}“ ist schon von etwas anderem belegt",
+      "log.verticalfail": "die vertikale Quelle konnte nicht angelegt werden ({m}) — du kannst sie später von Hand ergänzen",
       "log.barcreatefail": "die Quelle für die Leiste ließ sich nicht anlegen ({m}). Das Overlay selbst läuft",
+      "log.barskipped": "die Ziel-Leiste wurde nicht angelegt. Das Overlay selbst läuft",
       "log.created": "„{n}“ in „{s}“ angelegt und die Einstellungen hineingeschrieben",
       "log.createfail": "konnte nicht angelegt werden: {m} (eine Quelle gleichen Namens steht im Weg)",
       "log.needscene": "wähle die Szene, in der es angelegt wird",
@@ -2225,6 +2363,7 @@
       "n.sample": "Ce qui passe à l'antenne, en marche ici. Change un réglage et ça change ici, tout de suite. Sans OBS, sans direct.",
       "sample": "Aperçu des effets",
       "sample.party": "Voir une SHUTTER PARTY",
+      "sample.shape": "Format de l'aperçu", "sample.shape.wide": "paysage", "sample.shape.tall": "vertical",
       "sample.bg": "Fond de l'aperçu", "sample.bg.dim": "fond sombre", "sample.bg.bright": "fond clair",
       "s.save": "Où vont les photos",
       "n.save": "Par défaut une photo apparaît à l'antenne et n'est pas gardée sur le disque. Choisis un dossier et OBS en écrit une là à chaque fois. Cela ne coûte rien de plus au direct : la même photo est prise, et cette même image est aussi écrite dans un fichier.",
@@ -2258,6 +2397,19 @@
       "stampShot.off": "masquer",
       "glass": "Verre",
       "glass.clear": "transparent", "glass.light": "teinte claire", "glass.dark": "teinte sombre",
+      "theme": "Thème", "theme.liquid": "Liquide",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Ciel étoilé",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Pack de thème", "pack.none": "Aucun",
+      "pack.empty": "Pas de pack : le thème dessine tout",
+      "pack.bad": "Code illisible. Collez tel quel le code créé par le site",
+      "pack.checking": "Vérification des images…",
+      "pack.found": "{n} image(s) lue(s) depuis overlay/themes/{p}/",
+      "pack.missing": "Introuvables : {l} (ces emplacements reviennent au thème)",
+      "pack.big": "Trop grandes : {l} (ces emplacements reviennent au thème)",
+      "h.pack": "Décompressez le pack créé sur le site dans overlay/themes/, à côté de l'overlay, puis collez son code ici. L'aperçu n'affiche pas les images du pack ; vérifiez dans OBS.",
       "stampSave": "Date et heure sur les photos enregistrées",
       "stampSave.datetime": "date et heure",
       "stampSave.date": "la date seule",
@@ -2279,7 +2431,11 @@
       "log.blankstop": "arrêté : rien n'a été écrit, OBS garde ce qu'il avait",
       "log.scan": "{n} source(s) navigateur trouvée(s)",
       "log.barcreated": "la barre « {n} » a été créée aussi — place-la où tu veux dans OBS",
+      "log.verticalcreated": "« {n} » a été créée aussi pour la scène verticale (1080×1920, désactivée) — ajoute-la à ta scène verticale avec le « + » du plugin",
+      "log.verticalskipped": "la source verticale n’a pas été créée : le nom « {n} » est déjà pris par autre chose",
+      "log.verticalfail": "impossible de créer la source verticale ({m}) — tu pourras l’ajouter à la main plus tard",
       "log.barcreatefail": "impossible de créer la source de la barre ({m}). L'overlay fonctionne",
+      "log.barskipped": "la barre n'a pas été créée. L'overlay fonctionne",
       "log.created": "« {n} » créée dans « {s} » et réglages écrits dedans",
       "log.createfail": "création impossible : {m} (une source du même nom l'empêche)",
       "log.needscene": "choisis la scène où la créer",
@@ -2431,6 +2587,7 @@
       "n.sample": "Quello che va in onda, in funzione qui. Cambia un'impostazione e qui cambia subito. Senza OBS, senza diretta.",
       "sample": "Anteprima degli effetti",
       "sample.party": "Guarda una SHUTTER PARTY",
+      "sample.shape": "Formato dell'anteprima", "sample.shape.wide": "orizzontale", "sample.shape.tall": "verticale",
       "sample.bg": "Sfondo dell'anteprima", "sample.bg.dim": "sfondo scuro", "sample.bg.bright": "sfondo chiaro",
       "s.save": "Dove vanno le foto",
       "n.save": "Come impostazione predefinita la foto compare in diretta e non resta sul disco. Scegli una cartella e OBS ne scrive una lì ogni volta. Alla diretta non costa nulla in più: viene fatto lo stesso scatto, e quello stesso fotogramma viene anche scritto su file.",
@@ -2464,6 +2621,19 @@
       "stampShot.off": "nascondere",
       "glass": "Vetro",
       "glass.clear": "trasparente", "glass.light": "tinta chiara", "glass.dark": "tinta scura",
+      "theme": "Tema", "theme.liquid": "Liquido",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Cielo stellato",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Pacchetto tema", "pack.none": "Nessuno",
+      "pack.empty": "Nessun pacchetto: disegna tutto il tema",
+      "pack.bad": "Codice illeggibile. Incolla il codice creato dal sito così com'è",
+      "pack.checking": "Controllo delle immagini…",
+      "pack.found": "{n} immagine/i lette da overlay/themes/{p}/",
+      "pack.missing": "Non trovate: {l} (quegli slot tornano al tema)",
+      "pack.big": "Troppo grandi: {l} (quegli slot tornano al tema)",
+      "h.pack": "Estrai il pacchetto creato sul sito in overlay/themes/, accanto all'overlay, e incolla qui il suo codice. L'anteprima non mostra le immagini del pacchetto; controlla in OBS.",
       "stampSave": "Data e ora sulle foto salvate",
       "stampSave.datetime": "data e ora",
       "stampSave.date": "solo la data",
@@ -2485,7 +2655,11 @@
       "log.blankstop": "fermato: non è stato scritto nulla e OBS mantiene quello che aveva",
       "log.scan": "trovate {n} fonti browser",
       "log.barcreated": "creata anche la barra «{n}»: spostala dove vuoi in OBS",
+      "log.verticalcreated": "creata anche «{n}» per la scena verticale (1080×1920, disattivata): aggiungila alla scena verticale con il «+» del plugin",
+      "log.verticalskipped": "sorgente verticale non creata: il nome «{n}» è già usato da qualcos’altro",
+      "log.verticalfail": "non è stato possibile creare la sorgente verticale ({m}): puoi aggiungerla a mano più tardi",
       "log.barcreatefail": "non è stato possibile creare la sorgente della barra ({m}). L'overlay funziona",
+      "log.barskipped": "la barra non è stata creata. L'overlay funziona",
       "log.created": "creata «{n}» in «{s}» e scritte le impostazioni",
       "log.createfail": "impossibile crearla: {m} (una fonte con lo stesso nome lo impedisce)",
       "log.needscene": "scegli la scena in cui crearla",
@@ -2637,6 +2811,7 @@
       "n.sample": "방송에 나가는 것을 그대로 움직이고 있습니다. 설정을 바꾸면 여기서 바로 바뀝니다. OBS도 방송도 필요 없습니다.",
       "sample": "연출 미리보기",
       "sample.party": "SHUTTER PARTY 보기",
+      "sample.shape": "미리보기 형식", "sample.shape.wide": "가로형", "sample.shape.tall": "세로형",
       "sample.bg": "미리보기 배경", "sample.bg.dim": "어두운 배경", "sample.bg.bright": "밝은 배경",
       "s.save": "찍은 사진의 보관 장소",
       "n.save": "기본값에서는 사진이 방송 화면에 나올 뿐 디스크에는 남지 않습니다. 폴더를 정하면 찍을 때마다 OBS 가 그곳에 기록합니다. 방송에 주는 부담은 그대로입니다 — 찍는 횟수는 같고, 같은 한 장을 파일로도 쓸 뿐입니다.",
@@ -2670,6 +2845,19 @@
       "stampShot.off": "넣지 않기",
       "glass": "유리",
       "glass.clear": "투명", "glass.light": "옅은 흰색", "glass.dark": "옅은 검정",
+      "theme": "테마", "theme.liquid": "액체",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "별하늘",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "테마 팩", "pack.none": "없음",
+      "pack.empty": "팩 없음. 테마가 모두 그립니다",
+      "pack.bad": "코드를 읽을 수 없습니다. 사이트에서 만든 코드를 그대로 붙여넣어 주세요",
+      "pack.checking": "이미지를 확인하는 중…",
+      "pack.found": "overlay/themes/{p}/ 에서 이미지 {n}장을 읽었습니다",
+      "pack.missing": "찾을 수 없음: {l} (해당 슬롯은 테마로 돌아갑니다)",
+      "pack.big": "너무 큼: {l} (해당 슬롯은 테마로 돌아갑니다)",
+      "h.pack": "사이트에서 만든 팩 zip을 오버레이 옆의 overlay/themes/ 에 풀고, 코드를 여기에 붙여넣어 주세요. 샘플에는 팩 이미지가 나오지 않습니다. OBS에서 확인해 주세요.",
       "stampSave": "저장하는 사진의 날짜와 시각",
       "stampSave.datetime": "날짜와 시각",
       "stampSave.date": "날짜만",
@@ -2691,7 +2879,11 @@
       "log.blankstop": "쓰지 않았습니다. OBS 설정은 그대로입니다",
       "log.scan": "브라우저 소스를 {n} 개 찾았습니다",
       "log.barcreated": "골 바 「{n}」도 만들었습니다. OBS 에서 원하는 곳으로 옮겨 주세요",
+      "log.verticalcreated": "세로형용 「{n}」도 만들었습니다 (1080×1920, 지금은 꺼짐). 세로형 플러그인의 「+」로 세로형 장면에 추가해 주세요",
+      "log.verticalskipped": "「{n}」이라는 이름을 다른 것이 쓰고 있어서 세로형 소스는 만들지 않았습니다",
+      "log.verticalfail": "세로형 소스를 만들지 못했습니다 ({m}). 나중에 직접 추가할 수 있습니다",
       "log.barcreatefail": "골 바 소스를 만들지 못했습니다({m}). 오버레이는 정상입니다",
+      "log.barskipped": "골 바를 만들지 않았습니다. 오버레이는 정상입니다",
       "log.created": "「{s}」에 「{n}」을 만들고 설정을 기록했습니다",
       "log.createfail": "만들지 못했습니다: {m}(같은 이름의 소스가 있으면 만들 수 없습니다)",
       "log.needscene": "만들 장면을 골라 주세요",
@@ -2843,6 +3035,7 @@
       "n.sample": "直播画面上会出现的东西，在这里实际运行。改动设置，这里立刻跟着变。不需要 OBS，也不需要开播。",
       "sample": "演出示例",
       "sample.party": "看一次 SHUTTER PARTY",
+      "sample.shape": "示例画幅", "sample.shape.wide": "横屏", "sample.shape.tall": "竖屏",
       "sample.bg": "示例背景", "sample.bg.dim": "偏暗背景", "sample.bg.bright": "明亮背景",
       "s.save": "拍好的照片放哪里",
       "n.save": "默认情况下照片只出现在直播画面上，不会留在硬盘里。定下文件夹后，每次拍照 OBS 都会写一张过去。对直播的负担不变 — 拍的次数一样，只是把同一张也写成文件。",
@@ -2876,6 +3069,19 @@
       "stampShot.off": "不显示",
       "glass": "玻璃",
       "glass.clear": "透明", "glass.light": "浅色", "glass.dark": "深色",
+      "theme": "主题", "theme.liquid": "液体",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "星空",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "主题包", "pack.none": "无",
+      "pack.empty": "没有主题包，全部由主题绘制",
+      "pack.bad": "无法读取此代码。请原样粘贴网站生成的代码",
+      "pack.checking": "正在检查图片…",
+      "pack.found": "已从 overlay/themes/{p}/ 读取 {n} 张图片",
+      "pack.missing": "未找到：{l}（这些槽位将回退到主题）",
+      "pack.big": "过大：{l}（这些槽位将回退到主题）",
+      "h.pack": "把网站生成的主题包 zip 解压到 overlay 旁边的 overlay/themes/，然后把代码粘贴到这里。示例中不会显示主题包的图片，请在 OBS 中确认。",
       "stampSave": "保存的照片上的日期和时间",
       "stampSave.datetime": "日期和时间",
       "stampSave.date": "只要日期",
@@ -2897,7 +3103,11 @@
       "log.blankstop": "已停止：没有写入任何内容，OBS 保持原样",
       "log.scan": "找到了 {n} 个浏览器源",
       "log.barcreated": "目标进度条「{n}」也建好了，在 OBS 里挪到你想要的位置",
+      "log.verticalcreated": "竖屏用的「{n}」也建好了（1080×1920，当前关闭）。用竖屏插件的「+」把它加到竖屏场景里",
+      "log.verticalskipped": "「{n}」这个名字已被别的东西占用，所以没有创建竖屏来源",
+      "log.verticalfail": "没能创建竖屏来源（{m}），之后可以手动添加",
       "log.barcreatefail": "没能创建进度条来源（{m}）。叠加层本身没问题",
+      "log.barskipped": "没有创建进度条。叠加层本身没问题",
       "log.created": "已在「{s}」里创建「{n}」并写入设置",
       "log.createfail": "创建不了：{m}（有同名来源就建不了）",
       "log.needscene": "请选择创建到哪个场景",
@@ -3049,6 +3259,7 @@
       "n.sample": "То, что идёт в эфир, работает прямо здесь. Измените настройку — и здесь сразу изменится. Без OBS и без эфира.",
       "sample": "Образец эффектов",
       "sample.party": "Посмотреть SHUTTER PARTY",
+      "sample.shape": "Формат образца", "sample.shape.wide": "горизонтальный", "sample.shape.tall": "вертикальный",
       "sample.bg": "Фон образца", "sample.bg.dim": "тёмный фон", "sample.bg.bright": "светлый фон",
       "s.save": "Куда попадают фотографии",
       "n.save": "По умолчанию фотография появляется в эфире и не остаётся на диске. Выберите папку — и OBS будет каждый раз записывать туда файл. Эфиру это ничего не добавляет: снимок делается тот же самый, и тот же самый кадр просто ещё и пишется в файл.",
@@ -3082,6 +3293,19 @@
       "stampShot.off": "не показывать",
       "glass": "Стекло",
       "glass.clear": "прозрачное", "glass.light": "светлый тон", "glass.dark": "тёмный тон",
+      "theme": "Тема", "theme.liquid": "Жидкость",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Звёздное небо",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Пакет темы", "pack.none": "Нет",
+      "pack.empty": "Без пакета: всё рисует тема",
+      "pack.bad": "Код не читается. Вставьте код с сайта как есть",
+      "pack.checking": "Проверяем изображения…",
+      "pack.found": "Прочитано изображений из overlay/themes/{p}/: {n}",
+      "pack.missing": "Не найдены: {l} (эти слоты вернутся к теме)",
+      "pack.big": "Слишком большие: {l} (эти слоты вернутся к теме)",
+      "h.pack": "Распакуйте пакет, созданный на сайте, в overlay/themes/ рядом с оверлеем и вставьте сюда его код. В образце изображения пакета не показываются; проверьте в OBS.",
       "stampSave": "Дата и время на сохранённых фото",
       "stampSave.datetime": "дата и время",
       "stampSave.date": "только дата",
@@ -3103,7 +3327,11 @@
       "log.blankstop": "остановлено: ничего не записано, OBS сохраняет прежнее",
       "log.scan": "найдено браузерных источников: {n}",
       "log.barcreated": "полоса «{n}» тоже создана — передвиньте её в OBS куда удобно",
+      "log.verticalcreated": "«{n}» для вертикальной сцены тоже создан (1080×1920, выключен) — добавьте его в вертикальную сцену через «+» плагина",
+      "log.verticalskipped": "вертикальный источник не создан: имя «{n}» уже занято чем-то другим",
+      "log.verticalfail": "не удалось создать вертикальный источник ({m}) — можно добавить вручную позже",
       "log.barcreatefail": "не удалось создать источник полосы ({m}). Сам оверлей работает",
+      "log.barskipped": "полоса не создана. Сам оверлей работает",
       "log.created": "в «{s}» создан «{n}», настройки записаны",
       "log.createfail": "создать не удалось: {m} (мешает источник с тем же именем)",
       "log.needscene": "выберите сцену, в которой его создать",
@@ -3255,6 +3483,7 @@
       "n.sample": "To, co idzie na antenę, działa tutaj. Zmień ustawienie, a tutaj od razu się zmieni. Bez OBS i bez transmisji.",
       "sample": "Podgląd efektów",
       "sample.party": "Zobacz SHUTTER PARTY",
+      "sample.shape": "Format podglądu", "sample.shape.wide": "poziomy", "sample.shape.tall": "pionowy",
       "sample.bg": "Tło podglądu", "sample.bg.dim": "ciemne tło", "sample.bg.bright": "jasne tło",
       "s.save": "Gdzie trafiają zdjęcia",
       "n.save": "Domyślnie zdjęcie pojawia się na streamie i nie zostaje na dysku. Wybierz folder, a OBS będzie za każdym razem zapisywał tam plik. Stream nic na tym nie traci — robione jest to samo zdjęcie, a ta sama klatka zapisywana jest dodatkowo do pliku.",
@@ -3288,6 +3517,19 @@
       "stampShot.off": "nie pokazuj",
       "glass": "Szkło",
       "glass.clear": "przezroczyste", "glass.light": "jasny odcień", "glass.dark": "ciemny odcień",
+      "theme": "Motyw", "theme.liquid": "Płyn",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Gwiaździste niebo",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Pakiet motywu", "pack.none": "Brak",
+      "pack.empty": "Bez pakietu: wszystko rysuje motyw",
+      "pack.bad": "Nie można odczytać kodu. Wklej kod ze strony bez zmian",
+      "pack.checking": "Sprawdzanie obrazów…",
+      "pack.found": "Odczytano obrazy z overlay/themes/{p}/: {n}",
+      "pack.missing": "Nie znaleziono: {l} (te sloty wracają do motywu)",
+      "pack.big": "Za duże: {l} (te sloty wracają do motywu)",
+      "h.pack": "Rozpakuj pakiet utworzony na stronie do overlay/themes/ obok nakładki i wklej tutaj jego kod. Podgląd nie pokazuje obrazów pakietu; sprawdź w OBS.",
       "stampSave": "Data i godzina na zapisanych zdjęciach",
       "stampSave.datetime": "data i godzina",
       "stampSave.date": "tylko data",
@@ -3309,7 +3551,11 @@
       "log.blankstop": "zatrzymano: nic nie zapisano, OBS zachowuje to, co miał",
       "log.scan": "znaleziono źródeł przeglądarki: {n}",
       "log.barcreated": "pasek celu „{n}” też został utworzony — przesuń go w OBS tam, gdzie chcesz",
+      "log.verticalcreated": "„{n}” dla sceny pionowej też został utworzony (1080×1920, wyłączony) — dodaj go do sceny pionowej przyciskiem „+” wtyczki",
+      "log.verticalskipped": "źródło pionowe nie zostało utworzone: nazwa „{n}” jest już zajęta przez coś innego",
+      "log.verticalfail": "nie udało się utworzyć źródła pionowego ({m}) — można je dodać ręcznie później",
       "log.barcreatefail": "nie udało się utworzyć źródła paska ({m}). Sama nakładka działa",
+      "log.barskipped": "pasek nie został utworzony. Sama nakładka działa",
       "log.created": "utworzono „{n}” w „{s}” i zapisano ustawienia",
       "log.createfail": "nie udało się utworzyć: {m} (przeszkadza źródło o tej samej nazwie)",
       "log.needscene": "wybierz scenę, w której to utworzyć",
@@ -3461,6 +3707,7 @@
       "n.sample": "Yayında görünenler, burada çalışıyor. Bir ayarı değiştirin, burası hemen değişir. OBS de yayın da gerekmez.",
       "sample": "Efektlerin örneği",
       "sample.party": "Bir SHUTTER PARTY izle",
+      "sample.shape": "Örnek biçimi", "sample.shape.wide": "yatay", "sample.shape.tall": "dikey",
       "sample.bg": "Örnek arka planı", "sample.bg.dim": "koyu arka plan", "sample.bg.bright": "açık arka plan",
       "s.save": "Fotoğraflar nereye gidiyor",
       "n.save": "Varsayılan olarak fotoğraf yayında görünür ve diskte kalmaz. Bir klasör seçerseniz OBS her seferinde oraya bir dosya yazar. Yayına ek bir yük binmez — aynı çekim yapılır, aynı tek kare ayrıca dosyaya da yazılır.",
@@ -3494,6 +3741,19 @@
       "stampShot.off": "gösterme",
       "glass": "Cam",
       "glass.clear": "şeffaf", "glass.light": "açık ton", "glass.dark": "koyu ton",
+      "theme": "Tema", "theme.liquid": "Sıvı",
+      "theme.stamp": "Stamp",
+      "theme.celestial": "Yıldızlı gökyüzü",
+      "theme.pixel": "PIXEL",
+      "theme.sample": "Sample",
+      "pack": "Tema paketi", "pack.none": "Yok",
+      "pack.empty": "Paket yok: her şeyi tema çizer",
+      "pack.bad": "Bu kod okunamıyor. Sitenin oluşturduğu kodu olduğu gibi yapıştırın",
+      "pack.checking": "Görseller denetleniyor…",
+      "pack.found": "overlay/themes/{p}/ içinden {n} görsel okundu",
+      "pack.missing": "Bulunamadı: {l} (bu yuvalar temaya döner)",
+      "pack.big": "Çok büyük: {l} (bu yuvalar temaya döner)",
+      "h.pack": "Sitede oluşturulan paketi overlay'in yanındaki overlay/themes/ klasörüne açın ve kodunu buraya yapıştırın. Örnekte paket görselleri görünmez; OBS'de kontrol edin.",
       "stampSave": "Kaydedilen fotoğraflarda tarih ve saat",
       "stampSave.datetime": "tarih ve saat",
       "stampSave.date": "yalnızca tarih",
@@ -3515,7 +3775,11 @@
       "log.blankstop": "durduruldu: hiçbir şey yazılmadı, OBS eskisini koruyor",
       "log.scan": "{n} tarayıcı kaynağı bulundu",
       "log.barcreated": "hedef çubuğu «{n}» da oluşturuldu — OBS içinde istediğin yere taşı",
+      "log.verticalcreated": "dikey sahne için «{n}» da oluşturuldu (1080×1920, şu an kapalı) — eklentinin «+» düğmesiyle dikey sahnene ekle",
+      "log.verticalskipped": "dikey kaynak oluşturulmadı: «{n}» adı başka bir şey tarafından kullanılıyor",
+      "log.verticalfail": "dikey kaynak oluşturulamadı ({m}) — sonradan elle ekleyebilirsin",
       "log.barcreatefail": "çubuk kaynağı oluşturulamadı ({m}). Kaplamanın kendisi çalışıyor",
+      "log.barskipped": "hedef çubuğu oluşturulmadı. Kaplamanın kendisi çalışıyor",
       "log.created": "«{s}» içinde «{n}» oluşturuldu ve ayarlar yazıldı",
       "log.createfail": "oluşturulamadı: {m} (aynı adlı bir kaynak engelliyor)",
       "log.needscene": "oluşturulacağı sahneyi seçin",
@@ -3598,7 +3862,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-9e6c385ee215";
+  var BUILD = "sp-b33b23ccc1ac";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -4167,7 +4431,8 @@
     lang: "", ebs: "", ch: "", ebsToken: "",
     saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
     stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
-    gateSet: "", testUntil: ""
+    gateSet: "", testUntil: "", theme: "liquid", pack: "",
+    packSlots: ""
   };
   /* @end config-defaults */
 
@@ -4196,7 +4461,13 @@
         // the list below, so nothing else carries it forward.
         if (saved.saveFrom === undefined && saved.saveFree === "0") saved.saveFrom = "10";
         delete saved.saveFree;
-        Object.assign(base, saved);
+        // Strings only, like loadUi() below and like the overlay reading the
+        // same storage (30-configuration.js). Object.assign took anything, and
+        // a number or an object in here was then shown and sent by this page
+        // and dropped by the overlay — two pages looking at different settings
+        // with the dock saying "clean". file:// storage is shared across
+        // folders, so this page is not the only thing that can have written it.
+        for (var s in DEFAULTS) if (typeof saved[s] === "string") base[s] = saved[s];
       }
     } catch (e) { /* private mode, or storage blocked */ }
     // URL wins, so a broadcaster can put everything in the browser-source URL
@@ -4204,7 +4475,7 @@
     // on purpose — a key belongs here by decision — but the list is checked
     // against the defaults (tools/contract-check.mjs), because the failure of
     // forgetting one is silence.
-    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil"].forEach(function (k) {
+    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil", "theme", "pack", "packSlots"].forEach(function (k) {
       if (q.get(k)) base[k] = q.get(k);
     });
     return base;
@@ -4357,6 +4628,111 @@
     });
   }
 
+  /* ================= theme and pack =================
+
+     The rules a pack has to meet and the themes this build knows, generated
+     from the same two files the overlay's copy is (docs/theme-pack-plan.md
+     §6). This page validates a pasted theme code against them; the overlay
+     validates the URL it is handed against the same values. */
+
+  /* @generated theme-pack-rules — src/shared/theme-pack-rules.json。手で書き換えない */
+  var THEME_PACK_RULES = {
+    pack: "^[a-z0-9-]{1,32}$",
+    ext: ["png", "webp"],
+    mime: { png: "image/png", webp: "image/webp" },
+    packBytes: 8388608,
+    slots: {
+      cam:           { w: 512,  h: 512,  ratio: [0.9, 1.1], alpha: true,  tile: false },
+      tube:          { w: 2048, h: 512,  ratio: [2.5, 6],   alpha: false, tile: false },
+      clock:         { w: 512,  h: 512,  ratio: [0.9, 1.1], alpha: true,  tile: false },
+      plate:         { w: 2048, h: 1024, ratio: [1.4, 3],   alpha: false, tile: false },
+      tray:          { w: 2048, h: 1536, ratio: [1, 2],     alpha: false, tile: false },
+      paper:         { w: 1024, h: 1024, ratio: [0.25, 4],  alpha: false, tile: true },
+      "sheet-paper": { w: 1024, h: 1024, ratio: [0.25, 4],  alpha: false, tile: true }
+    }
+  };
+  /* @end theme-pack-rules */
+
+  /* @generated themes — src/shared/themes.json。手で書き換えない */
+  var THEMES = ["liquid", "pixel", "celestial", "stamp"];
+  /* @end themes */
+
+  /* ---- the code a broadcaster pastes ----
+   *
+   *   sp-theme/1/<theme>/<pack>/<slot.ext>,<slot.ext>,…[/<accent>,<glass>,<preset>]
+   *
+   * Made by the site from pack.json (docs/theme-pack-contract.md §3). It names
+   * the built-in theme, the folder under overlay/themes/, which files are in
+   * it, and the look the pack was designed for — and carries no image. Read
+   * here against the same rules the overlay reads its URL against: a folder
+   * name outside the pattern, a slot this build does not know, an extension
+   * other than the allowed two, or a slot named twice, and the whole code is
+   * refused. Nothing is taken from it slot by slot. */
+  var THEME_CODE_HEAD = "sp-theme";
+  var THEME_CODE_VERSION = "1";
+
+  function parseThemeCode(raw) {
+    var parts = String(raw || "").trim().split("/");
+    if (parts.length < 5 || parts.length > 6) return null;
+    if (parts[0] !== THEME_CODE_HEAD || parts[1] !== THEME_CODE_VERSION) return null;
+    if (THEMES.indexOf(parts[2]) === -1) return null;
+    var pack = parts[3];
+    if (!new RegExp(THEME_PACK_RULES.pack).test(pack)) return null;
+    var slots = [], seen = {};
+    var list = parts[4].split(",");
+    for (var i = 0; i < list.length; i++) {
+      var item = list[i].trim();
+      if (!item) continue;
+      var dot = item.lastIndexOf(".");
+      var slot = dot === -1 ? "" : item.slice(0, dot);
+      var ext = dot === -1 ? "" : item.slice(dot + 1);
+      if (!Object.prototype.hasOwnProperty.call(THEME_PACK_RULES.slots, slot)) return null;
+      if (THEME_PACK_RULES.ext.indexOf(ext) === -1) return null;
+      if (seen[slot]) return null;
+      seen[slot] = true;
+      slots.push(slot + "." + ext);
+    }
+    if (!slots.length) return null;
+    var recommend = null;
+    if (parts.length === 6) {
+      var r = parts[5].split(",");
+      if (r.length !== 3) return null;
+      recommend = { accent: r[0].trim(), glass: r[1].trim(), preset: r[2].trim() };
+    }
+    return { theme: parts[2], pack: pack, slots: slots, recommend: recommend };
+  }
+
+  /** The code again, from the settings, for the box when the page opens. */
+  function themeCodeOf(c) {
+    if (!c.pack || !c.packSlots) return "";
+    return [THEME_CODE_HEAD, THEME_CODE_VERSION, c.theme, c.pack, c.packSlots].join("/");
+  }
+
+  /**
+   * Whether the files the code names are really there, and within the rules.
+   *
+   * This page is file:// at the top level, so it may load a file: image and
+   * read its size (not its pixels — and it never needs to). Resolved from the
+   * overlay's own address, because that is where the overlay will look:
+   * themes/<pack>/ beside overlay/index.html.
+   */
+  function checkPackImages(pack, slots, done) {
+    var out = { found: [], missing: [], big: [] };
+    var left = slots.length;
+    if (!left) { done(out); return; }
+    slots.forEach(function (file) {
+      var rule = THEME_PACK_RULES.slots[file.slice(0, file.lastIndexOf("."))];
+      var img = new Image();
+      var settle = function (bucket) { out[bucket].push(file); if (--left === 0) done(out); };
+      img.onload = function () {
+        var w = img.naturalWidth, h = img.naturalHeight, ratio = h ? w / h : 0;
+        settle(w > 0 && w <= rule.w && h <= rule.h && ratio >= rule.ratio[0] && ratio <= rule.ratio[1] ? "found" : "big");
+      };
+      img.onerror = function () { settle("missing"); };
+      img.src = new URL("themes/" + pack + "/" + file, OVERLAY_URL).href;
+    });
+  }
+
   /* ================= elements ================= */
 
   function $(id) { return document.getElementById(id); }
@@ -4383,6 +4759,8 @@
     // elements because one cannot both be a fixed 1920 and take the
     // column's width.
     sampleBox: $("sampleBox"), sample: $("sample"), sampleParty: $("btnSampleParty"),
+    sampleShape: $("sampleShape"),
+    themeCode: $("themeCode"), packNone: $("btnPackNone"), packInfo: $("packInfo"),
     pairCode: $("pairCode"), pairInfo: $("pairInfo"),
     ebsState: $("ebsState"), ebsConnect: $("btnEbs"),
     saveMode: $("saveMode"), saveDir: $("saveDir"), fSaveDir: $("fSaveDir"),
@@ -4463,6 +4841,9 @@
     setText("sSample", "s.sample");
     setText("nSample", "n.sample");
     el.sampleParty.textContent = t("sample.party");
+    $("sampleShape").setAttribute("aria-label", t("sample.shape"));
+    $("bShapeWide").textContent = t("sample.shape.wide");
+    $("bShapeTall").textContent = t("sample.shape.tall");
     $("grpSampleBg").setAttribute("aria-label", t("sample.bg"));
     Array.prototype.forEach.call(document.querySelectorAll("#grpSampleBg button"), function (b) {
       b.textContent = t("sample.bg." + b.getAttribute("data-samplebg"));
@@ -4476,6 +4857,12 @@
     Array.prototype.forEach.call(document.querySelectorAll("#grpGlass button"), function (b) {
       b.textContent = t("glass." + b.getAttribute("data-glass"));
     });
+    setText("lTheme", "theme");
+    renderThemeButtons();
+    setText("lPack", "pack");
+    setText("hPack", "h.pack");
+    el.packNone.textContent = t("pack.none");
+    renderPackInfo();
     Array.prototype.forEach.call(document.querySelectorAll("#grpPreset button"), function (b) {
       b.textContent = t("preset." + b.getAttribute("data-preset"));
     });
@@ -5014,7 +5401,21 @@
     });
   }
 
+  /* The handshake has a deadline, the same way a request does.
+     op 6 requests time out after ten seconds, but the op 0 → op 1 → op 2 that
+     comes before them had none: a socket that OPENS and then says nothing —
+     OBS accepted the connection and never sent Hello, or never answered
+     Identify — never fires onclose, so the backoff below never runs and the
+     page sits on "connecting" for as long as the broadcast lasts. From here it
+     looks exactly like a slow start, so it is given the same ten seconds and
+     then closed, which hands it to onclose and the backoff that already exists
+     (Codex 2026-09-15 round 7). OBS stalled on the graphics lock is one way in,
+     which is the same failure the capture window guards against. */
+  var handshakeTimer = null;
+  function cancelHandshake() { clearTimeout(handshakeTimer); handshakeTimer = null; }
+
   function teardown() {
+    cancelHandshake();
     if (!ws) return;
     ws.onopen = ws.onclose = ws.onerror = ws.onmessage = null;
     try { ws.close(); } catch (e) {}
@@ -5059,7 +5460,23 @@
       return;
     }
 
-    sock.onopen = function () { if (sock !== ws) return; retry = 0; };
+    sock.onopen = function () {
+      if (sock !== ws) return;
+      retry = 0;
+      // The clock on the handshake starts when the socket opens, not when it was
+      // asked for: until then the failure is a refused connection, which onclose
+      // already reports. Tied to the generation, like the retry below, so one
+      // armed before the broadcaster reconnected by hand cannot close the new one.
+      var gen = connectGen;
+      cancelHandshake();
+      handshakeTimer = setTimeout(function () {
+        handshakeTimer = null;
+        if (gen !== connectGen || identified || sock !== ws) return;
+        // No word of its own: closing hands this to onclose, which already says
+        // what a connection that did not come up says, in twelve languages.
+        try { sock.close(); } catch (e) { /* onclose carries it on */ }
+      }, 10000);
+    };
 
     sock.onclose = function (ev) {
       if (sock !== ws) return; // a socket we already replaced
@@ -5161,6 +5578,7 @@
     identified = true;
     retry = 0;
     failKey = "";
+    cancelHandshake();
     cancelRetry();
     log(t("log.auth"), "ok");
     obsOnIdentified();
@@ -5292,9 +5710,10 @@
 
   var scenes = [];         // every scene name OBS knows
   var inputNames = [];     // every input name, so a new one cannot collide
-  var targets = [];        // { name, url, isLocal, match, isBar, isCard }
+  var targets = [];        // { name, url, isLocal, match, isBar, isCard, isVertical }
   var target = "";         // the overlay: photographs and effects
   var barTarget = "";      // the goal bar, which OBS places on its own
+  var verticalTarget = ""; // the same overlay, sized for a 9:16 scene
 
   function loadScenes() {
     return request("GetSceneList").catch(function () { return { scenes: [] }; })
@@ -5392,6 +5811,12 @@
     return hasMode(s, "card");
   }
 
+  /** ...and the one for the vertical scene, which behaves identically and is
+   *  marked only so this page can tell it from the landscape one. */
+  function looksLikeVertical(s) {
+    return hasMode(s, "vertical");
+  }
+
   /** Does this browser source point at our overlay file? */
   function looksLikeOverlay(s) {
     var where = String(s.local_file || "") + " " + String(s.url || "");
@@ -5407,19 +5832,24 @@
           return request("GetInputSettings", { inputName: name })
             .then(function (r) {
               var s = r.inputSettings || {};
-              return { name: name, url: s.url || s.local_file || "", isLocal: !!s.is_local_file, match: looksLikeOverlay(s), isBar: looksLikeBar(s), isCard: looksLikeCard(s) };
+              return { name: name, url: s.url || s.local_file || "", isLocal: !!s.is_local_file, match: looksLikeOverlay(s), isBar: looksLikeBar(s), isCard: looksLikeCard(s), isVertical: looksLikeVertical(s) };
             })
-            .catch(function () { return { name: name, url: "", isLocal: false, match: false, isBar: false, isCard: false }; });
+            .catch(function () { return { name: name, url: "", isLocal: false, match: false, isBar: false, isCard: false, isVertical: false }; });
         }));
       })
       .then(function (rows) {
         targets = rows;
-        // The bar and the card are the same file with a flag, so they match
-        // too — and counted here, a broadcaster who has both looks like a
-        // broadcaster with none preselected.
-        var hits = rows.filter(function (r) { return r.match && !r.isBar && !r.isCard; });
+        // The bar, the card and the vertical source are the same file with a
+        // flag, so they match too — and counted here, a broadcaster who has
+        // them looks like a broadcaster with none preselected. The vertical
+        // one is the reason the flag exists at all: it is the same URL and the
+        // same settings as the landscape source, and without a mark on it the
+        // page would find two candidates and settle on neither.
+        var hits = rows.filter(function (r) { return r.match && !r.isBar && !r.isCard && !r.isVertical; });
         var bars = rows.filter(function (r) { return r.match && r.isBar; });
+        var talls = rows.filter(function (r) { return r.match && r.isVertical; });
         barTarget = bars.length === 1 ? bars[0].name : "";
+        verticalTarget = talls.length === 1 ? talls[0].name : "";
         if (hits.length === 1) target = hits[0].name;
         else if (targets.every(function (r) { return r.name !== target; })) target = "";
         renderBuildState();
@@ -5626,6 +6056,81 @@
   }
 
   /**
+   * Settle on a name for the bar's browser source, by the same rule.
+   *
+   * The bar used to skip the question: a name already in use was overwritten
+   * on sight. But inputNames is every input OBS has, of every kind, so the
+   * name could belong to a text source or a camera — and a browser source's
+   * settings were then written into it without a word (Codex 巡回 2026-09-13).
+   * Only a bar of ours is the ordinary case; anything else gets the question
+   * the overlay's name gets.
+   */
+  /* The source for a vertical scene.
+   *
+   * WHY THIS PAGE MAKES IT. A broadcaster who streams dual format builds a
+   * second scene at 1080x1920 (docs/vertical-plan.md §2), and the overlay
+   * belongs in it — it is the same page, and it lays itself out for whatever
+   * frame it is given. What it cannot do is be given the wrong one: OBS's
+   * browser source takes its size from its own properties, and dragging the
+   * source bigger on the canvas is a transform the page never sees. Stretched
+   * that way it draws the landscape layout squeezed into a tall box. So the
+   * one number that matters is one this page can simply set.
+   *
+   * WHY IT LANDS IN THE NORMAL SCENE, DISABLED. The vertical canvas belongs to
+   * a plugin — Aitum Vertical — and obs-websocket cannot reach it: of the 21
+   * requests the plugin registers, every one switches scenes, reads status or
+   * starts a stream, and none creates a source (confirmed against
+   * Aitum/obs-vertical-canvas, 2026-09-14). A source, though, is a source:
+   * made here in a normal scene, it is in OBS's input list, and the plugin's
+   * own "+" adds an existing one to a vertical scene. That is the published
+   * route. It arrives switched off so it does not draw a 1080x1920 rectangle
+   * across the landscape scene while it waits to be picked up.
+   *
+   * SILENT. reroute false, like the bar: the landscape source already carries
+   * the shutter into OBS, and a second one routed the same way would put it in
+   * twice. Whether the two make any sound together once BOTH canvases are live
+   * is not something this repository can measure (§5.2) — but nothing is
+   * routed into the mix from here, so the broadcast cannot double. */
+  function makeVertical(scene, baseName) {
+    // English on every channel, for the reason the bar's suffix is.
+    var want = baseName + " vertical";
+    var existing = targets.filter(function (r) { return r.name === want; })[0];
+    var taken = inputNames.indexOf(want) !== -1;
+    if (taken && !(existing && existing.match && existing.isVertical)) {
+      // Somebody else's source wears the name. Say so and leave it alone: the
+      // landscape overlay is already written, and this one can be added later.
+      log(t("log.verticalskipped", { n: want }), "warn");
+      return Promise.resolve();
+    }
+    return makeOrWrite(scene, want, taken, verticalUrl(), 1080, 1920, false, false)
+      .then(function () { log(t("log.verticalcreated", { n: want }), "ok"); })
+      .catch(function (e) { log(t("log.verticalfail", { m: e.message }), "warn"); });
+  }
+
+  function resolveBarName(want) {
+    var existing = targets.filter(function (r) { return r.name === want; })[0];
+    var taken = inputNames.indexOf(want) !== -1;
+    if (!taken) return Promise.resolve({ name: want, overwrite: false });
+    if (existing && existing.match && existing.isBar) {
+      return Promise.resolve({ name: want, overwrite: true });
+    }
+    return ask(t("dlg.title"), t("dlg.src", { n: want }), [
+      { label: "dlg.cancel", value: "cancel" },
+      { label: "dlg.rename", value: "rename" },
+      { label: "dlg.overwrite", value: "overwrite", primary: true }
+    ]).then(function (answer) {
+      if (answer === "cancel") return null;
+      if (answer === "overwrite") {
+        log(t("log.overwrote", { n: want }), "warn");
+        return { name: want, overwrite: true };
+      }
+      var fresh = uniqueName(want, inputNames);
+      log(t("log.renamed", { a: want, b: fresh }), "warn");
+      return { name: fresh, overwrite: false };
+    });
+  }
+
+  /**
    * The browser source is made here rather than by hand.
    *
    * Asking a broadcaster to add an empty browser source, uncheck "shutdown when
@@ -5651,7 +6156,14 @@
    * calls ensureAudio() — an audio track that is silent by construction is
    * clutter in the mixer.
    */
-  function makeOrWrite(scene, name, overwrite, url, w, h, reroute) {
+  /* `enabled` is the scene item, not the source: false makes it and leaves it
+   * switched off in the scene it was made in. Only the vertical source passes
+   * it — it is made in a landscape scene because that is the only kind
+   * obs-websocket can reach, and it belongs to a scene the plugin owns. Note
+   * the source itself still runs (shutdown is false), which is what the
+   * broadcaster wants: by the time they add it to their vertical scene it has
+   * already connected and is ready. */
+  function makeOrWrite(scene, name, overwrite, url, w, h, reroute, enabled) {
     var settings = {
       is_local_file: false,
       url: url,
@@ -5665,7 +6177,7 @@
     }
     return request("CreateInput", {
       sceneName: scene, inputName: name, inputKind: "browser_source",
-      inputSettings: settings, sceneItemEnabled: true
+      inputSettings: settings, sceneItemEnabled: enabled !== false
     }).then(function () { log(t("log.created", { n: name, s: scene }), "ok"); });
   }
 
@@ -5721,7 +6233,6 @@
             // a name that changed when the broadcaster changed this page's
             // language would leave the old source behind, unwritten, drawing.
             var barName = pick.name + " bar";
-            var barExists = inputNames.indexOf(barName) !== -1;
             // barUrl(), not the overlay's: a bar never connects to OBS, so it
             // never takes the password back out of its own URL.
             // 480x56: one row, smaller than the 560x64 it replaced. The bar is a
@@ -5729,8 +6240,16 @@
             // size from filling the row rather than from a bigger box. An
             // existing 560x64 source still fits — the strip sizes itself off
             // whatever box it is given (overlay shell.html, the #bar block).
-            return makeOrWrite(hostScene, barName, barExists, barUrl(), 480, 56, false)
-              .then(function () { log(t("log.barcreated", { n: barName }), "ok"); })
+            return resolveBarName(barName)
+              .then(function (bar) {
+                // The overlay is already written by now, so "no" here is only
+                // "no bar" — said, because a source that quietly did not
+                // appear looks like one that failed.
+                if (!bar) { log(t("log.barskipped"), "warn"); return; }
+                return makeOrWrite(hostScene, bar.name, bar.overwrite, barUrl(), 480, 56, false)
+                  .then(function () { log(t("log.barcreated", { n: bar.name }), "ok"); });
+              })
+              .then(function () { return makeVertical(hostScene, pick.name); })
               .catch(function (e) {
                 // The overlay is the half that matters. A bar that failed to
                 // appear is something the broadcaster can add later.
@@ -5858,7 +6377,12 @@
       // The bar's glass. Only the bar source draws it, but it rides with
       // everything else: barConfig() is overlayConfig() with pieces taken
       // out, so a key that is not here never reaches the bar either.
-      glass: cfg.glass
+      glass: cfg.glass,
+      // The theme the glass is drawn in, and the pack of images laid on it —
+      // the folder's name and which files are in it, never the images
+      // (docs/theme-pack-plan.md §5). The overlay resolves themes/<pack>/
+      // beside itself; the card, being the same file, resolves the same.
+      theme: cfg.theme, pack: cfg.pack, packSlots: cfg.packSlots
     };
     /* An empty password is "I do not have one", never "erase the one you have".
      *
@@ -5892,6 +6416,23 @@
   function overlayUrl() {
     return OVERLAY_URL + "?v=" + encodeURIComponent(BUILD) +
       "#c=" + encodeURIComponent(JSON.stringify(overlayConfig()));
+  }
+
+  /* The same page, same settings, for the vertical scene.
+   *
+   * The flag changes NOTHING about how the page behaves — it measures its own
+   * frame and lays itself out from that (shell.html, the safe band). It is
+   * there so this page can tell the two sources apart: they are otherwise the
+   * same URL, and 55-what-obs-has.js picks the overlay to write to by finding
+   * exactly one that matches. Two identical ones and it finds none, which is
+   * how a broadcaster ends up with a page that cannot see its own source.
+   *
+   * So: the same trick the bar and the card already use, for the same reason —
+   * the flag is the only difference in the URL — except that this one is read
+   * by nobody but this page. */
+  function verticalUrl() {
+    return OVERLAY_URL + "?v=" + encodeURIComponent(BUILD) +
+      "#c=" + encodeURIComponent(JSON.stringify(overlayConfig())) + "&vertical";
   }
 
   /* What the bar is allowed to carry.
@@ -6030,6 +6571,10 @@
       var sig = currentSig();
       var jobs = [setUrl(target, overlayUrl(), true)];
       if (barTarget) jobs.push(setUrl(barTarget, barUrl(), false));
+      // The vertical source carries the same settings as the landscape one —
+      // it is the same overlay — so a change the broadcaster makes here has to
+      // reach both, or the two scenes drift apart in what they draw.
+      if (verticalTarget) jobs.push(setUrl(verticalTarget, verticalUrl(), false));
       return Promise.all(jobs).then(function () { return sig; });
     });
   }
@@ -6049,6 +6594,7 @@
     var names = [];
     if (target) names.push(target);
     if (barTarget) names.push(barTarget);
+    if (verticalTarget) names.push(verticalTarget);
     if (!names.length) return Promise.resolve();
     return Promise.all(names.map(function (n) {
       return request("PressInputPropertiesButton", { inputName: n, propertyName: "refreshnocache" });
@@ -6269,6 +6815,103 @@
     tellSample();
   }
 
+  /* ---- the theme, and the pack laid on it (docs/theme-pack-plan.md §6) ----
+   *
+   * The theme is one of the ids this build knows (THEMES, generated from
+   * src/shared/themes.json), and the buttons are made from that list so a
+   * theme added there appears here without a line of markup. The pack is a
+   * code the site made, pasted whole (32-theme-pack.js): it names the folder
+   * and the files, and the images stay on this machine. What is written to
+   * OBS is what the code was accepted as — never the raw text of the box. */
+  function renderThemeButtons() {
+    var box = $("grpTheme");
+    box.textContent = "";
+    THEMES.forEach(function (id) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("data-theme", id);
+      b.textContent = t("theme." + id);
+      box.appendChild(b);
+    });
+    setRadio("grpTheme", "theme", cfg.theme);
+  }
+
+  function applyThemeChoice(id) {
+    cfg.theme = THEMES.indexOf(id) !== -1 ? id : THEMES[0];
+    setRadio("grpTheme", "theme", cfg.theme);
+    saveCfg(cfg);
+    tellSample();
+  }
+
+  var packCheck = null;        // the last answer about the files, for repainting
+  var packCheckGen = 0;
+
+  /**
+   * Take a pasted code — or the box as it stands when the page opens.
+   *
+   * `pasted` is what separates the two: a code just pasted also brings the
+   * look the pack was designed for (accent, glass, preset), once. On boot it
+   * must not — the broadcaster may have changed those since, and a page that
+   * put the pack's taste back on every open would be undoing their choice.
+   * An unreadable code changes nothing and says so; the pack OBS has stays.
+   */
+  function applyPack(raw, pasted) {
+    raw = String(raw || "").trim();
+    if (!raw) {
+      cfg.pack = "";
+      cfg.packSlots = "";
+      packCheck = null;
+      saveCfg(cfg);
+      tellSample();
+      renderPackInfo();
+      return;
+    }
+    var code = parseThemeCode(raw);
+    if (!code) { packCheck = "bad"; renderPackInfo(); return; }
+    cfg.theme = code.theme;
+    setRadio("grpTheme", "theme", cfg.theme);
+    cfg.pack = code.pack;
+    cfg.packSlots = code.slots.join(",");
+    saveCfg(cfg);
+    if (pasted && code.recommend) {
+      var r = code.recommend;
+      // Each through its own apply*, which is where the value is held to what
+      // exists; the accent is checked against the swatches first because
+      // applyAccent takes any name it is given.
+      if (/^[a-z]+$/.test(r.accent) && $("grpAccent").querySelector('[data-accent="' + r.accent + '"]')) applyAccent(r.accent);
+      if (r.glass) applyGlass(r.glass);
+      if (r.preset && PRESETS[r.preset]) applyPreset(r.preset);
+    }
+    tellSample();
+    packCheck = "checking";
+    renderPackInfo();
+    var gen = ++packCheckGen;
+    checkPackImages(code.pack, code.slots, function (result) {
+      if (gen !== packCheckGen) return;      // a newer paste has overtaken this one
+      packCheck = result;
+      renderPackInfo();
+    });
+  }
+
+  /** What the box holds, in words: nothing, unreadable, checking, or the files. */
+  function renderPackInfo() {
+    var warn = false, text;
+    if (!cfg.pack) text = t("pack.empty");
+    else if (packCheck === "bad") { text = t("pack.bad"); warn = true; }
+    else if (packCheck === "checking" || !packCheck) text = t("pack.checking");
+    else {
+      var lines = [t("pack.found", { n: packCheck.found.length, p: cfg.pack })];
+      if (packCheck.missing.length) { lines.push(t("pack.missing", { l: packCheck.missing.join(", ") })); warn = true; }
+      if (packCheck.big.length) { lines.push(t("pack.big", { l: packCheck.big.join(", ") })); warn = true; }
+      text = lines.join(" ");
+    }
+    // A bad paste is said over the pack that is still in force, so the box
+    // keeps what was typed and the words say why it did not take.
+    if (packCheck === "bad" && cfg.pack) text = t("pack.bad");
+    el.packInfo.textContent = text;
+    el.packInfo.className = warn ? "note warn" : "note";
+  }
+
   function wireGroup(id, attr, fn) {
     $(id).addEventListener("click", function (e) {
       var b = e.target.closest("button");
@@ -6282,6 +6925,7 @@
   wireGroup("grpStampShot", "stampshot", applyStampShot);
   wireGroup("grpGlass", "glass", applyGlass);
   wireGroup("grpPlace", "place", applyPlace);
+  wireGroup("grpTheme", "theme", applyThemeChoice);
 
   /* ================= the sample =================
 
@@ -6319,8 +6963,24 @@
   // than resized: the placement corners and the three sizes only mean anything
   // against the shape they will really be drawn in, and a frame squeezed to
   // the width of a column would put them somewhere they will never be.
-  var SAMPLE_W = 1920;
-  var SAMPLE_H = 1080;
+  /* The two canvases a broadcaster can be standing on.
+   *
+   * The vertical one is not a variant of the horizontal: Twitch's dual format
+   * sends two tracks, and the broadcaster builds a second scene at 1080x1920
+   * for the mobile one (docs/vertical-plan.md §2). The same overlay URL goes
+   * into both, and the page decides which shape it is in by measuring — so the
+   * only thing the sample has to do to show the vertical layout is BE that
+   * shape. Nothing is passed to it.
+   *
+   * Worth showing rather than describing, because the vertical canvas is where
+   * the safe band lives: Twitch draws its own interface over the top and the
+   * bottom, the page keeps 7% clear at each end, and 7% is a provisional
+   * number taken from three screenshots of one handset (§5.3). A broadcaster
+   * looking at the sample is the first person who can say it looks wrong. */
+  var SHAPES = { wide: [1920, 1080], tall: [1080, 1920] };
+  var shape = "wide";
+  var SAMPLE_W = SHAPES.wide[0];
+  var SAMPLE_H = SHAPES.wide[1];
 
   var sampleFrame = null;
   var sampleReady = false;
@@ -6347,7 +7007,12 @@
       stampShot: cfg.stampShot,
       // The sample draws the bar too (92-bar-and-party.js), so it has to know
       // what the glass is made of.
-      glass: cfg.glass
+      glass: cfg.glass,
+      // The theme, and the pack's name and slot list — never an image. The
+      // sample cannot show a pack's images anyway: a sandboxed frame is
+      // refused file: images (measured, docs/theme-pack-plan.md §9-5), so it
+      // draws the theme, and the pack is seen in OBS or on the site.
+      theme: cfg.theme, pack: cfg.pack, packSlots: cfg.packSlots
     };
   }
 
@@ -6370,8 +7035,50 @@
     var w = box.clientWidth;
     if (!w) return;
     var k = w / SAMPLE_W;
-    el.sample.style.transform = "scale(" + k + ")";
+    /* A vertical canvas scaled to the column is taller than the page.
+       Measured at a 714px column: 1269px of frame, which pushes everything
+       below the sample off the screen and makes the broadcaster scroll to see
+       a thing whose whole point is being seen at a glance. So it is capped by
+       the window as well, and the cap only ever binds on the tall shape — at
+       the same column the wide one comes to 402px. */
+    var cap = Math.max(260, Math.round(window.innerHeight * 0.62));
+    if (SAMPLE_H * k > cap) k = cap / SAMPLE_H;
+    /* Centred by moving the frame, not by narrowing the box.
+       ----------------------------------------------------
+       The box's width is where `w` comes from two lines up, so writing a width
+       back onto it feeds the next call its own answer: measured, it went 781 →
+       347 → 195 and would have kept going. The frame is moved inside a box
+       that still spans the column instead. transform-origin is the top left,
+       and the translate is written first — so it is applied last, and is not
+       multiplied by the scale. */
+    var pad = Math.max(0, Math.round((w - SAMPLE_W * k) / 2));
+    el.sample.style.transform = "translateX(" + pad + "px) scale(" + k + ")";
+    el.sample.style.width = SAMPLE_W + "px";
+    el.sample.style.height = SAMPLE_H + "px";
     box.style.height = Math.round(SAMPLE_H * k) + "px";
+  }
+
+  /* Switch the sample between the two canvases.
+   *
+   * The frame is rebuilt rather than resized. A browser source reads its size
+   * once, at load, and so does the page inside it: the overlay measures the
+   * viewport as it starts and lays the wall out from that (90-paid-wall.js).
+   * It does listen for resize now — but what the broadcaster is here to see is
+   * what OBS will show them, and OBS gives the page its size at load. Loading
+   * it again is the honest imitation. */
+  function setSampleShape(next) {
+    if (!SHAPES[next] || next === shape) return;
+    shape = next;
+    SAMPLE_W = SHAPES[next][0];
+    SAMPLE_H = SHAPES[next][1];
+    setRadio("sampleShape", "shape", next);
+    if (sampleFrame) {
+      sampleFrame.remove();
+      sampleFrame = null;
+      sampleReady = false;
+    }
+    startSample();
+    fitSample();
   }
 
   /**
@@ -6442,6 +7149,10 @@
     saveUi();
   }
   wireGroup("grpSampleBg", "samplebg", applySampleBg);
+  // Not kept in `ui`: which canvas you last looked at is not how you are
+  // looking at it, and a broadcaster who opens this page again is opening it
+  // for the scene they are building now.
+  wireGroup("sampleShape", "shape", setSampleShape);
 
   // The language is part of what the sample is told, so a change reaches it
   // like any other. It is drawn with t() at the moment each word appears, so
@@ -6550,6 +7261,13 @@
     renderRail();
   }
 
+  // Which attempt is the current one. Each press opens its own socket and its
+  // own six-second timer, and `done` below is local to that attempt — so a
+  // second press while the first was still waiting let the first one's
+  // give-up land on the second one's "live" and repaint it as an error. Only
+  // the newest attempt may speak; older ones just close their socket.
+  var ebsAttempt = 0;
+
   function checkEbs() {
     applyPairCode();
     if (!cfg.ebs || !cfg.ch || !cfg.ebsToken) { log(t("log.ebs.need"), "warn"); return; }
@@ -6560,28 +7278,36 @@
     var url = base.replace(/^http/, "ws") + "/stream?ch=" + encodeURIComponent(cfg.ch) +
       "&t=" + encodeURIComponent(cfg.ebsToken);
     ebsSetState("connecting");
+    // The attempt is the newest from the moment it is asked for, before the
+    // socket exists: if the constructor throws, the previous attempt must not
+    // stay the newest and later paint this "error" over with its own "live".
+    var mine = ++ebsAttempt;
     var sock;
     try { sock = new WebSocket(url); } catch (e) { ebsSetState("error"); return; }
     var done = false;
-    var giveUp = setTimeout(function () {
-      if (done) return;
+    /** Close this attempt; true when it is also the one allowed to report. */
+    function settle() {
+      if (done) return false;
       done = true;
+      clearTimeout(giveUp);
+      return mine === ebsAttempt;
+    }
+    var giveUp = setTimeout(function () {
+      var speak = settle();
+      try { sock.close(); } catch (e) {}
+      if (!speak) return;
       ebsSetState("error");
       log(t("log.ebs.fail"), "bad");
-      try { sock.close(); } catch (e) {}
     }, 6000);
     sock.onopen = function () {
-      if (done) return;
-      done = true;
-      clearTimeout(giveUp);
+      var speak = settle();
+      try { sock.close(); } catch (e) {}
+      if (!speak) return;
       ebsSetState("live");
       log(t("log.ebs.ok"), "ok");
-      try { sock.close(); } catch (e) {}
     };
     sock.onclose = function () {
-      if (done) return;
-      done = true;
-      clearTimeout(giveUp);
+      if (!settle()) return;
       ebsSetState("error");
       log(t("log.ebs.fail"), "bad");
     };
@@ -6787,6 +7513,17 @@
     testBusy = true;
     drawTestLeft();
     writeAll().then(function (sig) {
+      // Refused at the dialog is not a failure, so it arrives here and not in
+      // the catch — but nothing reached OBS all the same (writeAll() hands back
+      // "" for exactly that), and it has already said so. The same rule as the
+      // catch below then: the window that was never delivered is not open, and
+      // recording "" would mark the page clean against a write that never
+      // happened (markPushed falls back to the current settings).
+      if (!sig) {
+        cfg.testUntil = was;
+        saveCfg(cfg);
+        return;
+      }
       log(t("test.left", { n: 30 }), "ok");
       markPushed(sig);
     }).catch(function (e) {
@@ -6832,7 +7569,14 @@
     // counting. The overlay hears about it on the next write in that case.
     if (!target || !identified) { log(t("log.testend"), "ok"); testBusy = false; drawTestLeft(); return; }
     writeAll()
-      .then(function (sig) { log(t("log.testend"), "ok"); markPushed(sig); })
+      .then(function (sig) {
+        // "" is the dialog's no: the window is still over on this page (see
+        // above), but OBS was not told, and the dock must keep saying so. The
+        // same shape as pushNow() — a refused write is recorded nowhere.
+        if (!sig) return;
+        log(t("log.testend"), "ok");
+        markPushed(sig);
+      })
       .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); })
       .then(function () { testBusy = false; drawTestLeft(); });
   }
@@ -7068,16 +7812,25 @@
   /** Put source into scene, on top, however it got there before. */
   function raiseToTop(scene, source) {
     var kept = null;
+    // Shown or hidden is the broadcaster's, like the transform: an overlay they
+    // switched off on purpose must not come back on because it was re-stacked.
+    // A new item is shown, which is what OBS does for one made by hand.
+    var shown = true;
     return sceneItemId(scene, source)
       .then(function (old) {
         if (old === null) return null;
-        return request("GetSceneItemTransform", { sceneName: scene, sceneItemId: old })
+        return request("GetSceneItemEnabled", { sceneName: scene, sceneItemId: old })
+          .then(function (r) { if (typeof r.sceneItemEnabled === "boolean") shown = r.sceneItemEnabled; })
+          .catch(function () {})
+          .then(function () {
+            return request("GetSceneItemTransform", { sceneName: scene, sceneItemId: old });
+          })
           .then(function (r) { kept = r.sceneItemTransform; return old; })
           .catch(function () { return old; });
       })
       .then(function (old) {
         // Create before removing: a failure here leaves the scene as it was.
-        return request("CreateSceneItem", { sceneName: scene, sourceName: source, sceneItemEnabled: true })
+        return request("CreateSceneItem", { sceneName: scene, sourceName: source, sceneItemEnabled: shown })
           .then(function (r) {
             if (old === null) return r.sceneItemId;
             return request("RemoveSceneItem", { sceneName: scene, sceneItemId: old })
@@ -7165,6 +7918,10 @@
   // when the connection was tested, so a broadcaster who filled them in and
   // went straight to writing sent an overlay with no channel.
   el.pairCode.addEventListener("input", applyPairCode);
+  // A pasted theme code is read as it is pasted, and brings the look the
+  // pack was designed for with it (70-broadcaster-settings.js applyPack).
+  el.themeCode.addEventListener("input", function () { applyPack(el.themeCode.value, true); });
+  el.packNone.addEventListener("click", function () { el.themeCode.value = ""; applyPack("", true); });
   el.ebsConnect.addEventListener("click", checkEbs);
   el.saveMode.addEventListener("change", applySaveMode);
   el.saveFrom.addEventListener("change", applySaveMode);
@@ -7219,6 +7976,9 @@
     el.pairCode.value = ""; el.pairInfo.hidden = true;
     applyPreset(cfg.preset); applyAccent(cfg.accent); applyScale(cfg.scale); applyPlace(cfg.place);
     applyStampShot(cfg.stampShot); applyGlass(cfg.glass);
+    applyThemeChoice(cfg.theme);
+    el.themeCode.value = "";
+    applyPack("", false);
     el.host.value = cfg.host;
     el.port.value = cfg.port;
     el.pw.value = "";
@@ -7310,6 +8070,13 @@
   applyPlace(cfg.place);
   applyStampShot(cfg.stampShot);
   applyGlass(cfg.glass);
+  // The pack as the settings remember it, back in the box, and its files
+  // checked again — a folder renamed since is the kind of thing this catches.
+  // Not as a paste: the pack's recommended look is not put back over a
+  // choice the broadcaster made since.
+  applyThemeChoice(cfg.theme);
+  el.themeCode.value = themeCodeOf(cfg);
+  applyPack(el.themeCode.value, false);
   applySaveMode();
   showPane(ui.pane);
   applySampleBg(ui.sampleBg);
