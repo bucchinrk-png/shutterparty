@@ -953,7 +953,14 @@
               <label id="lTheme"></label>
               <div class="opts" id="grpTheme"></div>
             </div>
-            <div class="grp">
+            <!-- Hidden while no pack is being made (2026-09-15, 本人): there are no
+                 packs to paste yet, and a box asking for a code nobody has is a
+                 question with no answer. It comes back on its own for a page
+                 that already carries a pack (renderPackInfo), because a setting
+                 that is sent to OBS must never be one the page cannot show or
+                 clear. The next shape is a pack put in the folder turning up
+                 among the themes (docs/pack-select-plan.md). -->
+            <div class="grp" id="grpPack" hidden>
               <label for="themeCode" id="lPack"></label>
               <div class="packRow">
                 <div class="field"><input id="themeCode" spellcheck="false" placeholder="sp-theme/1/…"></div>
@@ -981,6 +988,15 @@
                  under it at all, which is not a setting (docs/stamp-plan.md
                  §1.C) — so this asks about the ones with a name beside the
                  clock, where the two are competing for the same line. -->
+            <!-- The language the overlay is drawn in, apart from the language of
+                 this page (30-persisted-config.js, the two choices): what the
+                 whole audience reads is a setting of the broadcast, and the
+                 header's picker is a setting of the person at the keyboard. -->
+            <div class="grp">
+              <label for="ovLang" id="lOvLang"></label>
+              <div class="field"><select id="ovLang"></select></div>
+              <p class="note" id="nOvLang"></p>
+            </div>
             <div class="grp">
               <label id="lStampShot"></label>
               <div class="opts" id="grpStampShot">
@@ -1340,7 +1356,9 @@
       "nav.todo": "未設定",
       "lang.label": "表示言語",
       "lang.auto": "ブラウザに合わせる",
-      "lang.note": "オーバーレイもこの言語で表示されます。",
+      "lang.note": "この画面の言語です。配信画面の言語は「演出」で選びます。",
+      "ovLang.label": "配信画面の言語", "ovLang.same": "設定ページと同じ（{l}）",
+      "n.ovLang": "視聴者全員が見る文字の言語です。SHUTTER PARTY と LAST HIT はどの言語でも英語のままです。",
       "s.build": "撮影用シーンとオーバーレイを作る",
       "n.build": "撮影用の空のシーンと、演出用のブラウザソース 2 つ（オーバーレイとゴールバー）を、ボタン 1 つで OBS に作ります。撮影用シーンの中身は、あとから OBS でいつもどおり足してください。そこに入れたものだけが写真に写ります。",
       "build.go": "OBS に一式を作る",
@@ -1564,7 +1582,9 @@
       "nav.todo": "not set",
       "lang.label": "Language",
       "lang.auto": "Match my browser",
-      "lang.note": "The overlay is shown in this language too.",
+      "lang.note": "The language of this page. The language on your stream is chosen under Look.",
+      "ovLang.label": "Language on stream", "ovLang.same": "Same as this page ({l})",
+      "n.ovLang": "The language everyone watching reads. SHUTTER PARTY and LAST HIT stay in English in every language.",
       "s.build": "Build the capture scene and the overlay",
       "n.build": "One button makes an empty capture scene and the two browser sources the effects need — the overlay and the goal bar. Fill the capture scene in OBS the way you always do; only what you put in there ends up in a photo.",
       "build.go": "Build it all in OBS",
@@ -1788,7 +1808,9 @@
       "nav.todo": "sin configurar",
       "lang.label": "Idioma",
       "lang.auto": "Igual que mi navegador",
-      "lang.note": "La superposición también se muestra en este idioma.",
+      "lang.note": "El idioma de esta página. El idioma de tu directo se elige en Aspecto.",
+      "ovLang.label": "Idioma en el directo", "ovLang.same": "Igual que esta página ({l})",
+      "n.ovLang": "El idioma que leen todos los espectadores. SHUTTER PARTY y LAST HIT siguen en inglés en todos los idiomas.",
       "s.build": "Crear la escena de captura y la superposición",
       "n.build": "Un solo botón crea una escena de captura vacía y las dos fuentes de navegador que necesitan los efectos: la superposición y la barra de meta. Rellena la escena de captura en OBS como siempre; solo lo que pongas ahí saldrá en la foto.",
       "build.go": "Crear todo en OBS",
@@ -2012,7 +2034,9 @@
       "nav.todo": "por configurar",
       "lang.label": "Idioma",
       "lang.auto": "Igual ao meu navegador",
-      "lang.note": "A sobreposição também aparece neste idioma.",
+      "lang.note": "O idioma desta página. O idioma da sua transmissão é escolhido em Aparência.",
+      "ovLang.label": "Idioma na transmissão", "ovLang.same": "Igual a esta página ({l})",
+      "n.ovLang": "O idioma que todos os espectadores leem. SHUTTER PARTY e LAST HIT ficam em inglês em todos os idiomas.",
       "s.build": "Criar a cena de captura e a sobreposição",
       "n.build": "Um único botão cria uma cena de captura vazia e as duas fontes de navegador que os efeitos precisam — a sobreposição e a barra de meta. Preencha a cena de captura no OBS como sempre faz; só o que estiver lá aparece na foto.",
       "build.go": "Criar tudo no OBS",
@@ -2236,7 +2260,9 @@
       "nav.todo": "offen",
       "lang.label": "Sprache",
       "lang.auto": "Wie mein Browser",
-      "lang.note": "Das Overlay wird ebenfalls in dieser Sprache angezeigt.",
+      "lang.note": "Die Sprache dieser Seite. Die Sprache im Stream wählst du unter Aussehen.",
+      "ovLang.label": "Sprache im Stream", "ovLang.same": "Wie diese Seite ({l})",
+      "n.ovLang": "Die Sprache, die alle Zuschauer lesen. SHUTTER PARTY und LAST HIT bleiben in jeder Sprache Englisch.",
       "s.build": "Aufnahmeszene und Overlay anlegen",
       "n.build": "Ein Knopf legt eine leere Aufnahmeszene an und die beiden Browserquellen, die die Effekte brauchen — das Overlay und die Zielleiste. Die Aufnahmeszene füllst du in OBS wie immer selbst; nur was dort drin ist, landet auf dem Foto.",
       "build.go": "Alles in OBS anlegen",
@@ -2460,7 +2486,9 @@
       "nav.todo": "à faire",
       "lang.label": "Langue",
       "lang.auto": "Comme mon navigateur",
-      "lang.note": "L’overlay s’affiche aussi dans cette langue.",
+      "lang.note": "La langue de cette page. La langue de votre stream se choisit dans Apparence.",
+      "ovLang.label": "Langue du stream", "ovLang.same": "Comme cette page ({l})",
+      "n.ovLang": "La langue que lisent tous les spectateurs. SHUTTER PARTY et LAST HIT restent en anglais dans toutes les langues.",
       "s.build": "Créer la scène de capture et l’overlay",
       "n.build": "Un seul bouton crée une scène de capture vide et les deux sources navigateur dont les effets ont besoin : l’overlay et la barre d’objectif. La scène de capture, c’est vous qui la remplissez dans OBS comme d’habitude ; seul ce que vous y mettez apparaît sur la photo.",
       "build.go": "Tout créer dans OBS",
@@ -2684,7 +2712,9 @@
       "nav.todo": "da fare",
       "lang.label": "Lingua",
       "lang.auto": "Come il browser",
-      "lang.note": "Anche l’overlay viene mostrato in questa lingua.",
+      "lang.note": "La lingua di questa pagina. La lingua della diretta si sceglie in Aspetto.",
+      "ovLang.label": "Lingua in diretta", "ovLang.same": "Come questa pagina ({l})",
+      "n.ovLang": "La lingua che leggono tutti gli spettatori. SHUTTER PARTY e LAST HIT restano in inglese in ogni lingua.",
       "s.build": "Creare la scena di cattura e l’overlay",
       "n.build": "Un solo pulsante crea una scena di cattura vuota e le due sorgenti browser che servono agli effetti: l’overlay e la barra dell’obiettivo. La scena di cattura la riempi tu in OBS come sempre; nella foto finisce solo quello che ci metti dentro.",
       "build.go": "Crea tutto in OBS",
@@ -2908,7 +2938,9 @@
       "nav.todo": "미설정",
       "lang.label": "표시 언어",
       "lang.auto": "브라우저에 맞춤",
-      "lang.note": "오버레이도 이 언어로 표시됩니다.",
+      "lang.note": "이 페이지의 언어입니다. 방송 화면의 언어는 「모양」에서 고릅니다.",
+      "ovLang.label": "방송 화면의 언어", "ovLang.same": "이 페이지와 같음 ({l})",
+      "n.ovLang": "시청자 모두가 읽는 글자의 언어입니다. SHUTTER PARTY와 LAST HIT는 어느 언어에서도 영어 그대로입니다.",
       "s.build": "촬영 장면과 오버레이 만들기",
       "n.build": "버튼 하나로 빈 촬영용 장면과 연출에 필요한 브라우저 소스 두 개(오버레이와 목표 바)를 만듭니다. 촬영용 장면의 내용은 평소처럼 OBS에서 직접 채워 넣으세요. 거기에 넣은 것만 사진에 담깁니다.",
       "build.go": "OBS에 한 번에 만들기",
@@ -3132,7 +3164,9 @@
       "nav.todo": "未设置",
       "lang.label": "显示语言",
       "lang.auto": "跟随浏览器",
-      "lang.note": "叠加层也会用这个语言显示。",
+      "lang.note": "这是本页面的语言。直播画面的语言请在「外观」中选择。",
+      "ovLang.label": "直播画面的语言", "ovLang.same": "与本页面相同（{l}）",
+      "n.ovLang": "所有观众看到的文字的语言。SHUTTER PARTY 和 LAST HIT 在任何语言下都保持英文。",
       "s.build": "创建拍摄场景和叠加层",
       "n.build": "一个按钮就能创建一个空的拍摄场景，以及演出所需的两个浏览器源——叠加层和目标进度条。拍摄场景里的内容请照常在 OBS 里自己添加；只有放进去的东西才会出现在照片里。",
       "build.go": "在 OBS 里一次创建",
@@ -3356,7 +3390,9 @@
       "nav.todo": "не настроено",
       "lang.label": "Язык",
       "lang.auto": "Как в браузере",
-      "lang.note": "Оверлей тоже показывается на этом языке.",
+      "lang.note": "Язык этой страницы. Язык на трансляции выбирается в разделе «Вид».",
+      "ovLang.label": "Язык на трансляции", "ovLang.same": "Как на этой странице ({l})",
+      "n.ovLang": "Язык, который читают все зрители. SHUTTER PARTY и LAST HIT на всех языках остаются на английском.",
       "s.build": "Создать сцену для съёмки и оверлей",
       "n.build": "Одна кнопка создаёт пустую сцену для съёмки и два браузерных источника, которые нужны эффектам, — оверлей и полосу цели. Содержимое сцены для съёмки вы добавляете в OBS как обычно; на фотографию попадает только то, что вы туда положили.",
       "build.go": "Создать всё в OBS",
@@ -3580,7 +3616,9 @@
       "nav.todo": "do zrobienia",
       "lang.label": "Język",
       "lang.auto": "Tak jak przeglądarka",
-      "lang.note": "Nakładka też jest pokazywana w tym języku.",
+      "lang.note": "Język tej strony. Język na transmisji wybierasz w zakładce Wygląd.",
+      "ovLang.label": "Język na transmisji", "ovLang.same": "Tak jak ta strona ({l})",
+      "n.ovLang": "Język, który czytają wszyscy widzowie. SHUTTER PARTY i LAST HIT zostają po angielsku w każdym języku.",
       "s.build": "Utwórz scenę do zdjęć i nakładkę",
       "n.build": "Jeden przycisk tworzy pustą scenę do zdjęć oraz dwa źródła przeglądarki potrzebne efektom — nakładkę i pasek celu. Zawartość sceny do zdjęć dodajesz w OBS jak zwykle; na zdjęciu pojawi się tylko to, co tam włożysz.",
       "build.go": "Utwórz wszystko w OBS",
@@ -3804,7 +3842,9 @@
       "nav.todo": "ayarlanmadı",
       "lang.label": "Dil",
       "lang.auto": "Tarayıcımla aynı",
-      "lang.note": "Yayın katmanı da bu dilde görünür.",
+      "lang.note": "Bu sayfanın dili. Yayındaki dil Görünüm bölümünde seçilir.",
+      "ovLang.label": "Yayındaki dil", "ovLang.same": "Bu sayfayla aynı ({l})",
+      "n.ovLang": "Tüm izleyicilerin okuduğu dil. SHUTTER PARTY ve LAST HIT her dilde İngilizce kalır.",
       "s.build": "Çekim sahnesini ve yayın katmanını oluştur",
       "n.build": "Tek bir düğme, boş bir çekim sahnesi ile efektlerin ihtiyaç duyduğu iki tarayıcı kaynağını — yayın katmanı ve hedef çubuğu — oluşturur. Çekim sahnesinin içini OBS’de her zamanki gibi kendiniz doldurun; fotoğrafa yalnızca oraya koyduğunuz şeyler girer.",
       "build.go": "Hepsini OBS’de oluştur",
@@ -3862,7 +3902,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-b33b23ccc1ac";
+  var BUILD = "sp-9ede71a50da8";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -4441,7 +4481,10 @@
      to OBS: the moment it were included, recording it would change the thing
      it is a record of, and the dock would never once say "written". */
   var UI_KEY = "sp-setup-ui";
-  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim" };
+  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim", lang: "" };
+  // Set when the stored UI has no language yet: a page from before the two
+  // languages were split, whose one choice has to become both (see pickLang).
+  var uiLangUnset = true;
 
   function defaultCfg() {
     var base = {};
@@ -4489,6 +4532,7 @@
       if (raw) {
         var saved = JSON.parse(raw);
         for (var s in UI_DEFAULTS) if (typeof saved[s] === "string") base[s] = saved[s];
+        uiLangUnset = typeof saved.lang !== "string";
       }
     } catch (e) {}
     return base;
@@ -4501,19 +4545,39 @@
     try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) {}
   }
 
-  /* ---- which language this page, and the overlay, are read in ----
+  /* ---- which language this page is read in, and which the overlay is ----
 
-     The broadcaster picks it. It used to follow navigator.language, which is
-     the language of whoever is at the PC — and the same value is sent to the
-     overlay, where it decides what an entire audience reads (§4.8). A browser
-     installed in one language on a machine that streams in another was enough
-     to put the whole channel's overlay in the wrong one, with nothing on this
-     page to say so or to change it. */
+     TWO CHOICES, NOT ONE (2026-09-15, 本人). The overlay's language decides
+     what an entire audience reads (§4.8), so the broadcaster picks it rather
+     than navigator.language — a browser installed in one language on a
+     machine that streams in another used to put the whole channel's overlay
+     in the wrong one. But it was also this page's language, so a broadcaster
+     who reads Japanese and streams in English had to switch, write, and
+     switch back, and every later write put the page's language on the air.
+
+       - ui.lang   this page. Kept in the page's own memory, never sent: it
+                   is nobody's business but the person at the keyboard's.
+                   "" follows the browser.
+       - cfg.lang  the overlay. Sent (65-writing-the-settings.js). "" means
+                   "the same as this page", which is exactly what the one
+                   setting used to do — so nothing on air changes for anyone
+                   until they choose.
+
+     A page from before the split has a cfg.lang and no ui.lang; that one
+     choice was both, so it becomes both, once. ?lang= in this page's address
+     still names the page's language for the visit (the screenshot tools use
+     it) and is not remembered. */
   var browserLang = String(navigator.language || "en").toLowerCase().split("-")[0];
   var lang = "en";
 
+  if (uiLangUnset) {
+    ui.lang = cfg.lang;
+    uiLangUnset = false;
+    if (cfg.lang) saveUi();
+  }
+
   function pickLang() {
-    var want = cfg.lang || browserLang;
+    var want = String(q.get("lang") || ui.lang || browserLang).toLowerCase().split("-")[0];
     lang = I18N[want] ? want : (I18N[browserLang] ? browserLang : "en");
   }
   pickLang();
@@ -4740,6 +4804,7 @@
   var el = {
     chip: $("chip"), chipText: $("chipText"),
     uiLang: $("uiLang"),
+    ovLang: $("ovLang"),
     rail: $("rail"),
     host: $("host"), port: $("port"), pw: $("pw"),
     // The fold the three of them live in. Focusing a field inside a closed
@@ -4760,7 +4825,7 @@
     // column's width.
     sampleBox: $("sampleBox"), sample: $("sample"), sampleParty: $("btnSampleParty"),
     sampleShape: $("sampleShape"),
-    themeCode: $("themeCode"), packNone: $("btnPackNone"), packInfo: $("packInfo"),
+    themeCode: $("themeCode"), packNone: $("btnPackNone"), packInfo: $("packInfo"), grpPack: $("grpPack"),
     pairCode: $("pairCode"), pairInfo: $("pairInfo"),
     ebsState: $("ebsState"), ebsConnect: $("btnEbs"),
     saveMode: $("saveMode"), saveDir: $("saveDir"), fSaveDir: $("fSaveDir"),
@@ -4796,6 +4861,8 @@
     setText("ttl", "ttl");
     setText("lede", "lede");
     setText("lLang", "lang.label");
+    setText("lOvLang", "ovLang.label");
+    setText("nOvLang", "n.ovLang");
 
     setText("rObs", "nav.obs");
     setText("rExt", "nav.ext");
@@ -4911,6 +4978,7 @@
     el.push.textContent = t("push");
 
     renderLangPick();
+    renderOvLang();
     // The picker carries a word of its own ("add a scene"), and every chip
     // carries the name of what its cross would take away.
     renderGate();
@@ -4936,15 +5004,44 @@
       o.textContent = LANG_NAMES[code];
       el.uiLang.appendChild(o);
     });
-    el.uiLang.value = cfg.lang || "";
+    el.uiLang.value = ui.lang || "";
     el.uiLang.title = t("lang.note");
   }
 
+  /* The overlay's language, on the Look tab (30-persisted-config.js, the two
+   * choices). The first option is "" and names the language it stands for
+   * right now, because "the same as this page" read without the name is a
+   * riddle the broadcaster has to solve by looking up at the header. */
+  function renderOvLang() {
+    el.ovLang.textContent = "";
+    var same = document.createElement("option");
+    same.value = "";
+    same.textContent = t("ovLang.same", { l: LANG_NAMES[lang] || lang });
+    el.ovLang.appendChild(same);
+    Object.keys(LANG_NAMES).forEach(function (code) {
+      if (!I18N[code]) return;
+      var o = document.createElement("option");
+      o.value = code;
+      o.textContent = LANG_NAMES[code];
+      el.ovLang.appendChild(o);
+    });
+    el.ovLang.value = I18N[cfg.lang] ? cfg.lang : "";
+  }
+
   el.uiLang.addEventListener("change", function () {
-    cfg.lang = el.uiLang.value;
-    saveCfg(cfg);
+    ui.lang = el.uiLang.value;
+    saveUi();
     pickLang();
     paint();
+    // An overlay that follows this page has just changed language too: the
+    // dock has to say it is not written yet, and the sample has to be told.
+    if (!cfg.lang) { renderDock(); tellSample(); }
+  });
+
+  el.ovLang.addEventListener("change", function () {
+    cfg.lang = I18N[el.ovLang.value] ? el.ovLang.value : "";
+    saveCfg(cfg);
+    tellSample();
   });
 
   /* ================= the rail ================= */
@@ -6910,6 +7007,10 @@
     if (packCheck === "bad" && cfg.pack) text = t("pack.bad");
     el.packInfo.textContent = text;
     el.packInfo.className = warn ? "note warn" : "note";
+    // Shown only while a pack is in the settings (shell.html, #grpPack): the
+    // box is hidden until packs exist, but one already written to OBS has to
+    // stay visible and clearable. Clearing it hides the box again.
+    el.grpPack.hidden = !cfg.pack;
   }
 
   function wireGroup(id, attr, fn) {
@@ -6974,9 +7075,11 @@
    *
    * Worth showing rather than describing, because the vertical canvas is where
    * the safe band lives: Twitch draws its own interface over the top and the
-   * bottom, the page keeps 7% clear at each end, and 7% is a provisional
-   * number taken from three screenshots of one handset (§5.3). A broadcaster
-   * looking at the sample is the first person who can say it looks wrong. */
+   * bottom, and the page keeps Twitch's content safe area clear of it — 7.5%
+   * at the top, 22% at the bottom where the chat starts in Twitch's own
+   * example (§5.3). Where the chat starts moves with the device, so a
+   * broadcaster looking at the sample is still the first person who can say
+   * it looks wrong. */
   var SHAPES = { wide: [1920, 1080], tall: [1080, 1920] };
   var shape = "wide";
   var SAMPLE_W = SHAPES.wide[0];

@@ -2189,18 +2189,26 @@
      bands above and below it are the app's own blurred fill, OUTSIDE the
      video. What lands ON the video is the broadcaster's avatar and the follow
      row, down to 5.5%, and an event banner from 93.5% when there is an event.
-     The chat is translucent and the VIEWER chooses its height, so it cannot be
-     avoided and is not treated as lost room.
 
-     So the band is one band, not three: keep the top and bottom 7% clear and
-     put everything else where it already goes. The vessels' own vertical
-     logic — the banner at the top, the plate and the sheet centred, the
-     photographs in a corner — is not broken by a tall frame (§1.3); what was
-     broken was how much of the frame they filled, and --u above fixes that.
+     THE BAND IS TWITCH'S CONTENT SAFE AREA (2026-09-15). The help article's
+     Best Practices figure draws it (docs/vertical-plan.md §2): the top UI
+     ends at 6-7% of the video, the safe area runs from 7.5% to where the chat
+     starts — 78% in its iPhone 13 mini example — and everything below is
+     "covered by chat, or other UI". This page used to keep only 7% clear at
+     the bottom and accept the chat over the photographs, because the chat is
+     translucent; the broadcaster chose to follow Twitch instead, since the
+     photographs are the point and a phone viewer with the chat up would see
+     them under text. The chat's start still moves with the device and the
+     viewer's choice (67% to 88% in the same figure), so 78% is Twitch's own
+     example, not a guarantee.
 
-     THE 7% IS PROVISIONAL: one handset, three screenshots, and Twitch
-     publishes no contract value in pixels or in percent. It is two variables
-     precisely so that measuring again changes two lines (§5.3, §6.1).
+     So the band is one band, not three: keep 7.5% clear at the top and 22% at
+     the bottom, and put everything else where it already goes. The vessels'
+     own vertical logic — the banner at the top, the plate and the sheet
+     centred, the photographs in a corner — is not broken by a tall frame
+     (§1.3); what was broken was how much of the frame they filled, and --u
+     above fixes that. It is two variables so that a better number changes two
+     lines (§5.3, §6.1).
 
      NOT #bar AND NOT #card. An aspect ratio below 1 means "this page is
      standing on a vertical broadcast canvas" — but the bar has a browser
@@ -2211,8 +2219,8 @@
      different sheet into the file than the one the party showed. */
   @media (max-aspect-ratio: 1/1) {
     :root:not([data-baronly]):not([data-card]) {
-      --safe-top: 7%;
-      --safe-bottom: 7%;
+      --safe-top: 7.5%;
+      --safe-bottom: 22%;
     }
     /* The two centred vessels keep their own background across the whole
        frame — the sheet darkens the middle of the screen — so the band is
@@ -2406,7 +2414,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-b33b23ccc1ac";
+  var BUILD = "sp-9ede71a50da8";
   /* @end build */
 
   /**
