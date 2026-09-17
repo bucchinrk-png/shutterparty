@@ -793,6 +793,13 @@
             <button class="mini" id="btnShot" disabled></button>
           </div>
           <p class="note good" id="buildReady" hidden></p>
+          <!-- The vertical source, in one line, and only once it exists
+               (60-building-the-pieces.js renderBuildState). Before the button
+               is pressed it would read as a second thing to set up; after it,
+               it names a source the broadcaster can go and find. The steps and
+               the pictures are on the guide page, which can be corrected
+               without shipping a new download (docs/vertical-howto-plan.md). -->
+          <p class="note" id="nVertical" hidden></p>
           <p class="notice" id="notice" hidden></p>
           <!-- What a photograph of the capture scene would contain. The gate
                decides when the shutter works; this says what it takes. -->
@@ -1324,6 +1331,11 @@
       "push": "OBS に反映",
       "log.pushed": "{n} に設定を書き込みました。OBS 側が読み直します",
       "log.pushfail": "書き込めませんでした: {m}",
+      "log.manyTargets": "撮れるオーバーレイが {c} つあります: {n}。撮影の設定は全部に書き込みます。使っていないものは OBS で削除してください",
+      "log.writeMissed": "書き込めなかったオーバーレイ: {n}。反映済みにしていません。もう一度書き込んでください",
+      "log.unread": "設定を読めなかったブラウザソース: {n}。反映済みにしていません。もう一度書き込むと読み直します",
+      "log.testStillOpen": "{n} は書き込めなかったため、あと {m} 分撮れます（その時刻に自動で閉じます）",
+      "log.testStillOpenMax": "{n} は書き込めなかったため、最長 30 分撮れます（その時刻に自動で閉じます）",
       "log.blankstop": "書き込みをやめました。OBS の設定はそのままです",
       "log.scan": "ブラウザソースを {n} 件見つけました",
       "log.barcreated": "ゴールバーの「{n}」も作りました。OBS で好きな場所に動かしてください",
@@ -1360,7 +1372,8 @@
       "ovLang.label": "配信画面の言語", "ovLang.same": "設定ページと同じ（{l}）",
       "n.ovLang": "視聴者全員が見る文字の言語です。SHUTTER PARTY と LAST HIT はどの言語でも英語のままです。",
       "s.build": "撮影用シーンとオーバーレイを作る",
-      "n.build": "撮影用の空のシーンと、演出用のブラウザソース 2 つ（オーバーレイとゴールバー）を、ボタン 1 つで OBS に作ります。撮影用シーンの中身は、あとから OBS でいつもどおり足してください。そこに入れたものだけが写真に写ります。",
+      "n.build": "撮影用の空のシーンと、演出用のブラウザソース 3 つ（オーバーレイ・ゴールバー・縦型用）を、ボタン 1 つで OBS に作ります。縦型用はオフで置かれるので、縦型（9:16）で配信しないなら何もしなくてかまいません。撮影用シーンの中身は、あとから OBS でいつもどおり足してください。そこに入れたものだけが写真に写ります。",
+      "n.vertical": "縦型（9:16）でも配信するときは、縦型シーンの「+」から既存のソース「{n} vertical」を追加してください。キャンバス上で引き伸ばさず、大きさはそのままにします。消しても「作り直す」でまた作られます。",
       "build.go": "OBS に一式を作る",
       "build.again": "作り直す",
       "build.busy": "作成中…",
@@ -1368,7 +1381,7 @@
       "capName": "撮影用シーンの名前",
       "capDefault": "SHUTTERPARTY 撮影用",
       "hostScene": "オーバーレイを置くシーン",
-      "n.hostScene": "オーバーレイとゴールバーの 2 つが、このシーンに入ります。撮影用のシーンは別に、空のまま作られます。",
+      "n.hostScene": "オーバーレイとゴールバーが、このシーンに入ります（縦型用もオフで入ります）。撮影用のシーンは別に、空のまま作られます。",
       "build.ready": "撮影用シーン「{c}」／オーバーレイ「{o}」",
       "dlg.title": "同じ名前のものがあります",
       "dlg.scene": "シーン「{n}」はすでにあります。中身には触れず、そのまま撮影用シーンとして使いますか？",
@@ -1550,6 +1563,11 @@
       "push": "Write to OBS",
       "log.pushed": "wrote the settings into {n}. OBS is reloading it",
       "log.pushfail": "could not write it: {m}",
+      "log.manyTargets": "There are {c} overlays that can take photos: {n}. Capture settings are written to all of them. Delete the ones you do not use in OBS",
+      "log.writeMissed": "could not write to these overlays: {n}. Not marked as delivered — write again",
+      "log.unread": "could not read these browser sources: {n}. Not marked as delivered — writing again reads them again",
+      "log.testStillOpen": "{n} could not be written, so it can still take photos for {m} min (it closes itself then)",
+      "log.testStillOpenMax": "{n} could not be written, so it may take photos for up to 30 min (it closes itself then)",
       "log.blankstop": "stopped — nothing was written, and OBS keeps what it had",
       "log.scan": "found {n} browser source(s)",
       "log.barcreated": "made the goal bar “{n}” as well — move it wherever you like in OBS",
@@ -1586,7 +1604,8 @@
       "ovLang.label": "Language on stream", "ovLang.same": "Same as this page ({l})",
       "n.ovLang": "The language everyone watching reads. SHUTTER PARTY and LAST HIT stay in English in every language.",
       "s.build": "Build the capture scene and the overlay",
-      "n.build": "One button makes an empty capture scene and the two browser sources the effects need — the overlay and the goal bar. Fill the capture scene in OBS the way you always do; only what you put in there ends up in a photo.",
+      "n.build": "One button makes an empty capture scene and the three browser sources the effects need — the overlay, the goal bar, and one for a vertical scene. The vertical one arrives switched off, so if you do not stream vertically (9:16) there is nothing to do with it. Fill the capture scene in OBS the way you always do; only what you put in there ends up in a photo.",
+      "n.vertical": "Streaming vertically (9:16) as well? In your vertical scene, use its “+” to add the existing source “{n} vertical”. Do not stretch it on the canvas — leave its size as it is. Delete it and “Build again” makes it once more.",
       "build.go": "Build it all in OBS",
       "build.again": "Build again",
       "build.busy": "Building…",
@@ -1594,7 +1613,7 @@
       "capName": "Name for the capture scene",
       "capDefault": "SHUTTERPARTY Capture",
       "hostScene": "Scene the overlay goes in",
-      "n.hostScene": "The overlay and the goal bar go into this scene. The capture scene is made separately, and left empty.",
+      "n.hostScene": "The overlay and the goal bar go into this scene, and so does the vertical one, switched off. The capture scene is made separately, and left empty.",
       "build.ready": "Capture scene “{c}” / overlay “{o}”",
       "dlg.title": "Something with that name already exists",
       "dlg.scene": "The scene “{n}” already exists. Use it as the capture scene, leaving its contents untouched?",
@@ -1776,6 +1795,11 @@
       "push": "Escribir en OBS",
       "log.pushed": "ajustes escritos en {n}. OBS lo está recargando",
       "log.pushfail": "no se pudo escribir: {m}",
+      "log.manyTargets": "Hay {c} overlays que pueden hacer fotos: {n}. Los ajustes de captura se escriben en todos. Borra en OBS los que no uses",
+      "log.writeMissed": "no se pudo escribir en estos overlays: {n}. No se marca como aplicado; vuelve a escribir",
+      "log.unread": "no se pudieron leer estas fuentes de navegador: {n}. No se marca como aplicado; al volver a escribir se leen de nuevo",
+      "log.testStillOpen": "{n} no se pudo escribir, así que aún puede hacer fotos durante {m} min (luego se cierra solo)",
+      "log.testStillOpenMax": "{n} no se pudo escribir, así que puede hacer fotos hasta 30 min (luego se cierra solo)",
       "log.blankstop": "detenido: no se escribió nada y OBS conserva lo que tenía",
       "log.scan": "encontradas {n} fuentes de navegador",
       "log.barcreated": "también se creó la barra «{n}»: colócala donde quieras en OBS",
@@ -1812,7 +1836,8 @@
       "ovLang.label": "Idioma en el directo", "ovLang.same": "Igual que esta página ({l})",
       "n.ovLang": "El idioma que leen todos los espectadores. SHUTTER PARTY y LAST HIT siguen en inglés en todos los idiomas.",
       "s.build": "Crear la escena de captura y la superposición",
-      "n.build": "Un solo botón crea una escena de captura vacía y las dos fuentes de navegador que necesitan los efectos: la superposición y la barra de meta. Rellena la escena de captura en OBS como siempre; solo lo que pongas ahí saldrá en la foto.",
+      "n.build": "Un solo botón crea una escena de captura vacía y las tres fuentes de navegador que necesitan los efectos: la superposición, la barra de meta y una para la escena vertical. La vertical se crea desactivada, así que si no emites en vertical (9:16) no tienes que hacer nada con ella. Rellena la escena de captura en OBS como siempre; solo lo que pongas ahí saldrá en la foto.",
+      "n.vertical": "¿También emites en vertical (9:16)? En tu escena vertical, usa su «+» para añadir la fuente existente «{n} vertical». No la estires en el lienzo: deja su tamaño tal cual. Si la borras, «Crear de nuevo» la vuelve a crear.",
       "build.go": "Crear todo en OBS",
       "build.again": "Crear de nuevo",
       "build.busy": "Creando…",
@@ -1820,7 +1845,7 @@
       "capName": "Nombre de la escena de captura",
       "capDefault": "SHUTTERPARTY Captura",
       "hostScene": "Escena donde va la superposición",
-      "n.hostScene": "La superposición y la barra de objetivo van a esta escena. La escena de captura se crea aparte y queda vacía.",
+      "n.hostScene": "La superposición y la barra de objetivo van a esta escena, y también la vertical, desactivada. La escena de captura se crea aparte y queda vacía.",
       "build.ready": "Escena de captura «{c}» / superposición «{o}»",
       "dlg.title": "Ya existe algo con ese nombre",
       "dlg.scene": "La escena «{n}» ya existe. ¿Usarla como escena de captura sin tocar su contenido?",
@@ -2002,6 +2027,11 @@
       "push": "Escrever no OBS",
       "log.pushed": "configurações escritas em {n}. O OBS está recarregando",
       "log.pushfail": "não foi possível escrever: {m}",
+      "log.manyTargets": "Há {c} overlays que podem tirar fotos: {n}. As configurações de captura são gravadas em todos. Apague no OBS os que não usa",
+      "log.writeMissed": "não foi possível gravar nestes overlays: {n}. Não marcado como aplicado — grave de novo",
+      "log.unread": "não foi possível ler estas fontes de navegador: {n}. Não marcado como aplicado — gravar de novo as lê outra vez",
+      "log.testStillOpen": "{n} não pôde ser gravado, então ainda pode tirar fotos por {m} min (depois fecha sozinho)",
+      "log.testStillOpenMax": "{n} não pôde ser gravado, então pode tirar fotos por até 30 min (depois fecha sozinho)",
       "log.blankstop": "parado: nada foi escrito e o OBS mantém o que tinha",
       "log.scan": "{n} fonte(s) de navegador encontrada(s)",
       "log.barcreated": "a barra «{n}» também foi criada — mova-a para onde quiser no OBS",
@@ -2038,7 +2068,8 @@
       "ovLang.label": "Idioma na transmissão", "ovLang.same": "Igual a esta página ({l})",
       "n.ovLang": "O idioma que todos os espectadores leem. SHUTTER PARTY e LAST HIT ficam em inglês em todos os idiomas.",
       "s.build": "Criar a cena de captura e a sobreposição",
-      "n.build": "Um único botão cria uma cena de captura vazia e as duas fontes de navegador que os efeitos precisam — a sobreposição e a barra de meta. Preencha a cena de captura no OBS como sempre faz; só o que estiver lá aparece na foto.",
+      "n.build": "Um único botão cria uma cena de captura vazia e as três fontes de navegador que os efeitos precisam — a sobreposição, a barra de meta e uma para a cena vertical. A vertical vem desativada, então se você não transmite na vertical (9:16) não precisa fazer nada com ela. Preencha a cena de captura no OBS como sempre faz; só o que estiver lá aparece na foto.",
+      "n.vertical": "Também transmite na vertical (9:16)? Na sua cena vertical, use o «+» para adicionar a fonte existente «{n} vertical». Não a estique no canvas — deixe o tamanho como está. Se apagá-la, «Criar de novo» a cria outra vez.",
       "build.go": "Criar tudo no OBS",
       "build.again": "Criar de novo",
       "build.busy": "A criar…",
@@ -2046,7 +2077,7 @@
       "capName": "Nome da cena de captura",
       "capDefault": "SHUTTERPARTY Captura",
       "hostScene": "Cena onde fica a sobreposição",
-      "n.hostScene": "A sobreposição e a barra de meta vão para esta cena. A cena de captura é criada à parte e fica vazia.",
+      "n.hostScene": "A sobreposição e a barra de meta vão para esta cena, e a vertical também, desativada. A cena de captura é criada à parte e fica vazia.",
       "build.ready": "Cena de captura “{c}” / sobreposição “{o}”",
       "dlg.title": "Já existe algo com esse nome",
       "dlg.scene": "A cena “{n}” já existe. Usá-la como cena de captura, sem mexer no conteúdo?",
@@ -2228,6 +2259,11 @@
       "push": "Auf OBS schreiben",
       "log.pushed": "Einstellungen in {n} geschrieben. OBS lädt sie neu",
       "log.pushfail": "konnte nicht geschrieben werden: {m}",
+      "log.manyTargets": "Es gibt {c} Overlays, die Fotos machen können: {n}. Die Aufnahme-Einstellungen werden in alle geschrieben. Lösche nicht benutzte in OBS",
+      "log.writeMissed": "in diese Overlays konnte nicht geschrieben werden: {n}. Nicht als übertragen markiert – bitte erneut schreiben",
+      "log.unread": "diese Browserquellen konnten nicht gelesen werden: {n}. Nicht als übertragen markiert – erneutes Schreiben liest sie neu",
+      "log.testStillOpen": "{n} konnte nicht beschrieben werden und kann noch {m} Min. Fotos machen (danach schließt es sich selbst)",
+      "log.testStillOpenMax": "{n} konnte nicht beschrieben werden und kann bis zu 30 Min. Fotos machen (danach schließt es sich selbst)",
       "log.blankstop": "abgebrochen — nichts geschrieben, OBS behält, was es hatte",
       "log.scan": "{n} Browserquelle(n) gefunden",
       "log.barcreated": "die Ziel-Leiste „{n}“ ist ebenfalls angelegt — schieb sie in OBS dorthin, wo du sie haben willst",
@@ -2264,7 +2300,8 @@
       "ovLang.label": "Sprache im Stream", "ovLang.same": "Wie diese Seite ({l})",
       "n.ovLang": "Die Sprache, die alle Zuschauer lesen. SHUTTER PARTY und LAST HIT bleiben in jeder Sprache Englisch.",
       "s.build": "Aufnahmeszene und Overlay anlegen",
-      "n.build": "Ein Knopf legt eine leere Aufnahmeszene an und die beiden Browserquellen, die die Effekte brauchen — das Overlay und die Zielleiste. Die Aufnahmeszene füllst du in OBS wie immer selbst; nur was dort drin ist, landet auf dem Foto.",
+      "n.build": "Ein Knopf legt eine leere Aufnahmeszene an und die drei Browserquellen, die die Effekte brauchen — das Overlay, die Zielleiste und eine für eine vertikale Szene. Die vertikale ist ausgeschaltet; wenn du nicht vertikal (9:16) streamst, musst du nichts damit tun. Die Aufnahmeszene füllst du in OBS wie immer selbst; nur was dort drin ist, landet auf dem Foto.",
+      "n.vertical": "Streamst du auch vertikal (9:16)? Füge in deiner vertikalen Szene über deren „+“ die vorhandene Quelle „{n} vertical“ hinzu. Zieh sie auf der Leinwand nicht größer — lass ihre Größe, wie sie ist. Löschst du sie, legt „Neu anlegen“ sie wieder an.",
       "build.go": "Alles in OBS anlegen",
       "build.again": "Neu anlegen",
       "build.busy": "Wird angelegt…",
@@ -2272,7 +2309,7 @@
       "capName": "Name der Aufnahmeszene",
       "capDefault": "SHUTTERPARTY Aufnahme",
       "hostScene": "Szene, in die das Overlay kommt",
-      "n.hostScene": "Overlay und Zielbalken kommen in diese Szene. Die Aufnahmeszene wird getrennt und leer angelegt.",
+      "n.hostScene": "Overlay und Zielbalken kommen in diese Szene, die vertikale Quelle ebenfalls — ausgeschaltet. Die Aufnahmeszene wird getrennt und leer angelegt.",
       "build.ready": "Aufnahmeszene „{c}“ / Overlay „{o}“",
       "dlg.title": "Es gibt schon etwas mit diesem Namen",
       "dlg.scene": "Die Szene „{n}“ gibt es bereits. Als Aufnahmeszene verwenden, ohne ihren Inhalt anzurühren?",
@@ -2454,6 +2491,11 @@
       "push": "Écrire dans OBS",
       "log.pushed": "réglages écrits dans {n}. OBS la recharge",
       "log.pushfail": "écriture impossible : {m}",
+      "log.manyTargets": "{c} overlays peuvent prendre des photos : {n}. Les réglages de capture sont écrits dans tous. Supprimez dans OBS ceux que vous n'utilisez pas",
+      "log.writeMissed": "écriture impossible dans ces overlays : {n}. Non marqué comme appliqué — réécrivez",
+      "log.unread": "lecture impossible de ces sources navigateur : {n}. Non marqué comme appliqué — réécrire les relit",
+      "log.testStillOpen": "{n} n'a pas pu être écrit et peut encore prendre des photos pendant {m} min (il se ferme ensuite tout seul)",
+      "log.testStillOpenMax": "{n} n'a pas pu être écrit et peut prendre des photos jusqu'à 30 min (il se ferme ensuite tout seul)",
       "log.blankstop": "arrêté : rien n'a été écrit, OBS garde ce qu'il avait",
       "log.scan": "{n} source(s) navigateur trouvée(s)",
       "log.barcreated": "la barre « {n} » a été créée aussi — place-la où tu veux dans OBS",
@@ -2490,7 +2532,8 @@
       "ovLang.label": "Langue du stream", "ovLang.same": "Comme cette page ({l})",
       "n.ovLang": "La langue que lisent tous les spectateurs. SHUTTER PARTY et LAST HIT restent en anglais dans toutes les langues.",
       "s.build": "Créer la scène de capture et l’overlay",
-      "n.build": "Un seul bouton crée une scène de capture vide et les deux sources navigateur dont les effets ont besoin : l’overlay et la barre d’objectif. La scène de capture, c’est vous qui la remplissez dans OBS comme d’habitude ; seul ce que vous y mettez apparaît sur la photo.",
+      "n.build": "Un seul bouton crée une scène de capture vide et les trois sources navigateur dont les effets ont besoin : l’overlay, la barre d’objectif et une pour la scène verticale. La verticale est créée désactivée : si vous ne diffusez pas en vertical (9:16), vous n’avez rien à en faire. La scène de capture, c’est vous qui la remplissez dans OBS comme d’habitude ; seul ce que vous y mettez apparaît sur la photo.",
+      "n.vertical": "Vous diffusez aussi en vertical (9:16) ? Dans votre scène verticale, utilisez son « + » pour ajouter la source existante « {n} vertical ». Ne l’étirez pas sur le canevas : laissez sa taille telle quelle. Si vous la supprimez, « Recréer » la recrée.",
       "build.go": "Tout créer dans OBS",
       "build.again": "Recréer",
       "build.busy": "Création…",
@@ -2498,7 +2541,7 @@
       "capName": "Nom de la scène de capture",
       "capDefault": "SHUTTERPARTY Capture",
       "hostScene": "Scène qui accueille l’overlay",
-      "n.hostScene": "L’overlay et la barre d’objectif vont dans cette scène. La scène de capture est créée à part, et laissée vide.",
+      "n.hostScene": "L’overlay et la barre d’objectif vont dans cette scène, ainsi que la source verticale, désactivée. La scène de capture est créée à part, et laissée vide.",
       "build.ready": "Scène de capture « {c} » / overlay « {o} »",
       "dlg.title": "Un élément porte déjà ce nom",
       "dlg.scene": "La scène « {n} » existe déjà. L’utiliser comme scène de capture, sans toucher à son contenu ?",
@@ -2680,6 +2723,11 @@
       "push": "Scrivi su OBS",
       "log.pushed": "impostazioni scritte in {n}. OBS la sta ricaricando",
       "log.pushfail": "impossibile scrivere: {m}",
+      "log.manyTargets": "Ci sono {c} overlay che possono scattare foto: {n}. Le impostazioni di scatto vengono scritte in tutti. Elimina in OBS quelli che non usi",
+      "log.writeMissed": "impossibile scrivere in questi overlay: {n}. Non segnato come applicato — scrivi di nuovo",
+      "log.unread": "impossibile leggere queste sorgenti browser: {n}. Non segnato come applicato — riscrivere le rilegge",
+      "log.testStillOpen": "{n} non è stato scritto, quindi può ancora scattare per {m} min (poi si chiude da solo)",
+      "log.testStillOpenMax": "{n} non è stato scritto, quindi può scattare fino a 30 min (poi si chiude da solo)",
       "log.blankstop": "fermato: non è stato scritto nulla e OBS mantiene quello che aveva",
       "log.scan": "trovate {n} fonti browser",
       "log.barcreated": "creata anche la barra «{n}»: spostala dove vuoi in OBS",
@@ -2716,7 +2764,8 @@
       "ovLang.label": "Lingua in diretta", "ovLang.same": "Come questa pagina ({l})",
       "n.ovLang": "La lingua che leggono tutti gli spettatori. SHUTTER PARTY e LAST HIT restano in inglese in ogni lingua.",
       "s.build": "Creare la scena di cattura e l’overlay",
-      "n.build": "Un solo pulsante crea una scena di cattura vuota e le due sorgenti browser che servono agli effetti: l’overlay e la barra dell’obiettivo. La scena di cattura la riempi tu in OBS come sempre; nella foto finisce solo quello che ci metti dentro.",
+      "n.build": "Un solo pulsante crea una scena di cattura vuota e le tre sorgenti browser che servono agli effetti: l’overlay, la barra dell’obiettivo e una per la scena verticale. Quella verticale nasce disattivata, quindi se non trasmetti in verticale (9:16) non devi farci nulla. La scena di cattura la riempi tu in OBS come sempre; nella foto finisce solo quello che ci metti dentro.",
+      "n.vertical": "Trasmetti anche in verticale (9:16)? Nella tua scena verticale usa il suo «+» per aggiungere la sorgente esistente «{n} vertical». Non allargarla sul canvas: lascia la sua dimensione com’è. Se la elimini, «Ricrea» la rifà.",
       "build.go": "Crea tutto in OBS",
       "build.again": "Crea di nuovo",
       "build.busy": "Creazione…",
@@ -2724,7 +2773,7 @@
       "capName": "Nome della scena di cattura",
       "capDefault": "SHUTTERPARTY Cattura",
       "hostScene": "Scena in cui va l’overlay",
-      "n.hostScene": "L’overlay e la barra dell’obiettivo vanno in questa scena. La scena di cattura viene creata a parte, e resta vuota.",
+      "n.hostScene": "L’overlay e la barra dell’obiettivo vanno in questa scena, e anche quella verticale, disattivata. La scena di cattura viene creata a parte, e resta vuota.",
       "build.ready": "Scena di cattura «{c}» / overlay «{o}»",
       "dlg.title": "Esiste già qualcosa con questo nome",
       "dlg.scene": "La scena «{n}» esiste già. Usarla come scena di cattura, senza toccarne il contenuto?",
@@ -2906,6 +2955,11 @@
       "push": "OBS 에 반영",
       "log.pushed": "{n} 에 설정을 기록했습니다. OBS 가 다시 읽습니다",
       "log.pushfail": "기록하지 못했습니다: {m}",
+      "log.manyTargets": "사진을 찍을 수 있는 오버레이가 {c}개 있습니다: {n}. 촬영 설정은 모두에 기록합니다. 쓰지 않는 것은 OBS에서 삭제하세요",
+      "log.writeMissed": "기록하지 못한 오버레이: {n}. 반영됨으로 표시하지 않았습니다. 다시 기록하세요",
+      "log.unread": "설정을 읽지 못한 브라우저 소스: {n}. 반영됨으로 표시하지 않았습니다. 다시 기록하면 다시 읽습니다",
+      "log.testStillOpen": "{n}에 기록하지 못해, 앞으로 {m}분 동안 촬영할 수 있습니다(그때 자동으로 닫힙니다)",
+      "log.testStillOpenMax": "{n}에 기록하지 못해, 최대 30분 동안 촬영할 수 있습니다(그때 자동으로 닫힙니다)",
       "log.blankstop": "쓰지 않았습니다. OBS 설정은 그대로입니다",
       "log.scan": "브라우저 소스를 {n} 개 찾았습니다",
       "log.barcreated": "골 바 「{n}」도 만들었습니다. OBS 에서 원하는 곳으로 옮겨 주세요",
@@ -2942,7 +2996,8 @@
       "ovLang.label": "방송 화면의 언어", "ovLang.same": "이 페이지와 같음 ({l})",
       "n.ovLang": "시청자 모두가 읽는 글자의 언어입니다. SHUTTER PARTY와 LAST HIT는 어느 언어에서도 영어 그대로입니다.",
       "s.build": "촬영 장면과 오버레이 만들기",
-      "n.build": "버튼 하나로 빈 촬영용 장면과 연출에 필요한 브라우저 소스 두 개(오버레이와 목표 바)를 만듭니다. 촬영용 장면의 내용은 평소처럼 OBS에서 직접 채워 넣으세요. 거기에 넣은 것만 사진에 담깁니다.",
+      "n.build": "버튼 하나로 빈 촬영용 장면과 연출에 필요한 브라우저 소스 세 개(오버레이, 목표 바, 세로 장면용)를 만듭니다. 세로용은 꺼진 상태로 놓이므로 세로(9:16)로 방송하지 않는다면 그대로 두면 됩니다. 촬영용 장면의 내용은 평소처럼 OBS에서 직접 채워 넣으세요. 거기에 넣은 것만 사진에 담깁니다.",
+      "n.vertical": "세로(9:16)로도 방송한다면, 세로 장면의 「+」에서 기존 소스 「{n} vertical」을 추가하세요. 캔버스에서 늘리지 말고 크기는 그대로 둡니다. 지워도 「다시 만들기」를 누르면 다시 만들어집니다.",
       "build.go": "OBS에 한 번에 만들기",
       "build.again": "다시 만들기",
       "build.busy": "만드는 중…",
@@ -2950,7 +3005,7 @@
       "capName": "촬영용 장면 이름",
       "capDefault": "SHUTTERPARTY 촬영용",
       "hostScene": "오버레이를 넣을 장면",
-      "n.hostScene": "오버레이와 목표 바가 이 장면에 들어갑니다. 촬영용 장면은 따로, 비어 있는 채로 만들어집니다.",
+      "n.hostScene": "오버레이와 목표 바가 이 장면에 들어갑니다(세로용도 꺼진 채로 들어갑니다). 촬영용 장면은 따로, 비어 있는 채로 만들어집니다.",
       "build.ready": "촬영 장면 “{c}” / 오버레이 “{o}”",
       "dlg.title": "같은 이름이 이미 있습니다",
       "dlg.scene": "장면 “{n}”이(가) 이미 있습니다. 내용은 그대로 두고 촬영용 장면으로 쓸까요?",
@@ -3132,6 +3187,11 @@
       "push": "写入 OBS",
       "log.pushed": "设置已写入 {n}。OBS 会重新读取",
       "log.pushfail": "写不进去：{m}",
+      "log.manyTargets": "有 {c} 个可以拍照的叠加层：{n}。拍摄设置会写入全部。不用的请在 OBS 中删除",
+      "log.writeMissed": "这些叠加层写不进去：{n}。没有标记为已生效，请再写一次",
+      "log.unread": "这些浏览器源的设置读不出来：{n}。没有标记为已生效，再写一次会重新读取",
+      "log.testStillOpen": "{n} 没写进去，还能再拍 {m} 分钟（到时会自动关闭）",
+      "log.testStillOpenMax": "{n} 没写进去，最多还能拍 30 分钟（到时会自动关闭）",
       "log.blankstop": "已停止：没有写入任何内容，OBS 保持原样",
       "log.scan": "找到了 {n} 个浏览器源",
       "log.barcreated": "目标进度条「{n}」也建好了，在 OBS 里挪到你想要的位置",
@@ -3168,7 +3228,8 @@
       "ovLang.label": "直播画面的语言", "ovLang.same": "与本页面相同（{l}）",
       "n.ovLang": "所有观众看到的文字的语言。SHUTTER PARTY 和 LAST HIT 在任何语言下都保持英文。",
       "s.build": "创建拍摄场景和叠加层",
-      "n.build": "一个按钮就能创建一个空的拍摄场景，以及演出所需的两个浏览器源——叠加层和目标进度条。拍摄场景里的内容请照常在 OBS 里自己添加；只有放进去的东西才会出现在照片里。",
+      "n.build": "一个按钮就能创建一个空的拍摄场景，以及演出所需的三个浏览器源——叠加层、目标进度条，以及给竖屏场景用的一个。竖屏用的那个默认是关闭的，如果你不做竖屏（9:16）直播，就不用管它。拍摄场景里的内容请照常在 OBS 里自己添加；只有放进去的东西才会出现在照片里。",
+      "n.vertical": "也做竖屏（9:16）直播吗？在竖屏场景里用它的「+」添加已有的源「{n} vertical」。不要在画布上拉伸，保持原本的大小。删掉了也没关系，按「重新创建」会再做一个。",
       "build.go": "在 OBS 里一次创建",
       "build.again": "重新创建",
       "build.busy": "创建中…",
@@ -3176,7 +3237,7 @@
       "capName": "拍摄场景的名称",
       "capDefault": "SHUTTERPARTY 拍摄",
       "hostScene": "放置叠加层的场景",
-      "n.hostScene": "叠加层和目标进度条会放进这个场景。拍摄用的场景另外新建，保持为空。",
+      "n.hostScene": "叠加层和目标进度条会放进这个场景，竖屏用的那个也会放进来（关闭状态）。拍摄用的场景另外新建，保持为空。",
       "build.ready": "拍摄场景“{c}”／叠加层“{o}”",
       "dlg.title": "已经存在同名的东西",
       "dlg.scene": "场景“{n}”已经存在。要在不改动其内容的前提下，直接把它当作拍摄场景吗？",
@@ -3358,6 +3419,11 @@
       "push": "Записать в OBS",
       "log.pushed": "настройки записаны в {n}. OBS перечитывает их",
       "log.pushfail": "записать не удалось: {m}",
+      "log.manyTargets": "Оверлеев, которые могут снимать, — {c}: {n}. Настройки съёмки записываются во все. Удалите в OBS неиспользуемые",
+      "log.writeMissed": "не удалось записать в эти оверлеи: {n}. Не отмечено как применённое — запишите ещё раз",
+      "log.unread": "не удалось прочитать эти браузерные источники: {n}. Не отмечено как применённое — повторная запись перечитает их",
+      "log.testStillOpen": "в {n} записать не удалось, он ещё {m} мин может снимать (потом закроется сам)",
+      "log.testStillOpenMax": "в {n} записать не удалось, он может снимать до 30 мин (потом закроется сам)",
       "log.blankstop": "остановлено: ничего не записано, OBS сохраняет прежнее",
       "log.scan": "найдено браузерных источников: {n}",
       "log.barcreated": "полоса «{n}» тоже создана — передвиньте её в OBS куда удобно",
@@ -3394,7 +3460,8 @@
       "ovLang.label": "Язык на трансляции", "ovLang.same": "Как на этой странице ({l})",
       "n.ovLang": "Язык, который читают все зрители. SHUTTER PARTY и LAST HIT на всех языках остаются на английском.",
       "s.build": "Создать сцену для съёмки и оверлей",
-      "n.build": "Одна кнопка создаёт пустую сцену для съёмки и два браузерных источника, которые нужны эффектам, — оверлей и полосу цели. Содержимое сцены для съёмки вы добавляете в OBS как обычно; на фотографию попадает только то, что вы туда положили.",
+      "n.build": "Одна кнопка создаёт пустую сцену для съёмки и три браузерных источника, которые нужны эффектам, — оверлей, полосу цели и ещё один для вертикальной сцены. Вертикальный создаётся выключенным, так что если вы не ведёте вертикальную трансляцию (9:16), с ним ничего делать не нужно. Содержимое сцены для съёмки вы добавляете в OBS как обычно; на фотографию попадает только то, что в ней есть.",
+      "n.vertical": "Ведёте трансляцию и вертикально (9:16)? В вертикальной сцене нажмите её «+» и добавьте существующий источник «{n} vertical». Не растягивайте его на холсте — оставьте размер как есть. Если удалить, «Создать заново» создаст его снова.",
       "build.go": "Создать всё в OBS",
       "build.again": "Создать заново",
       "build.busy": "Создаём…",
@@ -3402,7 +3469,7 @@
       "capName": "Название сцены для съёмки",
       "capDefault": "SHUTTERPARTY Съёмка",
       "hostScene": "Сцена, в которую попадёт оверлей",
-      "n.hostScene": "Оверлей и полоса цели попадут в эту сцену. Сцена для съёмки создаётся отдельно и остаётся пустой.",
+      "n.hostScene": "Оверлей и полоса цели попадут в эту сцену, туда же — вертикальный источник, выключенным. Сцена для съёмки создаётся отдельно и остаётся пустой.",
       "build.ready": "Сцена для съёмки «{c}» / оверлей «{o}»",
       "dlg.title": "Такое имя уже занято",
       "dlg.scene": "Сцена «{n}» уже есть. Использовать её как сцену для съёмки, не трогая содержимое?",
@@ -3584,6 +3651,11 @@
       "push": "Zapisz do OBS",
       "log.pushed": "ustawienia zapisane w {n}. OBS wczytuje je na nowo",
       "log.pushfail": "nie udało się zapisać: {m}",
+      "log.manyTargets": "Nakładek, które mogą robić zdjęcia, jest {c}: {n}. Ustawienia zdjęć są zapisywane do wszystkich. Usuń w OBS te nieużywane",
+      "log.writeMissed": "nie udało się zapisać do tych nakładek: {n}. Nie oznaczono jako zastosowane — zapisz ponownie",
+      "log.unread": "nie udało się odczytać tych źródeł przeglądarki: {n}. Nie oznaczono jako zastosowane — ponowny zapis odczyta je jeszcze raz",
+      "log.testStillOpen": "do {n} nie udało się zapisać, więc może robić zdjęcia jeszcze przez {m} min (potem zamknie się sama)",
+      "log.testStillOpenMax": "do {n} nie udało się zapisać, więc może robić zdjęcia do 30 min (potem zamknie się sama)",
       "log.blankstop": "zatrzymano: nic nie zapisano, OBS zachowuje to, co miał",
       "log.scan": "znaleziono źródeł przeglądarki: {n}",
       "log.barcreated": "pasek celu „{n}” też został utworzony — przesuń go w OBS tam, gdzie chcesz",
@@ -3620,7 +3692,8 @@
       "ovLang.label": "Język na transmisji", "ovLang.same": "Tak jak ta strona ({l})",
       "n.ovLang": "Język, który czytają wszyscy widzowie. SHUTTER PARTY i LAST HIT zostają po angielsku w każdym języku.",
       "s.build": "Utwórz scenę do zdjęć i nakładkę",
-      "n.build": "Jeden przycisk tworzy pustą scenę do zdjęć oraz dwa źródła przeglądarki potrzebne efektom — nakładkę i pasek celu. Zawartość sceny do zdjęć dodajesz w OBS jak zwykle; na zdjęciu pojawi się tylko to, co tam włożysz.",
+      "n.build": "Jeden przycisk tworzy pustą scenę do zdjęć oraz trzy źródła przeglądarki potrzebne efektom — nakładkę, pasek celu i jedno dla sceny pionowej. Pionowe powstaje wyłączone, więc jeśli nie transmitujesz pionowo (9:16), nic z nim nie robisz. Zawartość sceny do zdjęć dodajesz w OBS jak zwykle; na zdjęciu pojawi się tylko to, co tam włożysz.",
+      "n.vertical": "Transmitujesz też pionowo (9:16)? W scenie pionowej użyj jej „+”, aby dodać istniejące źródło „{n} vertical”. Nie rozciągaj go na kanwie — zostaw rozmiar bez zmian. Po usunięciu „Utwórz ponownie” zrobi je jeszcze raz.",
       "build.go": "Utwórz wszystko w OBS",
       "build.again": "Utwórz ponownie",
       "build.busy": "Tworzenie…",
@@ -3628,7 +3701,7 @@
       "capName": "Nazwa sceny do zdjęć",
       "capDefault": "SHUTTERPARTY Zdjęcia",
       "hostScene": "Scena, w której znajdzie się nakładka",
-      "n.hostScene": "Nakładka i pasek celu trafią do tej sceny. Scena do zdjęć powstaje osobno i zostaje pusta.",
+      "n.hostScene": "Nakładka i pasek celu trafią do tej sceny, a razem z nimi źródło pionowe — wyłączone. Scena do zdjęć powstaje osobno i zostaje pusta.",
       "build.ready": "Scena do zdjęć „{c}” / nakładka „{o}”",
       "dlg.title": "Coś o tej nazwie już istnieje",
       "dlg.scene": "Scena „{n}” już istnieje. Użyć jej jako sceny do zdjęć, nie ruszając jej zawartości?",
@@ -3810,6 +3883,11 @@
       "push": "OBS'ye yaz",
       "log.pushed": "ayarlar {n} kaynağına yazıldı. OBS yeniden okuyor",
       "log.pushfail": "yazılamadı: {m}",
+      "log.manyTargets": "Fotoğraf çekebilen {c} katman var: {n}. Çekim ayarları hepsine yazılır. Kullanmadıklarınızı OBS'de silin",
+      "log.writeMissed": "şu katmanlara yazılamadı: {n}. Uygulandı olarak işaretlenmedi — yeniden yazın",
+      "log.unread": "şu tarayıcı kaynakları okunamadı: {n}. Uygulandı olarak işaretlenmedi — yeniden yazmak onları tekrar okur",
+      "log.testStillOpen": "{n} yazılamadığı için {m} dk daha fotoğraf çekebilir (sonra kendiliğinden kapanır)",
+      "log.testStillOpenMax": "{n} yazılamadığı için en fazla 30 dk fotoğraf çekebilir (sonra kendiliğinden kapanır)",
       "log.blankstop": "durduruldu: hiçbir şey yazılmadı, OBS eskisini koruyor",
       "log.scan": "{n} tarayıcı kaynağı bulundu",
       "log.barcreated": "hedef çubuğu «{n}» da oluşturuldu — OBS içinde istediğin yere taşı",
@@ -3846,7 +3924,8 @@
       "ovLang.label": "Yayındaki dil", "ovLang.same": "Bu sayfayla aynı ({l})",
       "n.ovLang": "Tüm izleyicilerin okuduğu dil. SHUTTER PARTY ve LAST HIT her dilde İngilizce kalır.",
       "s.build": "Çekim sahnesini ve yayın katmanını oluştur",
-      "n.build": "Tek bir düğme, boş bir çekim sahnesi ile efektlerin ihtiyaç duyduğu iki tarayıcı kaynağını — yayın katmanı ve hedef çubuğu — oluşturur. Çekim sahnesinin içini OBS’de her zamanki gibi kendiniz doldurun; fotoğrafa yalnızca oraya koyduğunuz şeyler girer.",
+      "n.build": "Tek bir düğme, boş bir çekim sahnesi ile efektlerin ihtiyaç duyduğu üç tarayıcı kaynağını — yayın katmanı, hedef çubuğu ve dikey sahne için bir tane — oluşturur. Dikey olan kapalı gelir; dikey (9:16) yayın yapmıyorsanız onunla bir şey yapmanız gerekmez. Çekim sahnesinin içini OBS’de her zamanki gibi kendiniz doldurun; fotoğrafa yalnızca oraya koyduğunuz şeyler girer.",
+      "n.vertical": "Dikey (9:16) de yayınlıyor musunuz? Dikey sahnenizde onun “+” düğmesiyle mevcut “{n} vertical” kaynağını ekleyin. Tuvalde esnetmeyin — boyutunu olduğu gibi bırakın. Silseniz de “Yeniden oluştur” onu tekrar yapar.",
       "build.go": "Hepsini OBS’de oluştur",
       "build.again": "Yeniden oluştur",
       "build.busy": "Oluşturuluyor…",
@@ -3854,7 +3933,7 @@
       "capName": "Çekim sahnesinin adı",
       "capDefault": "SHUTTERPARTY Çekim",
       "hostScene": "Yayın katmanının gireceği sahne",
-      "n.hostScene": "Yayın katmanı ve hedef çubuğu bu sahneye girer. Fotoğraf sahnesi ayrıca ve boş olarak oluşturulur.",
+      "n.hostScene": "Yayın katmanı ve hedef çubuğu bu sahneye girer; dikey kaynak da kapalı olarak buraya eklenir. Fotoğraf sahnesi ayrıca ve boş olarak oluşturulur.",
       "build.ready": "Çekim sahnesi “{c}” / yayın katmanı “{o}”",
       "dlg.title": "Bu adda bir şey zaten var",
       "dlg.scene": "“{n}” sahnesi zaten var. İçeriğine dokunmadan çekim sahnesi olarak kullanılsın mı?",
@@ -4813,7 +4892,7 @@
     dConn: $("dConn"),
     connect: $("btnConnect"),
     build: $("btnBuild"), refresh: $("btnRefresh"), shot: $("btnShot"),
-    buildReady: $("buildReady"), notice: $("notice"), contents: $("contents"), preview: $("preview"),
+    buildReady: $("buildReady"), nVertical: $("nVertical"), notice: $("notice"), contents: $("contents"), preview: $("preview"),
     capName: $("capName"), newSrcName: $("newSrcName"), newSrcScene: $("newSrcScene"),
     gate: $("gateScenes"), gateAll: $("gateAll"), warnGate: $("warnGate"),
     // The picker and the list it feeds, which go away together when every
@@ -5807,7 +5886,12 @@
 
   var scenes = [];         // every scene name OBS knows
   var inputNames = [];     // every input name, so a new one cannot collide
-  var targets = [];        // { name, url, isLocal, match, isBar, isCard, isVertical }
+  var targets = [];        // { name, url, isLocal, match, isBar, isCard, isVertical, unread }
+  // Whether the last scan read every browser source OBS has. A source whose
+  // settings could not be read might be an overlay, so a write is not called
+  // delivered while one is unread (docs/security-plan.md §2.3).
+  var scanOk = false;
+  var manySaid = "";       // the last list of duplicates warned about
   var target = "";         // the overlay: photographs and effects
   var barTarget = "";      // the goal bar, which OBS places on its own
   var verticalTarget = ""; // the same overlay, sized for a 9:16 scene
@@ -5922,6 +6006,7 @@
 
   function scanTargets() {
     if (!identified) return Promise.resolve();
+    scanOk = false;
     return request("GetInputList", { inputKind: "browser_source" })
       .then(function (d) {
         var names = (d.inputs || []).map(function (i) { return i.inputName; });
@@ -5929,13 +6014,16 @@
           return request("GetInputSettings", { inputName: name })
             .then(function (r) {
               var s = r.inputSettings || {};
-              return { name: name, url: s.url || s.local_file || "", isLocal: !!s.is_local_file, match: looksLikeOverlay(s), isBar: looksLikeBar(s), isCard: looksLikeCard(s), isVertical: looksLikeVertical(s) };
+              return { name: name, url: s.url || s.local_file || "", isLocal: !!s.is_local_file, match: looksLikeOverlay(s), isBar: looksLikeBar(s), isCard: looksLikeCard(s), isVertical: looksLikeVertical(s), unread: false };
             })
-            .catch(function () { return { name: name, url: "", isLocal: false, match: false, isBar: false, isCard: false, isVertical: false }; });
+            // Unread, not "not ours": whether it is an overlay is exactly what
+            // could not be found out.
+            .catch(function () { return { name: name, url: "", isLocal: false, match: false, isBar: false, isCard: false, isVertical: false, unread: true }; });
         }));
       })
       .then(function (rows) {
         targets = rows;
+        scanOk = rows.every(function (r) { return !r.unread; });
         // The bar, the card and the vertical source are the same file with a
         // flag, so they match too — and counted here, a broadcaster who has
         // them looks like a broadcaster with none preselected. The vertical
@@ -5946,14 +6034,34 @@
         var bars = rows.filter(function (r) { return r.match && r.isBar; });
         var talls = rows.filter(function (r) { return r.match && r.isVertical; });
         barTarget = bars.length === 1 ? bars[0].name : "";
-        verticalTarget = talls.length === 1 ? talls[0].name : "";
+        // Which of several is "the" one only matters for what this page shows;
+        // the capture settings go to all of them (shootingTargets).
+        verticalTarget = talls.length ? talls[0].name : "";
         if (hits.length === 1) target = hits[0].name;
-        else if (targets.every(function (r) { return r.name !== target; })) target = "";
+        else if (hits.every(function (r) { return r.name !== target; })) target = hits.length ? hits[0].name : "";
+        // Two of a kind is something the product can make — "clear" and build
+        // again under the default name leaves the old pair; a vertical source
+        // duplicated — and each of them keeps taking photos. Said by name.
+        var many = [];
+        if (hits.length > 1) many = many.concat(hits.map(function (r) { return r.name; }));
+        if (talls.length > 1) many = many.concat(talls.map(function (r) { return r.name; }));
+        var said = many.join(", ");
+        if (said && said !== manySaid) log(t("log.manyTargets", { c: many.length, n: said }), "warn");
+        manySaid = said;
         renderBuildState();
         renderDock();
         log(t("log.scan", { n: rows.length }), rows.length ? "ok" : "warn");
       })
-      .catch(function (e) { log(t("log.reqfail", { m: e.message }), "bad"); });
+      .catch(function (e) { scanOk = false; log(t("log.reqfail", { m: e.message }), "bad"); });
+  }
+
+  /**
+   * Every source that can take a photograph and must obey the capture
+   * settings: each landscape and each vertical overlay the last scan matched.
+   * Not the bar and not the card — neither photographs anything.
+   */
+  function shootingTargets() {
+    return targets.filter(function (r) { return r.match && !r.isBar && !r.isCard; });
   }
 
   /**
@@ -6380,6 +6488,10 @@
     el.shot.disabled = !identified || !cfg.src;
     el.buildReady.hidden = !made;
     if (made) el.buildReady.textContent = t("build.ready", { c: cfg.src, o: target });
+    // The vertical source is named after the overlay, so it can only be named
+    // once the overlay has one (makeVertical: baseName + " vertical").
+    el.nVertical.hidden = !made;
+    if (made) el.nVertical.textContent = t("n.vertical", { n: target });
   }
 
   /** Which scene the overlay goes in — never the one being photographed. */
@@ -6645,8 +6757,39 @@
     return SPINE.filter(function (k) { return have[k] && !next[k]; });
   }
 
+  /**
+   * One source, written — answered, never thrown, so one failure cannot hide
+   * the others. Tried a second time at once: a write to the obs-websocket on
+   * this machine that fails is rare and passing (a source vanishing that
+   * moment), and a second failure is reported by name.
+   */
+  function writeOne(name, url, reroute) {
+    return setUrl(name, url, reroute)
+      .catch(function () { return setUrl(name, url, reroute); })
+      .then(function () { return true; }, function () { return false; });
+  }
+
+  /**
+   * Write the settings everywhere they have to go (docs/security-plan.md §2.3).
+   *
+   * Every overlay that can take a photograph gets them — all the landscape
+   * ones and all the vertical ones — because the scene gate and the test
+   * window are safety decisions, and an overlay left out keeps photographing
+   * under the old ones while the EBS takes presses from whichever is open.
+   *
+   * Answers { refused, sig, results, unread, listed }:
+   *   refused  the broadcaster said no at the dialog; nothing was written
+   *   sig      the signature to record as delivered — "" unless every source
+   *            was written AND the scan read every browser source OBS has
+   *   results  [{ name, written, testUntil }] per source; testUntil is the
+   *            window that source was carrying before (its own URL), so a
+   *            source that missed an "end" can be named with its time left
+   *   unread   names whose settings the scan could not read
+   *   listed   whether the scan got OBS's list at all
+   */
   function writeAll() {
-    if (!target) return Promise.reject(new Error("no target"));
+    var shooters = shootingTargets();
+    if (!target && !shooters.length) return Promise.reject(new Error("no target"));
     var losing = wouldBlank();
     /* Cancel is the primary, and Escape lands on it (see ask()).
      *
@@ -6664,16 +6807,53 @@
     return asked.then(function (answer) {
       // "" rather than a rejection: nothing failed. Both callers read the
       // signature as "what reached OBS", and nothing did.
-      if (answer !== "go") { log(t("log.blankstop"), "warn"); return ""; }
+      if (answer !== "go") {
+        log(t("log.blankstop"), "warn");
+        return { refused: true, sig: "", results: [], unread: [], listed: scanOk };
+      }
       var sig = currentSig();
-      var jobs = [setUrl(target, overlayUrl(), true)];
-      if (barTarget) jobs.push(setUrl(barTarget, barUrl(), false));
+      var listed = scanOk;
+      var unread = targets.filter(function (r) { return r.unread; }).map(function (r) { return r.name; });
+      // Nothing matched yet (a scan that has not run): the one this page knows.
+      var rows = shooters.length ? shooters : [{ name: target, url: "", isVertical: false }];
       // The vertical source carries the same settings as the landscape one —
       // it is the same overlay — so a change the broadcaster makes here has to
       // reach both, or the two scenes drift apart in what they draw.
-      if (verticalTarget) jobs.push(setUrl(verticalTarget, verticalUrl(), false));
-      return Promise.all(jobs).then(function () { return sig; });
+      var jobs = rows.map(function (r) {
+        var before = urlConfig(r.url);
+        return writeOne(r.name, r.isVertical ? verticalUrl() : overlayUrl(), !r.isVertical)
+          .then(function (ok) {
+            return { name: r.name, written: ok, testUntil: before ? Number(before.testUntil || 0) : 0, known: !!before };
+          });
+      });
+      // The bar draws, it does not photograph; it is written as before and
+      // does not decide whether the capture settings were delivered.
+      var bar = barTarget ? writeOne(barTarget, barUrl(), false) : Promise.resolve(true);
+      return Promise.all([Promise.all(jobs), bar]).then(function (done) {
+        var results = done[0];
+        var all = results.every(function (x) { return x.written; });
+        return {
+          refused: false,
+          sig: all && listed && !unread.length ? sig : "",
+          results: results,
+          unread: unread,
+          listed: listed
+        };
+      });
     });
+  }
+
+  /** Whether a write reached at least one source that can take photographs. */
+  function anyWritten(res) {
+    return !!res && res.results.some(function (x) { return x.written; });
+  }
+
+  /** Name what a write could not deliver, so the broadcaster can act on it. */
+  function sayUndelivered(res) {
+    if (!res || res.refused) return;
+    var missed = res.results.filter(function (x) { return !x.written; }).map(function (x) { return x.name; });
+    if (missed.length) log(t("log.writeMissed", { n: missed.join(", ") }), "bad");
+    if (res.unread.length) log(t("log.unread", { n: res.unread.join(", ") }), "warn");
   }
 
   /**
@@ -6687,11 +6867,12 @@
    * updated release kept running the old one. "refreshnocache" is the property
    * button OBS shows as "Refresh cache of current page", and it fixes both.
    */
-  function reloadSources() {
-    var names = [];
-    if (target) names.push(target);
+  function reloadSources(written) {
+    // Every source a write reached, not one per kind: with two overlays, the
+    // one left unrefreshed keeps drawing the old look.
+    var names = written ? written.slice() : shootingTargets().map(function (r) { return r.name; });
+    if (!names.length && target) names.push(target);
     if (barTarget) names.push(barTarget);
-    if (verticalTarget) names.push(verticalTarget);
     if (!names.length) return Promise.resolve();
     return Promise.all(names.map(function (n) {
       return request("PressInputPropertiesButton", { inputName: n, propertyName: "refreshnocache" });
@@ -6778,19 +6959,22 @@
     if (!target) { log(t("log.needtarget"), "warn"); return; }
     pushing = true;
     renderDock();
-    var sig = "";
     writeAll()
-      .then(function (written) {
+      .then(function (res) {
         // Refused at the dialog: OBS still holds what it held, so there is
         // nothing to reload and nothing to record. Recording it would mark the
         // page clean against a write that never happened, and the dock is the
         // one place that answers "has this reached OBS".
-        if (!written) return null;
-        sig = written;               // carried past the reload, which returns nothing
-        log(t("log.pushed", { n: target }), "ok");
-        return reloadSources()
+        if (res.refused) return null;
+        sayUndelivered(res);
+        if (!anyWritten(res)) return null;
+        var done = res.results.filter(function (x) { return x.written; }).map(function (x) { return x.name; });
+        log(t("log.pushed", { n: done.join(", ") }), "ok");
+        // Only a write that reached everything is recorded; the rest stays
+        // dirty, and the next try scans again and writes every source.
+        return reloadSources(done)
           .then(scanTargets)
-          .then(function () { markPushed(sig); });
+          .then(function () { if (res.sig) markPushed(res.sig); });
       })
       .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); })
       .then(function () { pushing = false; renderDock(); });
@@ -6812,10 +6996,15 @@
   function pushSafety() {
     if (!target || !identified) { renderDock(); return; }
     writeAll()
-      .then(function (sig) {
-        if (!sig) { renderDock(); return; }   // refused; see pushNow()
-        log(t("log.pushed", { n: target }), "ok");
-        markPushed(sig);
+      .then(function (res) {
+        if (res.refused) { renderDock(); return; }   // see pushNow()
+        sayUndelivered(res);
+        // The capture settings are read again by each overlay on hashchange
+        // (overlay 30-configuration.js), so writing is delivering; no reload.
+        var done = res.results.filter(function (x) { return x.written; }).map(function (x) { return x.name; });
+        if (done.length) log(t("log.pushed", { n: done.join(", ") }), "ok");
+        if (res.sig) markPushed(res.sig);
+        else renderDock();
       })
       .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); });
   }
@@ -7308,8 +7497,11 @@
       var d = JSON.parse(new TextDecoder().decode(bytes));
       if (!d || typeof d.e !== "string" || typeof d.c !== "string" || typeof d.t !== "string") return null;
       // The address is used to open a socket, so it has to be one — a code that
-      // decodes into something else is not one of ours whatever it says.
-      if (!/^https?:\/\//.test(d.e)) return null;
+      // decodes into something else is not one of ours whatever it says. And
+      // it is where the pairing token goes, so it is https, except for a
+      // development EBS on this machine (docs/security-plan.md §4): a code
+      // naming http://anywhere-else would send the token in the clear.
+      if (!/^https:\/\//.test(d.e) && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/.test(d.e)) return null;
       if (!d.c || !d.t) return null;
       return { ebs: d.e.replace(/\/+$/, ""), ch: d.c, token: d.t };
     } catch (e) {
@@ -7615,20 +7807,27 @@
     // for the whole write it was supposed to be dead for.
     testBusy = true;
     drawTestLeft();
-    writeAll().then(function (sig) {
+    writeAll().then(function (res) {
       // Refused at the dialog is not a failure, so it arrives here and not in
-      // the catch — but nothing reached OBS all the same (writeAll() hands back
-      // "" for exactly that), and it has already said so. The same rule as the
-      // catch below then: the window that was never delivered is not open, and
-      // recording "" would mark the page clean against a write that never
-      // happened (markPushed falls back to the current settings).
-      if (!sig) {
+      // the catch — but nothing reached OBS all the same, and it has already
+      // said so. The same rule as the catch below then: the window that was
+      // never delivered is not open.
+      //
+      // Whether it is open is its own question, not "was everything
+      // delivered" (docs/security-plan.md §2.3 4). One overlay written is an
+      // overlay taking photographs for thirty minutes, and a page that shows
+      // no window and no way to end it while that happens is the unseen
+      // off-air shutter this page exists to prevent. So: any written → open,
+      // with the rest named; none written → not open.
+      sayUndelivered(res);
+      if (res.refused || !anyWritten(res)) {
         cfg.testUntil = was;
         saveCfg(cfg);
         return;
       }
       log(t("test.left", { n: 30 }), "ok");
-      markPushed(sig);
+      if (res.sig) markPushed(res.sig);
+      else renderDock();
     }).catch(function (e) {
       // Undelivered is not open. The deadline is counted from the press, and a
       // page counting down a window OBS was never told about is the thing this
@@ -7672,13 +7871,27 @@
     // counting. The overlay hears about it on the next write in that case.
     if (!target || !identified) { log(t("log.testend"), "ok"); testBusy = false; drawTestLeft(); return; }
     writeAll()
-      .then(function (sig) {
-        // "" is the dialog's no: the window is still over on this page (see
+      .then(function (res) {
+        // Refused at the dialog: the window is still over on this page (see
         // above), but OBS was not told, and the dock must keep saying so. The
         // same shape as pushNow() — a refused write is recorded nowhere.
-        if (!sig) return;
-        log(t("log.testend"), "ok");
-        markPushed(sig);
+        if (res.refused) return;
+        sayUndelivered(res);
+        // An overlay that did not hear "end" keeps its own deadline — it is in
+        // its URL, and the overlay closes itself then (52-obs-hooks.js
+        // watchTestWindow) — so say how long that is, from what the scan read
+        // off that source, not from this page, which has already forgotten.
+        var now = Date.now();
+        res.results.forEach(function (x) {
+          if (x.written) return;
+          if (!x.known) { log(t("log.testStillOpenMax", { n: x.name }), "warn"); return; }
+          var left = Math.ceil((x.testUntil - now) / 60000);
+          if (left > 0) log(t("log.testStillOpen", { n: x.name, m: left }), "warn");
+        });
+        res.unread.forEach(function (name) { log(t("log.testStillOpenMax", { n: name }), "warn"); });
+        if (anyWritten(res)) log(t("log.testend"), "ok");
+        if (res.sig) markPushed(res.sig);
+        else renderDock();
       })
       .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); })
       .then(function () { testBusy = false; drawTestLeft(); });
