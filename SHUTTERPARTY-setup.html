@@ -1383,6 +1383,13 @@
       "log.manyTargets": "撮れるオーバーレイが {c} つあります: {n}。撮影の設定は全部に書き込みます。使っていないものは OBS で削除してください",
       "log.writeMissed": "書き込めなかったオーバーレイ: {n}。反映済みにしていません。もう一度書き込んでください",
       "log.unread": "設定を読めなかったブラウザソース: {n}。反映済みにしていません。もう一度書き込むと読み直します",
+      "log.seal.first": "今回は OBS のパスワードだけを平文で渡しました（初回のため）。オーバーレイの準備ができたら残りを封して送ります",
+      "log.seal.readfail": "秘密は送りませんでした（OBS から鍵を読めませんでした）",
+      "log.seal.nokey.pw": "オーバーレイがまだ OBS に繋がっていません。それまで URL には OBS のパスワードが平文で残っています。オーバーレイが動いてから、もう一度書き込んでください",
+      "log.seal.nokey": "オーバーレイがまだ OBS に繋がっていません。連携トークンと webhook はまだ送っていません。オーバーレイが動いてから、もう一度書き込んでください",
+      "log.seal.plainleft": "このソースの URL に秘密が平文で残っています: {n}。書き込むと封します",
+      "log.seal.racing": "別の設定ページが同時に書いています。どちらかを閉じてから書き込んでください",
+      "log.seal.kidstop": "オーバーレイの鍵が変わったので、書き込みをやめました",
       "log.testStillOpen": "{n} は書き込めなかったため、あと {m} 分撮れます（その時刻に自動で閉じます）",
       "log.testStillOpenMax": "{n} は書き込めなかったため、最長 30 分撮れます（その時刻に自動で閉じます）",
       "log.blankstop": "書き込みをやめました。OBS の設定はそのままです",
@@ -1445,6 +1452,12 @@
       "dlg.blankTitle": "OBS にある設定を空で上書きします",
       "dlg.blank": "撮影シーン・EBS・チャンネル・連携コードのうち {n} 件が、OBS には入っているのにこのページでは空です。このまま書き込むと、OBS 側の値も消えます。設定ページを別の場所から開くと、覚えていることが何も無い状態で始まります。心当たりがあれば、やめて、いつもの開き方で開き直してください。",
       "dlg.blankGo": "それでも書き込む",
+      "dlg.sealKidTitle": "オーバーレイの鍵が変わりました",
+      "dlg.sealKid": "OBS に置かれているオーバーレイの鍵が、前に書き込んだときと違います。OBS の設定を消した・別の PC に移したのなら、続けてください。心当たりが無ければやめてください —— OBS に繋げる誰かが鍵を置き換えた可能性があります。",
+      "dlg.sealKidGo": "続ける",
+      "dlg.sealRetryTitle": "受け取りを確認できませんでした",
+      "dlg.sealRetry": "オーバーレイから受け取りを確認できませんでした（OBS の設定を消した・別の PC など）。OBS のパスワードを平文で一度だけ送り直しますか？ オーバーレイがいつもどおり動いているなら、送り直さなくてかまいません。",
+      "dlg.sealRetryGo": "平文で送り直す",
       "log.reuse": "すでにある「{n}」をそのまま使いました",
       "log.overwrote": "「{n}」を上書きしました",
       "log.renamed": "「{a}」があったので「{b}」を作りました",
@@ -1633,6 +1646,13 @@
       "log.manyTargets": "There are {c} overlays that can take photos: {n}. Capture settings are written to all of them. Delete the ones you do not use in OBS",
       "log.writeMissed": "could not write to these overlays: {n}. Not marked as delivered — write again",
       "log.unread": "could not read these browser sources: {n}. Not marked as delivered — writing again reads them again",
+      "log.seal.first": "this time only the OBS password went as plain text (the first write). The rest is sealed and sent once the overlay is ready",
+      "log.seal.readfail": "no secrets were sent (the key could not be read from OBS)",
+      "log.seal.nokey.pw": "the overlay has not connected to OBS yet. Until it does, the OBS password stays in the URL as plain text. Write again once the overlay is running",
+      "log.seal.nokey": "the overlay has not connected to OBS yet, so the pairing token and the webhook have not been sent. Write again once the overlay is running",
+      "log.seal.plainleft": "these sources still carry a secret as plain text in their URL: {n}. Writing seals it",
+      "log.seal.racing": "another setup page is writing at the same time. Close one of them, then write again",
+      "log.seal.kidstop": "stopped writing because the overlay's key changed",
       "log.testStillOpen": "{n} could not be written, so it can still take photos for {m} min (it closes itself then)",
       "log.testStillOpenMax": "{n} could not be written, so it may take photos for up to 30 min (it closes itself then)",
       "log.blankstop": "stopped — nothing was written, and OBS keeps what it had",
@@ -1695,6 +1715,12 @@
       "dlg.blankTitle": "This will blank settings OBS is holding",
       "dlg.blank": "{n} of the capture scene, the EBS, the channel and the pairing code are set in OBS but empty on this page. Writing now erases them there too. A setup page opened from a different address starts with nothing remembered — if that sounds like what happened, stop here and open it the usual way.",
       "dlg.blankGo": "Write anyway",
+      "dlg.sealKidTitle": "The overlay's key has changed",
+      "dlg.sealKid": "The overlay key in OBS is not the one this page wrote to last time. If you cleared OBS's settings or moved to another PC, continue. If not, stop — someone who can connect to OBS may have replaced the key.",
+      "dlg.sealKidGo": "Continue",
+      "dlg.sealRetryTitle": "Could not confirm delivery",
+      "dlg.sealRetry": "The overlay did not confirm it received the settings (OBS settings cleared, another PC, …). Send the OBS password once more as plain text? If the overlay is working as usual, you do not need to.",
+      "dlg.sealRetryGo": "Send as plain text",
       "log.reuse": "used the existing “{n}”",
       "log.overwrote": "overwrote “{n}”",
       "log.renamed": "“{a}” was taken, so “{b}” was made instead",
@@ -1883,6 +1909,13 @@
       "log.manyTargets": "Hay {c} overlays que pueden hacer fotos: {n}. Los ajustes de captura se escriben en todos. Borra en OBS los que no uses",
       "log.writeMissed": "no se pudo escribir en estos overlays: {n}. No se marca como aplicado; vuelve a escribir",
       "log.unread": "no se pudieron leer estas fuentes de navegador: {n}. No se marca como aplicado; al volver a escribir se leen de nuevo",
+      "log.seal.first": "esta vez solo se envió la contraseña de OBS en texto plano (primera escritura). El resto se sellará y enviará cuando el overlay esté listo",
+      "log.seal.readfail": "no se enviaron secretos (no se pudo leer la clave desde OBS)",
+      "log.seal.nokey.pw": "el overlay aún no se ha conectado a OBS. Hasta entonces, la contraseña de OBS queda en texto plano en la URL. Vuelve a escribir cuando el overlay esté funcionando",
+      "log.seal.nokey": "el overlay aún no se ha conectado a OBS, así que el token de emparejamiento y el webhook no se han enviado. Vuelve a escribir cuando el overlay esté funcionando",
+      "log.seal.plainleft": "estas fuentes aún llevan un secreto en texto plano en su URL: {n}. Al escribir se sella",
+      "log.seal.racing": "otra página de configuración está escribiendo al mismo tiempo. Cierra una de ellas y vuelve a escribir",
+      "log.seal.kidstop": "se dejó de escribir porque la clave del overlay cambió",
       "log.testStillOpen": "{n} no se pudo escribir, así que aún puede hacer fotos durante {m} min (luego se cierra solo)",
       "log.testStillOpenMax": "{n} no se pudo escribir, así que puede hacer fotos hasta 30 min (luego se cierra solo)",
       "log.blankstop": "detenido: no se escribió nada y OBS conserva lo que tenía",
@@ -1945,6 +1978,12 @@
       "dlg.blankTitle": "Esto vaciará ajustes que OBS tiene",
       "dlg.blank": "{n} de la escena de captura, el EBS, el canal y el código de vinculación están en OBS pero vacíos en esta página. Escribir ahora también los borra allí. Una página de configuración abierta desde otra dirección empieza sin recordar nada: si es lo que ha pasado, detente y ábrela como siempre.",
       "dlg.blankGo": "Escribir de todos modos",
+      "dlg.sealKidTitle": "La clave del overlay ha cambiado",
+      "dlg.sealKid": "La clave del overlay que hay en OBS no es aquella a la que esta página escribió la última vez. Si borraste los ajustes de OBS o cambiaste de PC, continúa. Si no, detente: alguien que puede conectarse a OBS podría haber reemplazado la clave.",
+      "dlg.sealKidGo": "Continuar",
+      "dlg.sealRetryTitle": "No se pudo confirmar la entrega",
+      "dlg.sealRetry": "El overlay no confirmó que recibió los ajustes (ajustes de OBS borrados, otro PC…). ¿Enviar la contraseña de OBS una vez más en texto plano? Si el overlay funciona como siempre, no hace falta.",
+      "dlg.sealRetryGo": "Enviar en texto plano",
       "log.reuse": "se usó la ya existente «{n}»",
       "log.overwrote": "se sobrescribió «{n}»",
       "log.renamed": "«{a}» estaba ocupado, así que se creó «{b}»",
@@ -2133,6 +2172,13 @@
       "log.manyTargets": "Há {c} overlays que podem tirar fotos: {n}. As configurações de captura são gravadas em todos. Apague no OBS os que não usa",
       "log.writeMissed": "não foi possível gravar nestes overlays: {n}. Não marcado como aplicado — grave de novo",
       "log.unread": "não foi possível ler estas fontes de navegador: {n}. Não marcado como aplicado — gravar de novo as lê outra vez",
+      "log.seal.first": "desta vez só a senha do OBS foi enviada em texto simples (primeira gravação). O resto será lacrado e enviado quando o overlay estiver pronto",
+      "log.seal.readfail": "nenhum segredo foi enviado (não foi possível ler a chave do OBS)",
+      "log.seal.nokey.pw": "o overlay ainda não se conectou ao OBS. Até lá, a senha do OBS fica em texto simples na URL. Grave de novo quando o overlay estiver funcionando",
+      "log.seal.nokey": "o overlay ainda não se conectou ao OBS, então o token de pareamento e o webhook ainda não foram enviados. Grave de novo quando o overlay estiver funcionando",
+      "log.seal.plainleft": "estas fontes ainda levam um segredo em texto simples na URL: {n}. Gravar o lacra",
+      "log.seal.racing": "outra página de configuração está gravando ao mesmo tempo. Feche uma delas e grave de novo",
+      "log.seal.kidstop": "a gravação parou porque a chave do overlay mudou",
       "log.testStillOpen": "{n} não pôde ser gravado, então ainda pode tirar fotos por {m} min (depois fecha sozinho)",
       "log.testStillOpenMax": "{n} não pôde ser gravado, então pode tirar fotos por até 30 min (depois fecha sozinho)",
       "log.blankstop": "parado: nada foi escrito e o OBS mantém o que tinha",
@@ -2195,6 +2241,12 @@
       "dlg.blankTitle": "Isto vai esvaziar ajustes que o OBS tem",
       "dlg.blank": "{n} da cena de captura, do EBS, do canal e do código de ligação estão no OBS mas vazios nesta página. Escrever agora apaga-os lá também. Uma página de configuração aberta a partir de outro endereço começa sem se lembrar de nada — se foi isso que aconteceu, pare e abra-a como de costume.",
       "dlg.blankGo": "Escrever mesmo assim",
+      "dlg.sealKidTitle": "A chave do overlay mudou",
+      "dlg.sealKid": "A chave do overlay no OBS não é a mesma para a qual esta página gravou da última vez. Se você apagou as configurações do OBS ou mudou de PC, continue. Se não, pare — alguém que consegue se conectar ao OBS pode ter substituído a chave.",
+      "dlg.sealKidGo": "Continuar",
+      "dlg.sealRetryTitle": "Não foi possível confirmar a entrega",
+      "dlg.sealRetry": "O overlay não confirmou que recebeu as configurações (configurações do OBS apagadas, outro PC…). Enviar a senha do OBS mais uma vez em texto simples? Se o overlay está funcionando normalmente, não é preciso.",
+      "dlg.sealRetryGo": "Enviar em texto simples",
       "log.reuse": "usou a “{n}” que já existia",
       "log.overwrote": "substituiu “{n}”",
       "log.renamed": "“{a}” já estava ocupado, então criou-se “{b}”",
@@ -2383,6 +2435,13 @@
       "log.manyTargets": "Es gibt {c} Overlays, die Fotos machen können: {n}. Die Aufnahme-Einstellungen werden in alle geschrieben. Lösche nicht benutzte in OBS",
       "log.writeMissed": "in diese Overlays konnte nicht geschrieben werden: {n}. Nicht als übertragen markiert – bitte erneut schreiben",
       "log.unread": "diese Browserquellen konnten nicht gelesen werden: {n}. Nicht als übertragen markiert – erneutes Schreiben liest sie neu",
+      "log.seal.first": "diesmal wurde nur das OBS-Passwort im Klartext übergeben (erstes Schreiben). Der Rest wird versiegelt gesendet, sobald das Overlay bereit ist",
+      "log.seal.readfail": "keine Geheimnisse gesendet (der Schlüssel ließ sich nicht aus OBS lesen)",
+      "log.seal.nokey.pw": "das Overlay hat sich noch nicht mit OBS verbunden. Bis dahin steht das OBS-Passwort im Klartext in der URL. Schreib erneut, sobald das Overlay läuft",
+      "log.seal.nokey": "das Overlay hat sich noch nicht mit OBS verbunden, daher wurden Kopplungstoken und Webhook noch nicht gesendet. Schreib erneut, sobald das Overlay läuft",
+      "log.seal.plainleft": "diese Quellen tragen noch ein Geheimnis im Klartext in ihrer URL: {n}. Schreiben versiegelt es",
+      "log.seal.racing": "eine andere Einrichtungsseite schreibt gleichzeitig. Schließ eine davon und schreib erneut",
+      "log.seal.kidstop": "Schreiben abgebrochen, weil sich der Schlüssel des Overlays geändert hat",
       "log.testStillOpen": "{n} konnte nicht beschrieben werden und kann noch {m} Min. Fotos machen (danach schließt es sich selbst)",
       "log.testStillOpenMax": "{n} konnte nicht beschrieben werden und kann bis zu 30 Min. Fotos machen (danach schließt es sich selbst)",
       "log.blankstop": "abgebrochen — nichts geschrieben, OBS behält, was es hatte",
@@ -2445,6 +2504,12 @@
       "dlg.blankTitle": "Das überschreibt Einstellungen in OBS mit Leere",
       "dlg.blank": "{n} von Aufnahmeszene, EBS, Kanal und Kopplungscode sind in OBS gesetzt, auf dieser Seite aber leer. Schreiben löscht sie auch dort. Eine Einrichtungsseite, die von einer anderen Adresse geöffnet wurde, erinnert sich an nichts — wenn das passiert ist, brich ab und öffne sie wie gewohnt.",
       "dlg.blankGo": "Trotzdem schreiben",
+      "dlg.sealKidTitle": "Der Schlüssel des Overlays hat sich geändert",
+      "dlg.sealKid": "Der Overlay-Schlüssel in OBS ist nicht der, an den diese Seite zuletzt geschrieben hat. Wenn du die OBS-Einstellungen gelöscht hast oder auf einen anderen PC gewechselt bist, fahre fort. Wenn nicht, brich ab — jemand, der sich mit OBS verbinden kann, könnte den Schlüssel ersetzt haben.",
+      "dlg.sealKidGo": "Fortfahren",
+      "dlg.sealRetryTitle": "Empfang nicht bestätigt",
+      "dlg.sealRetry": "Das Overlay hat den Empfang der Einstellungen nicht bestätigt (OBS-Einstellungen gelöscht, anderer PC …). Das OBS-Passwort noch einmal im Klartext senden? Wenn das Overlay wie gewohnt funktioniert, ist das nicht nötig.",
+      "dlg.sealRetryGo": "Im Klartext senden",
       "log.reuse": "die vorhandene „{n}“ wurde verwendet",
       "log.overwrote": "„{n}“ überschrieben",
       "log.renamed": "„{a}“ war belegt, also wurde „{b}“ angelegt",
@@ -2633,6 +2698,13 @@
       "log.manyTargets": "{c} overlays peuvent prendre des photos : {n}. Les réglages de capture sont écrits dans tous. Supprimez dans OBS ceux que vous n'utilisez pas",
       "log.writeMissed": "écriture impossible dans ces overlays : {n}. Non marqué comme appliqué — réécrivez",
       "log.unread": "lecture impossible de ces sources navigateur : {n}. Non marqué comme appliqué — réécrire les relit",
+      "log.seal.first": "cette fois, seul le mot de passe d’OBS a été transmis en clair (première écriture). Le reste sera scellé et envoyé quand l’overlay sera prêt",
+      "log.seal.readfail": "aucun secret envoyé (impossible de lire la clé depuis OBS)",
+      "log.seal.nokey.pw": "l’overlay n’est pas encore connecté à OBS. D’ici là, le mot de passe d’OBS reste en clair dans l’URL. Réécris quand l’overlay fonctionne",
+      "log.seal.nokey": "l’overlay n’est pas encore connecté à OBS : le jeton d’appairage et le webhook n’ont pas encore été envoyés. Réécris quand l’overlay fonctionne",
+      "log.seal.plainleft": "ces sources portent encore un secret en clair dans leur URL : {n}. Écrire le scelle",
+      "log.seal.racing": "une autre page de réglages écrit en même temps. Ferme l’une d’elles, puis réécris",
+      "log.seal.kidstop": "écriture arrêtée parce que la clé de l’overlay a changé",
       "log.testStillOpen": "{n} n'a pas pu être écrit et peut encore prendre des photos pendant {m} min (il se ferme ensuite tout seul)",
       "log.testStillOpenMax": "{n} n'a pas pu être écrit et peut prendre des photos jusqu'à 30 min (il se ferme ensuite tout seul)",
       "log.blankstop": "arrêté : rien n'a été écrit, OBS garde ce qu'il avait",
@@ -2695,6 +2767,12 @@
       "dlg.blankTitle": "Cela videra des réglages qu'OBS détient",
       "dlg.blank": "{n} parmi la scène de capture, l'EBS, la chaîne et le code de liaison sont renseignés dans OBS mais vides sur cette page. Écrire maintenant les efface aussi là-bas. Une page de réglages ouverte depuis une autre adresse démarre sans rien en mémoire — si c'est ce qui s'est passé, arrête et rouvre-la comme d'habitude.",
       "dlg.blankGo": "Écrire quand même",
+      "dlg.sealKidTitle": "La clé de l’overlay a changé",
+      "dlg.sealKid": "La clé de l’overlay dans OBS n’est pas celle vers laquelle cette page a écrit la dernière fois. Si tu as effacé les réglages d’OBS ou changé de PC, continue. Sinon, arrête — quelqu’un qui peut se connecter à OBS a peut-être remplacé la clé.",
+      "dlg.sealKidGo": "Continuer",
+      "dlg.sealRetryTitle": "Réception non confirmée",
+      "dlg.sealRetry": "L’overlay n’a pas confirmé avoir reçu les réglages (réglages d’OBS effacés, autre PC…). Renvoyer une fois le mot de passe d’OBS en clair ? Si l’overlay fonctionne comme d’habitude, ce n’est pas nécessaire.",
+      "dlg.sealRetryGo": "Renvoyer en clair",
       "log.reuse": "« {n} » existait déjà et a été réutilisée",
       "log.overwrote": "« {n} » a été écrasée",
       "log.renamed": "« {a} » était pris, « {b} » a donc été créé",
@@ -2883,6 +2961,13 @@
       "log.manyTargets": "Ci sono {c} overlay che possono scattare foto: {n}. Le impostazioni di scatto vengono scritte in tutti. Elimina in OBS quelli che non usi",
       "log.writeMissed": "impossibile scrivere in questi overlay: {n}. Non segnato come applicato — scrivi di nuovo",
       "log.unread": "impossibile leggere queste sorgenti browser: {n}. Non segnato come applicato — riscrivere le rilegge",
+      "log.seal.first": "questa volta è stata inviata in chiaro solo la password di OBS (prima scrittura). Il resto verrà sigillato e inviato quando l’overlay sarà pronto",
+      "log.seal.readfail": "nessun segreto inviato (impossibile leggere la chiave da OBS)",
+      "log.seal.nokey.pw": "l’overlay non si è ancora connesso a OBS. Fino ad allora la password di OBS resta in chiaro nell’URL. Scrivi di nuovo quando l’overlay è in funzione",
+      "log.seal.nokey": "l’overlay non si è ancora connesso a OBS, quindi il token di abbinamento e il webhook non sono ancora stati inviati. Scrivi di nuovo quando l’overlay è in funzione",
+      "log.seal.plainleft": "queste sorgenti portano ancora un segreto in chiaro nel loro URL: {n}. Scrivere lo sigilla",
+      "log.seal.racing": "un’altra pagina di configurazione sta scrivendo nello stesso momento. Chiudine una, poi scrivi di nuovo",
+      "log.seal.kidstop": "scrittura interrotta perché la chiave dell’overlay è cambiata",
       "log.testStillOpen": "{n} non è stato scritto, quindi può ancora scattare per {m} min (poi si chiude da solo)",
       "log.testStillOpenMax": "{n} non è stato scritto, quindi può scattare fino a 30 min (poi si chiude da solo)",
       "log.blankstop": "fermato: non è stato scritto nulla e OBS mantiene quello che aveva",
@@ -2945,6 +3030,12 @@
       "dlg.blankTitle": "Questo svuoterà impostazioni che OBS ha",
       "dlg.blank": "{n} tra scena di cattura, EBS, canale e codice di collegamento sono impostati in OBS ma vuoti in questa pagina. Scrivere ora li cancella anche lì. Una pagina di configurazione aperta da un altro indirizzo parte senza ricordare nulla: se è quello che è successo, fermati e riaprila come al solito.",
       "dlg.blankGo": "Scrivi comunque",
+      "dlg.sealKidTitle": "La chiave dell’overlay è cambiata",
+      "dlg.sealKid": "La chiave dell’overlay in OBS non è quella a cui questa pagina ha scritto l’ultima volta. Se hai cancellato le impostazioni di OBS o sei passato a un altro PC, continua. Altrimenti fermati: qualcuno che può connettersi a OBS potrebbe aver sostituito la chiave.",
+      "dlg.sealKidGo": "Continua",
+      "dlg.sealRetryTitle": "Ricezione non confermata",
+      "dlg.sealRetry": "L’overlay non ha confermato di aver ricevuto le impostazioni (impostazioni di OBS cancellate, un altro PC…). Inviare ancora una volta la password di OBS in chiaro? Se l’overlay funziona come al solito, non serve.",
+      "dlg.sealRetryGo": "Invia in chiaro",
       "log.reuse": "usata la «{n}» già esistente",
       "log.overwrote": "«{n}» sovrascritta",
       "log.renamed": "«{a}» era occupato, quindi è stata creata «{b}»",
@@ -3133,6 +3224,13 @@
       "log.manyTargets": "사진을 찍을 수 있는 오버레이가 {c}개 있습니다: {n}. 촬영 설정은 모두에 기록합니다. 쓰지 않는 것은 OBS에서 삭제하세요",
       "log.writeMissed": "기록하지 못한 오버레이: {n}. 반영됨으로 표시하지 않았습니다. 다시 기록하세요",
       "log.unread": "설정을 읽지 못한 브라우저 소스: {n}. 반영됨으로 표시하지 않았습니다. 다시 기록하면 다시 읽습니다",
+      "log.seal.first": "이번에는 OBS 비밀번호만 평문으로 보냈습니다(첫 기록). 오버레이가 준비되면 나머지를 봉인해서 보냅니다",
+      "log.seal.readfail": "비밀 정보를 보내지 않았습니다(OBS에서 키를 읽을 수 없었습니다)",
+      "log.seal.nokey.pw": "오버레이가 아직 OBS에 연결되지 않았습니다. 그때까지 URL에 OBS 비밀번호가 평문으로 남아 있습니다. 오버레이가 동작한 뒤 다시 기록하세요",
+      "log.seal.nokey": "오버레이가 아직 OBS에 연결되지 않아 연동 토큰과 웹후크를 아직 보내지 않았습니다. 오버레이가 동작한 뒤 다시 기록하세요",
+      "log.seal.plainleft": "이 소스의 URL에 비밀 정보가 평문으로 남아 있습니다: {n}. 기록하면 봉인합니다",
+      "log.seal.racing": "다른 설정 페이지가 동시에 기록하고 있습니다. 한쪽을 닫고 다시 기록하세요",
+      "log.seal.kidstop": "오버레이의 키가 바뀌어 기록을 멈췄습니다",
       "log.testStillOpen": "{n}에 기록하지 못해, 앞으로 {m}분 동안 촬영할 수 있습니다(그때 자동으로 닫힙니다)",
       "log.testStillOpenMax": "{n}에 기록하지 못해, 최대 30분 동안 촬영할 수 있습니다(그때 자동으로 닫힙니다)",
       "log.blankstop": "쓰지 않았습니다. OBS 설정은 그대로입니다",
@@ -3195,6 +3293,12 @@
       "dlg.blankTitle": "OBS에 있는 설정을 비운 채로 덮어씁니다",
       "dlg.blank": "촬영 장면, EBS, 채널, 연동 코드 중 {n}개가 OBS에는 있지만 이 페이지에서는 비어 있습니다. 이대로 쓰면 OBS 쪽 값도 사라집니다. 설정 페이지를 다른 주소에서 열면 아무것도 기억하지 못한 상태로 시작합니다. 짚이는 데가 있다면 멈추고 평소대로 열어 주세요.",
       "dlg.blankGo": "그래도 쓰기",
+      "dlg.sealKidTitle": "오버레이의 키가 바뀌었습니다",
+      "dlg.sealKid": "OBS에 있는 오버레이 키가 지난번에 이 페이지가 기록한 키와 다릅니다. OBS 설정을 지웠거나 다른 PC로 옮겼다면 계속하세요. 짚이는 데가 없다면 멈추세요 — OBS에 연결할 수 있는 누군가가 키를 바꿔 놓았을 수 있습니다.",
+      "dlg.sealKidGo": "계속",
+      "dlg.sealRetryTitle": "수신을 확인하지 못했습니다",
+      "dlg.sealRetry": "오버레이가 설정을 받았다고 확인해 주지 않았습니다(OBS 설정을 지움, 다른 PC 등). OBS 비밀번호를 평문으로 한 번만 다시 보낼까요? 오버레이가 평소대로 동작하고 있다면 다시 보내지 않아도 됩니다.",
+      "dlg.sealRetryGo": "평문으로 다시 보내기",
       "log.reuse": "이미 있던 “{n}”을(를) 그대로 썼습니다",
       "log.overwrote": "“{n}”을(를) 덮어썼습니다",
       "log.renamed": "“{a}”이(가) 있어서 “{b}”을(를) 만들었습니다",
@@ -3383,6 +3487,13 @@
       "log.manyTargets": "有 {c} 个可以拍照的叠加层：{n}。拍摄设置会写入全部。不用的请在 OBS 中删除",
       "log.writeMissed": "这些叠加层写不进去：{n}。没有标记为已生效，请再写一次",
       "log.unread": "这些浏览器源的设置读不出来：{n}。没有标记为已生效，再写一次会重新读取",
+      "log.seal.first": "这次只以明文发送了 OBS 密码（首次写入）。叠加层准备好后，其余内容会加封发送",
+      "log.seal.readfail": "没有发送机密信息（无法从 OBS 读取密钥）",
+      "log.seal.nokey.pw": "叠加层还没有连接到 OBS。在此之前，URL 中会以明文保留 OBS 密码。请在叠加层运行后再写一次",
+      "log.seal.nokey": "叠加层还没有连接到 OBS，因此配对令牌和 webhook 尚未发送。请在叠加层运行后再写一次",
+      "log.seal.plainleft": "这些来源的 URL 中仍以明文保留着机密信息：{n}。写入后会加封",
+      "log.seal.racing": "另一个设置页面正在同时写入。请关闭其中一个后再写一次",
+      "log.seal.kidstop": "叠加层的密钥已改变，已停止写入",
       "log.testStillOpen": "{n} 没写进去，还能再拍 {m} 分钟（到时会自动关闭）",
       "log.testStillOpenMax": "{n} 没写进去，最多还能拍 30 分钟（到时会自动关闭）",
       "log.blankstop": "已停止：没有写入任何内容，OBS 保持原样",
@@ -3445,6 +3556,12 @@
       "dlg.blankTitle": "这会用空值覆盖 OBS 里的设置",
       "dlg.blank": "拍摄场景、EBS、频道、绑定码之中有 {n} 项在 OBS 里有值，但这个页面上是空的。现在写入会把那边的值也清掉。从别的地址打开的设置页，什么都不记得。如果是这种情况，请先停下，用平时的方式重新打开。",
       "dlg.blankGo": "仍然写入",
+      "dlg.sealKidTitle": "叠加层的密钥已改变",
+      "dlg.sealKid": "OBS 中的叠加层密钥与此页面上次写入时的不同。如果你清除了 OBS 设置或换了电脑，请继续。否则请停止——可能有能连接 OBS 的人替换了密钥。",
+      "dlg.sealKidGo": "继续",
+      "dlg.sealRetryTitle": "无法确认接收",
+      "dlg.sealRetry": "叠加层没有确认收到设置（OBS 设置已清除、换了电脑等）。要以明文再发送一次 OBS 密码吗？如果叠加层运行正常，则无需重新发送。",
+      "dlg.sealRetryGo": "以明文重新发送",
       "log.reuse": "沿用了已有的“{n}”",
       "log.overwrote": "已覆盖“{n}”",
       "log.renamed": "“{a}”已被占用，改为创建了“{b}”",
@@ -3633,6 +3750,13 @@
       "log.manyTargets": "Оверлеев, которые могут снимать, — {c}: {n}. Настройки съёмки записываются во все. Удалите в OBS неиспользуемые",
       "log.writeMissed": "не удалось записать в эти оверлеи: {n}. Не отмечено как применённое — запишите ещё раз",
       "log.unread": "не удалось прочитать эти браузерные источники: {n}. Не отмечено как применённое — повторная запись перечитает их",
+      "log.seal.first": "на этот раз пароль OBS передан открытым текстом, и только он (первая запись). Остальное будет запечатано и отправлено, когда оверлей будет готов",
+      "log.seal.readfail": "секреты не отправлены (не удалось прочитать ключ из OBS)",
+      "log.seal.nokey.pw": "оверлей ещё не подключился к OBS. До тех пор пароль OBS остаётся в URL открытым текстом. Запишите ещё раз, когда оверлей заработает",
+      "log.seal.nokey": "оверлей ещё не подключился к OBS, поэтому ключ связи и вебхук ещё не отправлены. Запишите ещё раз, когда оверлей заработает",
+      "log.seal.plainleft": "в URL этих источников ещё есть секрет открытым текстом: {n}. Запись запечатает его",
+      "log.seal.racing": "другая страница настройки записывает одновременно. Закройте одну из них и запишите ещё раз",
+      "log.seal.kidstop": "запись остановлена: ключ оверлея изменился",
       "log.testStillOpen": "в {n} записать не удалось, он ещё {m} мин может снимать (потом закроется сам)",
       "log.testStillOpenMax": "в {n} записать не удалось, он может снимать до 30 мин (потом закроется сам)",
       "log.blankstop": "остановлено: ничего не записано, OBS сохраняет прежнее",
@@ -3695,6 +3819,12 @@
       "dlg.blankTitle": "Это перезапишет настройки в OBS пустыми",
       "dlg.blank": "{n} из сцены съёмки, EBS, канала и кода привязки заданы в OBS, но пусты на этой странице. Запись сейчас сотрёт их и там. Страница настроек, открытая с другого адреса, начинает ничего не помня — если дело в этом, остановитесь и откройте её обычным способом.",
       "dlg.blankGo": "Всё равно записать",
+      "dlg.sealKidTitle": "Ключ оверлея изменился",
+      "dlg.sealKid": "Ключ оверлея в OBS не тот, в который эта страница записывала в прошлый раз. Если вы очистили настройки OBS или перешли на другой ПК, продолжайте. Если нет, остановитесь — кто-то, кто может подключиться к OBS, мог подменить ключ.",
+      "dlg.sealKidGo": "Продолжить",
+      "dlg.sealRetryTitle": "Не удалось подтвердить получение",
+      "dlg.sealRetry": "Оверлей не подтвердил получение настроек (настройки OBS очищены, другой ПК…). Отправить пароль OBS ещё раз открытым текстом? Если оверлей работает как обычно, этого делать не нужно.",
+      "dlg.sealRetryGo": "Отправить открытым текстом",
       "log.reuse": "использована уже существующая «{n}»",
       "log.overwrote": "«{n}» перезаписан",
       "log.renamed": "«{a}» было занято, поэтому создано «{b}»",
@@ -3883,6 +4013,13 @@
       "log.manyTargets": "Nakładek, które mogą robić zdjęcia, jest {c}: {n}. Ustawienia zdjęć są zapisywane do wszystkich. Usuń w OBS te nieużywane",
       "log.writeMissed": "nie udało się zapisać do tych nakładek: {n}. Nie oznaczono jako zastosowane — zapisz ponownie",
       "log.unread": "nie udało się odczytać tych źródeł przeglądarki: {n}. Nie oznaczono jako zastosowane — ponowny zapis odczyta je jeszcze raz",
+      "log.seal.first": "tym razem jako zwykły tekst przekazano tylko hasło OBS (pierwszy zapis). Resztę zapieczętujemy i wyślemy, gdy nakładka będzie gotowa",
+      "log.seal.readfail": "nie wysłano sekretów (nie udało się odczytać klucza z OBS)",
+      "log.seal.nokey.pw": "nakładka jeszcze nie połączyła się z OBS. Do tego czasu hasło OBS zostaje w adresie URL jako zwykły tekst. Zapisz ponownie, gdy nakładka zacznie działać",
+      "log.seal.nokey": "nakładka jeszcze nie połączyła się z OBS, więc token parowania i webhook nie zostały jeszcze wysłane. Zapisz ponownie, gdy nakładka zacznie działać",
+      "log.seal.plainleft": "te źródła nadal mają w adresie URL sekret jako zwykły tekst: {n}. Zapis go zapieczętuje",
+      "log.seal.racing": "inna strona konfiguracji zapisuje w tym samym czasie. Zamknij jedną z nich i zapisz ponownie",
+      "log.seal.kidstop": "przerwano zapis, bo zmienił się klucz nakładki",
       "log.testStillOpen": "do {n} nie udało się zapisać, więc może robić zdjęcia jeszcze przez {m} min (potem zamknie się sama)",
       "log.testStillOpenMax": "do {n} nie udało się zapisać, więc może robić zdjęcia do 30 min (potem zamknie się sama)",
       "log.blankstop": "zatrzymano: nic nie zapisano, OBS zachowuje to, co miał",
@@ -3945,6 +4082,12 @@
       "dlg.blankTitle": "To nadpisze pustymi wartościami ustawienia, które ma OBS",
       "dlg.blank": "{n} spośród sceny do zdjęć, EBS, kanału i kodu parowania jest ustawione w OBS, ale puste na tej stronie. Zapis teraz skasuje je również tam. Strona ustawień otwarta z innego adresu startuje bez żadnej pamięci — jeśli o to chodzi, zatrzymaj się i otwórz ją jak zwykle.",
       "dlg.blankGo": "Zapisz mimo to",
+      "dlg.sealKidTitle": "Klucz nakładki się zmienił",
+      "dlg.sealKid": "Klucz nakładki w OBS nie jest tym, do którego ta strona zapisywała ostatnio. Jeśli wyczyszczono ustawienia OBS albo przeniesiono się na inny komputer, kontynuuj. Jeśli nie, przerwij — ktoś, kto może połączyć się z OBS, mógł podmienić klucz.",
+      "dlg.sealKidGo": "Kontynuuj",
+      "dlg.sealRetryTitle": "Nie udało się potwierdzić odbioru",
+      "dlg.sealRetry": "Nakładka nie potwierdziła odbioru ustawień (wyczyszczone ustawienia OBS, inny komputer…). Wysłać hasło OBS jeszcze raz jako zwykły tekst? Jeśli nakładka działa jak zwykle, nie trzeba.",
+      "dlg.sealRetryGo": "Wyślij jako zwykły tekst",
       "log.reuse": "użyto istniejącej „{n}”",
       "log.overwrote": "nadpisano „{n}”",
       "log.renamed": "„{a}” było zajęte, więc utworzono „{b}”",
@@ -4133,6 +4276,13 @@
       "log.manyTargets": "Fotoğraf çekebilen {c} katman var: {n}. Çekim ayarları hepsine yazılır. Kullanmadıklarınızı OBS'de silin",
       "log.writeMissed": "şu katmanlara yazılamadı: {n}. Uygulandı olarak işaretlenmedi — yeniden yazın",
       "log.unread": "şu tarayıcı kaynakları okunamadı: {n}. Uygulandı olarak işaretlenmedi — yeniden yazmak onları tekrar okur",
+      "log.seal.first": "bu kez yalnızca OBS parolası düz metin olarak gönderildi (ilk yazma). Katman hazır olunca geri kalanı mühürlenip gönderilecek",
+      "log.seal.readfail": "hiçbir gizli bilgi gönderilmedi (anahtar OBS’ten okunamadı)",
+      "log.seal.nokey.pw": "katman henüz OBS’e bağlanmadı. O zamana kadar OBS parolası URL’de düz metin olarak kalır. Katman çalışınca yeniden yazın",
+      "log.seal.nokey": "katman henüz OBS’e bağlanmadı, bu yüzden eşleştirme belirteci ve webhook henüz gönderilmedi. Katman çalışınca yeniden yazın",
+      "log.seal.plainleft": "bu kaynakların URL’sinde hâlâ düz metin bir gizli bilgi var: {n}. Yazmak onu mühürler",
+      "log.seal.racing": "başka bir kurulum sayfası aynı anda yazıyor. Birini kapatıp yeniden yazın",
+      "log.seal.kidstop": "katmanın anahtarı değiştiği için yazma durduruldu",
       "log.testStillOpen": "{n} yazılamadığı için {m} dk daha fotoğraf çekebilir (sonra kendiliğinden kapanır)",
       "log.testStillOpenMax": "{n} yazılamadığı için en fazla 30 dk fotoğraf çekebilir (sonra kendiliğinden kapanır)",
       "log.blankstop": "durduruldu: hiçbir şey yazılmadı, OBS eskisini koruyor",
@@ -4195,6 +4345,12 @@
       "dlg.blankTitle": "Bu, OBS'teki ayarları boş olarak üzerine yazar",
       "dlg.blank": "Çekim sahnesi, EBS, kanal ve eşleştirme kodundan {n} tanesi OBS'te dolu ama bu sayfada boş. Şimdi yazmak onları orada da siler. Başka bir adresten açılan bir kurulum sayfası hiçbir şey hatırlamadan başlar — olan buysa, dur ve her zamanki gibi aç.",
       "dlg.blankGo": "Yine de yaz",
+      "dlg.sealKidTitle": "Katmanın anahtarı değişti",
+      "dlg.sealKid": "OBS’teki katman anahtarı, bu sayfanın son kez yazdığı anahtar değil. OBS ayarlarını sildiyseniz ya da başka bir bilgisayara geçtiyseniz devam edin. Değilse durun — OBS’e bağlanabilen biri anahtarı değiştirmiş olabilir.",
+      "dlg.sealKidGo": "Devam et",
+      "dlg.sealRetryTitle": "Alındığı doğrulanamadı",
+      "dlg.sealRetry": "Katman ayarları aldığını doğrulamadı (OBS ayarları silindi, başka bir bilgisayar…). OBS parolası bir kez daha düz metin olarak gönderilsin mi? Katman her zamanki gibi çalışıyorsa gerek yok.",
+      "dlg.sealRetryGo": "Düz metin olarak gönder",
       "log.reuse": "hâlihazırdaki “{n}” kullanıldı",
       "log.overwrote": "“{n}” üzerine yazıldı",
       "log.renamed": "“{a}” doluydu, bunun yerine “{b}” oluşturuldu",
@@ -4228,7 +4384,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-7b1704e25eec";
+  var BUILD = "sp-dd9cc41c1645";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -4291,7 +4447,7 @@
 
   /* The two settings that are secret, named once for everyone who asks.
    *
-   * The overlay's URL clean-up walks this list, the setup page is checked
+   * The envelope carries exactly these (seal.js), the setup page is checked
    * against it (tools/contract-check.mjs 「秘密を URL に載せない」), and this
    * store is what holds them. A new one is added here and nowhere else.
    *
@@ -4311,8 +4467,8 @@
 
   /* What is known to be written down, by value.
    *
-   * The overlay drops a secret out of its own URL only once the copy in
-   * storage is real (30-configuration.js: scrubSecretsFromUrl), and with an
+   * The overlay acknowledges an envelope only once the copy in storage is
+   * real (28-sealed-secrets.js: sealIn), and with an
    * asynchronous store "real" has to mean "the write came back and read back
    * as what we sent" rather than "we called setItem". Nothing is entered here
    * that was not read out of storage again afterwards. */
@@ -4589,7 +4745,7 @@
    * Keep these secrets, and prove they were kept.
    *
    * Resolves true only when the ciphertext has been read back and decrypted
-   * into the same values — which is what lets the overlay drop its URL copy.
+   * into the same values — which is what lets the overlay acknowledge an envelope.
    * Everything is written together: they live in one blob, so a partial write
    * is not a shape this can be in.
    */
@@ -4659,10 +4815,9 @@
       secretState = "nostore";
       /* Deliberately not written as text instead.
        *
-       * The overlay only takes a secret out of its URL once this comes back
-       * true, so a false here leaves the URL carrying it and the product keeps
-       * working — with the secret in the browser source's properties, which is
-       * where it already was. Falling back to plaintext localStorage would add
+       * A false here means the overlay keeps what arrived in memory for this
+       * load and acknowledges nothing, so the setup page hears that its write
+       * was not kept. Falling back to plaintext localStorage would add
        * a second copy in a second place to buy nothing. */
       return Promise.resolve(false);
     }
@@ -4784,6 +4939,179 @@
   function secretIsStored(key, value) {
     return !!value && secretsHeld[key] === value;
   }
+  /* ================= the envelope =================
+
+     The secrets used to ride to the overlay in its own URL as text, and OBS
+     writes that URL into its log when a browser source complains
+     (docs/security-plan.md V6). So they ride sealed instead: the overlay keeps
+     an ECDH P-256 key pair whose private half never leaves its IndexedDB, puts
+     the public half in OBS's persistent data, and the setup page seals the
+     three secrets to it (docs/sealed-secrets-plan.md §4).
+
+     Both pages carry this file, and that is the point of it being one file:
+     the bytes the AAD is built from and the way the AES key is derived have to
+     agree exactly on both ends, and two copies would drift the way the two
+     obs-websocket clients did (obs-ws.js). tools/seal-check.mjs runs this very
+     text in node against a fixed test vector.
+
+     WHAT IT DOES NOT DO: anybody who can talk to obs-websocket can put their
+     own public key where the overlay's was and read the next envelope. That is
+     out of scope on purpose (§1.2) — they can already make OBS open any page
+     they like. The envelope takes the plaintext out of logs, files and screen
+     shares; it is not a defence against whoever holds OBS. */
+
+  var SEAL_INFO = "shutterparty seal v1";
+  var SEAL_REALM = "OBS_WEBSOCKET_DATA_REALM_GLOBAL";
+  var SEAL_SLOT_KEY = "shutterparty.sealKey";
+  var SEAL_SLOT_ACK = "shutterparty.sealAck";
+  var SEAL_CURVE = { name: "ECDH", namedCurve: "P-256" };
+
+  function sealB64u(buf) {
+    var b = new Uint8Array(buf), s = "";
+    for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function sealUnb64u(str) {
+    if (typeof str !== "string" || !/^[A-Za-z0-9_-]+$/.test(str)) throw new Error("not base64url");
+    var b = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (b.length % 4) b += "=";
+    var bin = atob(b), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  /** The public key as it travels: these four members, in sorted order. */
+  function sealPublicJwk(jwk) {
+    return { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y };
+  }
+
+  /** The first 16 characters of the base64url SHA-256 of the sorted JWK (§4.1). */
+  function sealKidOf(jwk) {
+    var text = JSON.stringify(sealPublicJwk(jwk));
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+      .then(function (h) { return sealB64u(h).slice(0, 16); });
+  }
+
+  /**
+   * The additional data: the envelope's own strings joined with "|", as UTF-8.
+   *
+   * Taken from what is IN the envelope rather than rebuilt from parsed values,
+   * so the two ends cannot normalise differently — none of the five can hold a
+   * "|" (base64url, a decimal integer, and the digit 1), so the join is
+   * unambiguous. Changing anything outside the ciphertext fails the open.
+   */
+  function sealAad(box) {
+    return new TextEncoder().encode([box.v, box.kid, box.epk, box.epoch, box.nonce].join("|"));
+  }
+
+  /** ECDH, then HKDF-SHA256 with an empty salt, to one AES-GCM 256 key. */
+  function sealAesKey(priv, pub, usage) {
+    return crypto.subtle.deriveBits({ name: "ECDH", public: pub }, priv, 256)
+      .then(function (bits) { return crypto.subtle.importKey("raw", bits, "HKDF", false, ["deriveKey"]); })
+      .then(function (hk) {
+        return crypto.subtle.deriveKey(
+          { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: new TextEncoder().encode(SEAL_INFO) },
+          hk, { name: "AES-GCM", length: 256 }, false, [usage]);
+      });
+  }
+
+  /** Whether a value has the envelope's shape at all. Anything else is not opened. */
+  function sealShapeOk(box) {
+    var word = /^[A-Za-z0-9_-]+$/;
+    return !!box && typeof box === "object" && box.v === 1 &&
+      typeof box.epoch === "number" && isFinite(box.epoch) && box.epoch >= 0 &&
+      Math.floor(box.epoch) === box.epoch &&
+      ["kid", "epk", "nonce", "iv", "ct"].every(function (k) {
+        return typeof box[k] === "string" && word.test(box[k]);
+      });
+  }
+
+  /**
+   * A public key as OBS holds it, or null.
+   *
+   * null, {} and every shape that is not a key all mean "there is no key": a
+   * slot cannot be emptied, only overwritten with {} (§2, 実測 2026-09-18).
+   * The kid is checked against the key it names, so a slot edited by hand is
+   * read as no key rather than sealed to.
+   */
+  function sealKeyFrom(v) {
+    if (!v || typeof v !== "object" || v.v !== 1 || typeof v.kid !== "string") return Promise.resolve(null);
+    var j = v.jwk;
+    if (!j || j.kty !== "EC" || j.crv !== "P-256" || typeof j.x !== "string" || typeof j.y !== "string") {
+      return Promise.resolve(null);
+    }
+    /* And the point has to import: a kid that matches a jwk whose point is not
+     * on P-256 would otherwise be "a key", and every seal to it would throw
+     * instead of the slot being read as no key. */
+    return sealKidOf(j).then(function (kid) {
+      if (kid !== v.kid) return null;
+      return crypto.subtle.importKey("jwk", sealPublicJwk(j), SEAL_CURVE, true, [])
+        .then(function () { return { kid: kid, jwk: sealPublicJwk(j) }; });
+    }).then(null, function () { return null; });
+  }
+
+  /**
+   * Seal the secrets to one public key.
+   *
+   * Only the non-empty ones go in: an empty secret is "I do not have one",
+   * never "forget yours" (setup: overlayConfig). `fixed` supplies the
+   * ephemeral key pair, the nonce and the IV, and exists for the fixed test
+   * vector alone — every real envelope takes fresh random ones, so an IV is
+   * never reused even though every envelope's AES key is already its own.
+   */
+  function sealWith(to, secrets, epoch, fixed) {
+    fixed = fixed || {};
+    var eph = null;
+    var made = fixed.eph ? Promise.resolve(fixed.eph)
+      : crypto.subtle.generateKey(SEAL_CURVE, false, ["deriveBits"]);
+    return Promise.all([
+      made,
+      crypto.subtle.importKey("jwk", sealPublicJwk(to.jwk), SEAL_CURVE, true, [])
+    ]).then(function (got) {
+      eph = got[0];
+      var pub = got[1];
+      return crypto.subtle.exportKey("raw", eph.publicKey).then(function (raw) {
+        var iv = fixed.iv || crypto.getRandomValues(new Uint8Array(12));
+        var box = {
+          v: 1, kid: to.kid, epk: sealB64u(raw), epoch: epoch,
+          nonce: sealB64u(fixed.nonce || crypto.getRandomValues(new Uint8Array(16))),
+          iv: sealB64u(iv)
+        };
+        var body = {};
+        SECRETS.forEach(function (k) {
+          if (typeof secrets[k] === "string" && secrets[k]) body[k] = secrets[k];
+        });
+        return sealAesKey(eph.privateKey, pub, "encrypt").then(function (key) {
+          return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv, additionalData: sealAad(box) },
+            key, new TextEncoder().encode(JSON.stringify(body)));
+        }).then(function (ct) {
+          box.ct = sealB64u(ct);
+          return box;
+        });
+      });
+    });
+  }
+
+  /** Open one envelope with the private key. Resolves to the secrets in it. */
+  function sealOpen(priv, box) {
+    if (!sealShapeOk(box)) return Promise.reject(new Error("malformed"));
+    return Promise.resolve().then(function () {
+      return crypto.subtle.importKey("raw", sealUnb64u(box.epk), SEAL_CURVE, false, []);
+    }).then(function (pub) {
+      return sealAesKey(priv, pub, "decrypt");
+    }).then(function (key) {
+      return crypto.subtle.decrypt({ name: "AES-GCM", iv: sealUnb64u(box.iv), additionalData: sealAad(box) },
+        key, sealUnb64u(box.ct));
+    }).then(function (plain) {
+      var got = JSON.parse(new TextDecoder().decode(plain));
+      var out = {};
+      SECRETS.forEach(function (k) {
+        if (got && typeof got[k] === "string" && got[k]) out[k] = got[k];
+      });
+      return out;
+    });
+  }
   /* ================= persisted config ================= */
 
   var CFG_KEY = "sp-config";
@@ -4811,7 +5139,9 @@
      to OBS: the moment it were included, recording it would change the thing
      it is a record of, and the dock would never once say "written". */
   var UI_KEY = "sp-setup-ui";
-  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim", lang: "" };
+  // sealKid: the overlay key the last receipt came from — not a secret, and
+  // what the "the key changed" question compares against (66-deliver.js).
+  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim", lang: "", sealKid: "" };
   // Set when the stored UI has no language yet: a page from before the two
   // languages were split, whose one choice has to become both (see pickLang).
   var uiLangUnset = true;
@@ -6160,6 +6490,12 @@
   var target = "";         // the overlay: photographs and effects
   var barTarget = "";      // the goal bar, which OBS places on its own
   var verticalTarget = ""; // the same overlay, sized for a 9:16 scene
+  // Overlays whose URL still carries a secret as text: the first write's
+  // password before the key appeared, or a URL from before the envelope
+  // (docs/sealed-secrets-plan.md §1.1). Named, and the dock stays "not
+  // written" until the next write seals them — never written from the scan.
+  var plainLeft = [];
+  var plainSaid = "";
 
   function loadScenes() {
     return request("GetSceneList").catch(function () { return { scenes: [] }; })
@@ -6313,11 +6649,24 @@
         var said = many.join(", ");
         if (said && said !== manySaid) log(t("log.manyTargets", { c: many.length, n: said }), "warn");
         manySaid = said;
+        notePlainLeft();
         renderBuildState();
         renderDock();
         log(t("log.scan", { n: rows.length }), rows.length ? "ok" : "warn");
       })
       .catch(function (e) { scanOk = false; log(t("log.reqfail", { m: e.message }), "bad"); });
+  }
+
+  /** Which overlays carry a secret as text, said once each time the list changes
+   *  (quietly while a first write is about to replace it with an envelope). */
+  function notePlainLeft(quiet) {
+    plainLeft = shootingTargets().filter(function (r) {
+      var c = urlConfig(r.url);
+      return !!c && SECRETS.some(function (k) { return typeof c[k] === "string" && c[k]; });
+    }).map(function (r) { return r.name; });
+    var said = plainLeft.join(", ");
+    if (said && said !== plainSaid && !quiet) log(t("log.seal.plainleft", { n: said }), "warn");
+    if (!quiet) plainSaid = said;
   }
 
   /**
@@ -6535,48 +6884,6 @@
    * Only a bar of ours is the ordinary case; anything else gets the question
    * the overlay's name gets.
    */
-  /* The source for a vertical scene.
-   *
-   * WHY THIS PAGE MAKES IT. A broadcaster who streams dual format builds a
-   * second scene at 1080x1920 (docs/vertical-plan.md §2), and the overlay
-   * belongs in it — it is the same page, and it lays itself out for whatever
-   * frame it is given. What it cannot do is be given the wrong one: OBS's
-   * browser source takes its size from its own properties, and dragging the
-   * source bigger on the canvas is a transform the page never sees. Stretched
-   * that way it draws the landscape layout squeezed into a tall box. So the
-   * one number that matters is one this page can simply set.
-   *
-   * WHY IT LANDS IN THE NORMAL SCENE, DISABLED. The vertical canvas belongs to
-   * a plugin — Aitum Vertical — and obs-websocket cannot reach it: of the 21
-   * requests the plugin registers, every one switches scenes, reads status or
-   * starts a stream, and none creates a source (confirmed against
-   * Aitum/obs-vertical-canvas, 2026-09-14). A source, though, is a source:
-   * made here in a normal scene, it is in OBS's input list, and the plugin's
-   * own "+" adds an existing one to a vertical scene. That is the published
-   * route. It arrives switched off so it does not draw a 1080x1920 rectangle
-   * across the landscape scene while it waits to be picked up.
-   *
-   * SILENT. reroute false, like the bar: the landscape source already carries
-   * the shutter into OBS, and a second one routed the same way would put it in
-   * twice. Whether the two make any sound together once BOTH canvases are live
-   * is not something this repository can measure (§5.2) — but nothing is
-   * routed into the mix from here, so the broadcast cannot double. */
-  function makeVertical(scene, baseName) {
-    // English on every channel, for the reason the bar's suffix is.
-    var want = baseName + " vertical";
-    var existing = targets.filter(function (r) { return r.name === want; })[0];
-    var taken = inputNames.indexOf(want) !== -1;
-    if (taken && !(existing && existing.match && existing.isVertical)) {
-      // Somebody else's source wears the name. Say so and leave it alone: the
-      // landscape overlay is already written, and this one can be added later.
-      log(t("log.verticalskipped", { n: want }), "warn");
-      return Promise.resolve();
-    }
-    return makeOrWrite(scene, want, taken, verticalUrl(), 1080, 1920, false, false)
-      .then(function () { log(t("log.verticalcreated", { n: want }), "ok"); })
-      .catch(function (e) { log(t("log.verticalfail", { m: e.message }), "warn"); });
-  }
-
   function resolveBarName(want) {
     var existing = targets.filter(function (r) { return r.name === want; })[0];
     var taken = inputNames.indexOf(want) !== -1;
@@ -6600,57 +6907,6 @@
     });
   }
 
-  /**
-   * The browser source is made here rather than by hand.
-   *
-   * Asking a broadcaster to add an empty browser source, uncheck "shutdown when
-   * not visible", and set it to 1920x1080 before this page can do anything is
-   * three chances to get it wrong, and the page can simply do all three.
-   * is_local_file has to be false: OBS ignores the url field while it is set,
-   * and the local-file field has nowhere to put the settings.
-   *
-   * `reroute` is "Control audio via OBS", and the overlay needs it on. Left off
-   * — which is the OBS default, and which this page used to write explicitly on
-   * every push — the page's sound goes to the machine's playback device instead
-   * of into OBS. The broadcaster hears the shutter and **the audience does
-   * not**, unless a Desktop Audio capture happens to be in the scene, and then
-   * it arrives welded to every other sound the machine makes. So the one thing
-   * this extension can put in the broadcast — §2.4 forbids the viewer's frame
-   * from making any (CLAUDE.md) — reached nobody it was for.
-   *
-   * On, the audio becomes a track on this input: one path to the stream on
-   * every machine, with its own fader, and nothing for a Desktop Audio source
-   * to pick up twice.
-   *
-   * The bar passes false. It is the same page with `#bar`, and that page never
-   * calls ensureAudio() — an audio track that is silent by construction is
-   * clutter in the mixer.
-   */
-  /* `enabled` is the scene item, not the source: false makes it and leaves it
-   * switched off in the scene it was made in. Only the vertical source passes
-   * it — it is made in a landscape scene because that is the only kind
-   * obs-websocket can reach, and it belongs to a scene the plugin owns. Note
-   * the source itself still runs (shutdown is false), which is what the
-   * broadcaster wants: by the time they add it to their vertical scene it has
-   * already connected and is ready. */
-  function makeOrWrite(scene, name, overwrite, url, w, h, reroute, enabled) {
-    var settings = {
-      is_local_file: false,
-      url: url,
-      width: w,
-      height: h,
-      shutdown: false,           // it has to keep running while hidden
-      reroute_audio: !!reroute
-    };
-    if (overwrite) {
-      return request("SetInputSettings", { inputName: name, inputSettings: settings, overlay: true });
-    }
-    return request("CreateInput", {
-      sceneName: scene, inputName: name, inputKind: "browser_source",
-      inputSettings: settings, sceneItemEnabled: enabled !== false
-    }).then(function () { log(t("log.created", { n: name, s: scene }), "ok"); });
-  }
-
   function buildAll() {
     if (building) return;
     if (!identified) { log(t("log.needconn"), "warn"); status("bad", t(failKey || "st.idle"), true); return; }
@@ -6659,8 +6915,6 @@
     renderBuildState();
 
     var hostScene = "";
-    var chosenName = "";
-    var builtSig = "";      // the settings the sources were actually built with
 
     resolveCaptureScene()
       .then(function (capture) {
@@ -6685,57 +6939,20 @@
       })
       .then(function (pick) {
         if (!pick) return null;
-        chosenName = pick.name;
         ui.srcName = pick.name;
         ui.hostScene = hostScene;
         saveUi();
-        // One reading of the settings for both sources and for the record of
-        // what was written, for the reason writeAll() gives: creating them
-        // takes several round trips, and the page is live throughout.
-        builtSig = currentSig();
-        return makeOrWrite(hostScene, pick.name, pick.overwrite, overlayUrl(), 1920, 1080, true)
-          .then(function () {
-            // The bar gets a source of its own, so OBS can place it, size it,
-            // and put it in one scene and not another — none of which it could
-            // do while it was drawn inside the overlay's canvas (§4.11).
-            //
-            // The suffix is English on every channel. It is a name in OBS, and
-            // a name that changed when the broadcaster changed this page's
-            // language would leave the old source behind, unwritten, drawing.
-            var barName = pick.name + " bar";
-            // barUrl(), not the overlay's: a bar never connects to OBS, so it
-            // never takes the password back out of its own URL.
-            // 480x56: one row, smaller than the 560x64 it replaced. The bar is a
-            // small part of the effect, not its headline; the type gets its
-            // size from filling the row rather than from a bigger box. An
-            // existing 560x64 source still fits — the strip sizes itself off
-            // whatever box it is given (overlay shell.html, the #bar block).
-            return resolveBarName(barName)
-              .then(function (bar) {
-                // The overlay is already written by now, so "no" here is only
-                // "no bar" — said, because a source that quietly did not
-                // appear looks like one that failed.
-                if (!bar) { log(t("log.barskipped"), "warn"); return; }
-                return makeOrWrite(hostScene, bar.name, bar.overwrite, barUrl(), 480, 56, false)
-                  .then(function () { log(t("log.barcreated", { n: bar.name }), "ok"); });
-              })
-              .then(function () { return makeVertical(hostScene, pick.name); })
-              .catch(function (e) {
-                // The overlay is the half that matters. A bar that failed to
-                // appear is something the broadcaster can add later.
-                log(t("log.barcreatefail", { m: e.message }), "warn");
-              });
-          })
-          .then(function () { return true; });
+        // Made and written by deliver(), like every other URL this page puts in
+        // OBS (66-deliver.js deliverBuild): the same queue, the same envelope,
+        // the same read-back.
+        return deliver({ kind: "build", host: hostScene, pick: pick });
       })
-      .then(function (done) {
-        if (!done) return null;
-        target = chosenName;
-        return loadScenes()
-          .then(scanTargets)
-          .then(function () { return arrangeIn(hostScene); })
+      .then(function (res) {
+        if (!res || res.refused) return null;
+        sayUndelivered(res);
+        return arrangeIn(hostScene)
           .then(reloadSources)
-          .then(function () { markPushed(builtSig); });
+          .then(function () { if (res.sig) markPushed(res.sig); });
       })
       .catch(function (e) { log(t("log.createfail", { m: e.message }), "bad"); })
       .then(function () {
@@ -6865,9 +7082,8 @@
     };
     /* An empty password is "I do not have one", never "erase the one you have".
      *
-     * The overlay is the only page that ends up holding it: it takes the
-     * password out of its own URL once it has authenticated and keeps it in
-     * storage instead (overlay: scrubSecretsFromUrl). From then on this page
+     * The overlay is the only page that ends up holding it: it keeps what
+     * arrives in storage (overlay: sealIn). From then on this page
      * can be reopened somewhere that remembers nothing — a different origin, a
      * cleared profile — and the box is blank while OBS is still working.
      *
@@ -6887,16 +7103,45 @@
     if (!c.pw) delete c.pw;
     // The same for the webhook: an empty box is not an instruction.
     if (!c.discordWebhook) delete c.discordWebhook;
+    /* The three secrets are IN here, as text, and that is on purpose: this is
+     * what the dock compares (currentSig), and an envelope made of fresh
+     * random bytes every time would leave the dock saying "not written" for
+     * ever. They leave this page only through deliveredConfig() below, which
+     * takes them out and puts the envelope in (docs/sealed-secrets-plan.md
+     * §4.2). */
+    return c;
+  }
+
+  /**
+   * What actually rides in the URL: overlayConfig() with the secrets taken out
+   * and the delivery's form put in (66-deliver.js deliverForm):
+   *
+   *   seal   the envelope — the three secrets, sealed to the overlay's key
+   *   first  the password alone, as text: there is no key in OBS yet, and the
+   *          overlay cannot put one there until it has authenticated. The
+   *          pairing token and the webhook wait for the key (§4.2).
+   *   none   no secret at all (the key could not be read, or there is none)
+   *
+   * No form is "none": there is no way to ask for the old plaintext URL.
+   */
+  function deliveredConfig(form) {
+    var c = overlayConfig();
+    SECRETS.forEach(function (k) { delete c[k]; });
+    if (form && form.mode === "seal" && form.seal) c.seal = form.seal;
+    else if (form && form.mode === "first" && form.pw) c.pw = form.pw;
     return c;
   }
 
   /* ?v= before the fragment, not inside it.
      A query is ignored when the file is opened and counted when the cache is
      consulted, so this is what makes CEF fetch a changed overlay rather than
-     the copy it already has (the same trick the photo URLs use — draft 115). */
-  function overlayUrl() {
+     the copy it already has (the same trick the photo URLs use — draft 115).
+
+     Called from deliver() alone (66-deliver.js), which is the one writer of
+     these URLs — tools/contract-check.mjs holds it to that. */
+  function overlayUrl(form) {
     return OVERLAY_URL + "?v=" + encodeURIComponent(BUILD) +
-      "#c=" + encodeURIComponent(JSON.stringify(overlayConfig()));
+      "#c=" + encodeURIComponent(JSON.stringify(deliveredConfig(form)));
   }
 
   /* The same page, same settings, for the vertical scene.
@@ -6912,21 +7157,21 @@
    * the flag is the only difference in the URL. The overlay reads it in one
    * place: where the browser cannot pick a single Discord sender, the
    * vertical one stands down (overlay 62-discord.js). */
-  function verticalUrl() {
+  function verticalUrl(form) {
     return OVERLAY_URL + "?v=" + encodeURIComponent(BUILD) +
-      "#c=" + encodeURIComponent(JSON.stringify(overlayConfig())) + "&vertical";
+      "#c=" + encodeURIComponent(JSON.stringify(deliveredConfig(form))) + "&vertical";
   }
 
   /* What the bar is allowed to carry.
    *
-   * The overlay takes the two secrets in its URL and then takes them back out:
-   * it connects, finds its own browser source and rewrites the URL without them
-   * (overlay: scrubSecretsFromUrl). A bar never connects to OBS — it has
-   * nothing to photograph with — so that clean-up never runs on it, and
-   * anything it was handed stayed in the source properties and in the scene
-   * collection file for as long as the source existed.
+   * A bar never connects to OBS — it has nothing to photograph with — so it
+   * never takes a secret, and anything it was handed stays in the source
+   * properties and in the scene collection file for as long as the source
+   * exists.
    *
-   * So it is never handed one. The folder goes with the password for the same
+   * So it is never handed one, and never an envelope either: built from
+   * overlayConfig(), not deliveredConfig(), it has no `seal` to carry
+   * (tools/contract-check.mjs runs it to check). The folder goes with the password for the same
    * reason: neither is any use to a page that only draws a number, and
    * CLAUDE.md keeps both of them on this machine.
    *
@@ -6952,6 +7197,9 @@
     delete c.saveDir;
     // A bar sends nothing anywhere (docs/discord-plan.md §4.1).
     delete c.discordWebhook;
+    // Nor an envelope: overlayConfig() never carries one, and this says so
+    // where the rule is (tools/contract-check.mjs runs it with one on offer).
+    delete c.seal;
     return c;
   }
 
@@ -6960,40 +7208,6 @@
       "#c=" + encodeURIComponent(JSON.stringify(barConfig())) + "&bar";
   }
 
-  /**
-   * Point one source at an address, and settle its audio routing while there.
-   *
-   * `reroute` is carried here and not left alone for the reason makeOrWrite()
-   * gives — but this is the path that made it invisible. Writing it false on
-   * every push means a broadcaster who ticks "Control audio via OBS" by hand
-   * has it silently unticked the next time they change a setting: the box goes
-   * back, the sound leaves the broadcast, and nothing in the log mentions
-   * audio. Fixing only the creation path would have left that intact for
-   * everybody who already has a source.
-   */
-  function setUrl(name, url, reroute) {
-    return request("SetInputSettings", {
-      inputName: name,
-      inputSettings: { is_local_file: false, url: url, reroute_audio: !!reroute },
-      overlay: true
-    });
-  }
-
-  /**
-   * Write the settings to both of the broadcaster's sources.
-   *
-   * They carry the same configuration and differ only by the bar flag, so
-   * writing one and leaving the other is how a bar ends up drawing last week's
-   * channel. The bar is optional — a broadcaster who never made one, or deleted
-   * it, simply has nothing in the second slot.
-   *
-   * The settings are read ONCE here and the signature of what was written comes
-   * back with the promise. Writing is not instant, the page stays live while it
-   * happens, and a broadcaster who moves a slider in that gap used to end up
-   * with a dock reporting the new value as delivered while OBS held the URL
-   * built before the change. Whoever records the write records THIS, not
-   * whatever the page says by the time OBS answers.
-   */
   /* ---- the settings that hold the machine together ----
 
      Blanking any of these stops the extension dead: no capture scene is
@@ -7028,94 +7242,15 @@
     var row = targets.filter(function (r) { return r.name === target; })[0];
     var have = row ? urlConfig(row.url) : null;
     if (!have) return [];              // nothing there to lose
+    /* An envelope may hold a pairing token this page cannot see into. Read as
+     * absent, the guard would stop guarding exactly when OBS holds one
+     * (docs/sealed-secrets-plan.md §4.2). But only where OBS also carries the
+     * pairing's EBS and channel — the three arrive together, in one pairing
+     * code — or every write after the first, on a page that has not paired
+     * yet, would be stopped by "this will blank" about a token that never was. */
+    if (have.seal && !have.ebsToken && have.ebs && have.ch) have.ebsToken = "(sealed)";
     var next = overlayConfig();
     return SPINE.filter(function (k) { return have[k] && !next[k]; });
-  }
-
-  /**
-   * One source, written — answered, never thrown, so one failure cannot hide
-   * the others. Tried a second time at once: a write to the obs-websocket on
-   * this machine that fails is rare and passing (a source vanishing that
-   * moment), and a second failure is reported by name.
-   */
-  function writeOne(name, url, reroute) {
-    return setUrl(name, url, reroute)
-      .catch(function () { return setUrl(name, url, reroute); })
-      .then(function () { return true; }, function () { return false; });
-  }
-
-  /**
-   * Write the settings everywhere they have to go (docs/security-plan.md §2.3).
-   *
-   * Every overlay that can take a photograph gets them — all the landscape
-   * ones and all the vertical ones — because the scene gate and the test
-   * window are safety decisions, and an overlay left out keeps photographing
-   * under the old ones while the EBS takes presses from whichever is open.
-   *
-   * Answers { refused, sig, results, unread, listed }:
-   *   refused  the broadcaster said no at the dialog; nothing was written
-   *   sig      the signature to record as delivered — "" unless every source
-   *            was written AND the scan read every browser source OBS has
-   *   results  [{ name, written, testUntil }] per source; testUntil is the
-   *            window that source was carrying before (its own URL), so a
-   *            source that missed an "end" can be named with its time left
-   *   unread   names whose settings the scan could not read
-   *   listed   whether the scan got OBS's list at all
-   */
-  function writeAll() {
-    var shooters = shootingTargets();
-    if (!target && !shooters.length) return Promise.reject(new Error("no target"));
-    var losing = wouldBlank();
-    /* Cancel is the primary, and Escape lands on it (see ask()).
-     *
-     * The other way round this is a dialog that is dismissed into the damage:
-     * whoever is reading it has just been told that something they cannot see
-     * is about to go, and the safe answer has to be the one under their hands
-     * already. Writing anyway stays available — a broadcaster really is
-     * allowed to clear their own settings — it just cannot be the default. */
-    var asked = losing.length
-      ? ask(t("dlg.blankTitle"), t("dlg.blank", { n: losing.length }), [
-          { label: "dlg.cancel", value: "cancel", primary: true },
-          { label: "dlg.blankGo", value: "go" }
-        ])
-      : Promise.resolve("go");
-    return asked.then(function (answer) {
-      // "" rather than a rejection: nothing failed. Both callers read the
-      // signature as "what reached OBS", and nothing did.
-      if (answer !== "go") {
-        log(t("log.blankstop"), "warn");
-        return { refused: true, sig: "", results: [], unread: [], listed: scanOk };
-      }
-      var sig = currentSig();
-      var listed = scanOk;
-      var unread = targets.filter(function (r) { return r.unread; }).map(function (r) { return r.name; });
-      // Nothing matched yet (a scan that has not run): the one this page knows.
-      var rows = shooters.length ? shooters : [{ name: target, url: "", isVertical: false }];
-      // The vertical source carries the same settings as the landscape one —
-      // it is the same overlay — so a change the broadcaster makes here has to
-      // reach both, or the two scenes drift apart in what they draw.
-      var jobs = rows.map(function (r) {
-        var before = urlConfig(r.url);
-        return writeOne(r.name, r.isVertical ? verticalUrl() : overlayUrl(), !r.isVertical)
-          .then(function (ok) {
-            return { name: r.name, written: ok, testUntil: before ? Number(before.testUntil || 0) : 0, known: !!before };
-          });
-      });
-      // The bar draws, it does not photograph; it is written as before and
-      // does not decide whether the capture settings were delivered.
-      var bar = barTarget ? writeOne(barTarget, barUrl(), false) : Promise.resolve(true);
-      return Promise.all([Promise.all(jobs), bar]).then(function (done) {
-        var results = done[0];
-        var all = results.every(function (x) { return x.written; });
-        return {
-          refused: false,
-          sig: all && listed && !unread.length ? sig : "",
-          results: results,
-          unread: unread,
-          listed: listed
-        };
-      });
-    });
   }
 
   /** Whether a write reached at least one source that can take photographs. */
@@ -7175,7 +7310,7 @@
   /**
    * Record what OBS is now carrying.
    *
-   * The signature belongs to the write, so it is passed in — writeAll() hands
+   * The signature belongs to the write, so it is passed in — deliver() hands
    * back the one it built its URLs from. Falling back to the current settings
    * is for the callers that have not written anything asynchronously; taking
    * the current settings after an await is what marked unwritten changes clean.
@@ -7208,6 +7343,10 @@
     if (!target) return "none";
     var carried = targetBuild();
     if (carried && carried !== BUILD) return "stale";
+    // A source still carrying a secret as text is not written, whatever the
+    // signature says: the next write is what replaces it with an envelope
+    // (docs/sealed-secrets-plan.md §4.0 — found by the scan, never written by it).
+    if (plainLeft.length) return "dirty";
     if (ui.pushedSig !== currentSig()) return "dirty";
     return "clean";
   }
@@ -7234,7 +7373,7 @@
     if (!target) { log(t("log.needtarget"), "warn"); return; }
     pushing = true;
     renderDock();
-    writeAll()
+    deliver({ kind: "write" })
       .then(function (res) {
         // Refused at the dialog: OBS still holds what it held, so there is
         // nothing to reload and nothing to record. Recording it would mark the
@@ -7270,7 +7409,7 @@
    */
   function pushSafety() {
     if (!target || !identified) { renderDock(); return; }
-    writeAll()
+    deliver({ kind: "write" })
       .then(function (res) {
         if (res.refused) { renderDock(); return; }   // see pushNow()
         sayUndelivered(res);
@@ -7284,6 +7423,604 @@
       .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); });
   }
 
+  /* ================= deliver: the one writer of the overlay's URL =================
+
+     Every URL this page puts on an overlay or a bar is written here, and only
+     here (docs/sealed-secrets-plan.md §4.0). pushNow(), pushSafety(), the
+     test window, buildAll() and the resend after a lost key each hand
+     deliver() a job and wait for its answer; none of them builds a URL.
+     tools/contract-check.mjs holds the rest of the page to that.
+
+     ONE QUEUE, ONE JOB AT A TIME. A job is: read the overlay's public key from
+     OBS, decide the form (an envelope, the first write's bare password, or no
+     secret at all), write every source, read every one back, and wait for the
+     overlay's receipt. Before the envelope, two writes racing only wrote the
+     same settings twice; after it, a write that saw "no key" and built a bare
+     password could land after one that built an envelope, and the password
+     would stay (nothing takes it out any more). So a job that is queued reads
+     the key again only after the one ahead of it has finished. A job of the
+     same kind that has not started yet is folded into the one already waiting
+     — it reads the settings when it starts, so the last ones are what go.
+
+     Jobs:
+       { kind: "write" }                   the settings, to every overlay and
+                                           the bar (was writeAll)
+       { kind: "build", host, pick }       make or overwrite the overlay, the
+                                           bar and the vertical one (buildAll)
+       { kind: "retry", notKid }           the password again as text, after a
+                                           lost key — only when the
+                                           broadcaster chose it (§4.4)
+
+     Answers { refused, sig, results, unread, listed }, as writeAll did:
+       refused  the broadcaster said no at a dialog; nothing was written
+       sig      the signature to record as delivered — "" unless every source
+                was written AND read back AND the scan read every browser
+                source OBS has
+       results  [{ name, written, testUntil, known }] per overlay; `written`
+                means read back as written; testUntil is the window that source
+                was carrying before (its own URL)
+       unread   names whose settings the scan could not read
+       listed   whether the scan got OBS's list at all */
+
+  var deliverQueue = [];
+  var deliverRunning = false;
+  var DELIVER_POLL_MS = 500;
+  var DELIVER_WAIT_MS = 10000;
+  /* A first write's wait for the key that a newer job cut short: when it
+   * would have ended, and for which password. The next job goes on waiting
+   * for the rest of it before deciding its form, rather than seeing "no key"
+   * a moment too early and writing the password as text a second time. */
+  var deliverKeyWait = { until: 0, pw: "" };
+
+  function deliver(job) {
+    return new Promise(function (resolve, reject) {
+      var last = deliverQueue[deliverQueue.length - 1];
+      if (last && last.kind === job.kind && job.kind !== "build") {
+        last.waiters.push({ resolve: resolve, reject: reject });
+        return;
+      }
+      job.waiters = [{ resolve: resolve, reject: reject }];
+      deliverQueue.push(job);
+      deliverPump();
+    });
+  }
+
+  function deliverPump() {
+    if (deliverRunning || !deliverQueue.length) return;
+    var job = deliverQueue.shift();
+    deliverRunning = true;
+    var run;
+    try {
+      run = job.kind === "build" ? deliverBuild(job)
+        : job.kind === "retry" ? deliverRetry(job)
+        : deliverWrite(job);
+    } catch (e) { run = Promise.reject(e); }
+    run.then(function (res) {
+      job.waiters.forEach(function (w) { w.resolve(res); });
+    }, function (e) {
+      job.waiters.forEach(function (w) { w.reject(e); });
+    }).then(function () {
+      deliverRunning = false;
+      deliverPump();
+    });
+  }
+
+  /** A newer job is waiting: a wait in progress stops, without a verdict (§4.4). */
+  function deliverSuperseded() { return deliverQueue.length > 0; }
+
+  function deliverRefused() {
+    return { refused: true, sig: "", results: [], unread: [], listed: scanOk };
+  }
+
+  /* ---- the jobs ---- */
+
+  function deliverWrite(job) {
+    var shooters = shootingTargets();
+    if (!target && !shooters.length) return Promise.reject(new Error("no target"));
+    var losing = wouldBlank();
+    /* Cancel is the primary, and Escape lands on it (see ask()).
+     *
+     * The other way round this is a dialog that is dismissed into the damage:
+     * whoever is reading it has just been told that something they cannot see
+     * is about to go, and the safe answer has to be the one under their hands
+     * already. Writing anyway stays available — a broadcaster really is
+     * allowed to clear their own settings — it just cannot be the default. */
+    var asked = losing.length
+      ? ask(t("dlg.blankTitle"), t("dlg.blank", { n: losing.length }), [
+          { label: "dlg.cancel", value: "cancel", primary: true },
+          { label: "dlg.blankGo", value: "go" }
+        ])
+      : Promise.resolve("go");
+    return asked.then(function (answer) {
+      // Refused rather than rejected: nothing failed. Every caller reads the
+      // signature as "what reached OBS", and nothing did.
+      if (answer !== "go") {
+        log(t("log.blankstop"), "warn");
+        return deliverRefused();
+      }
+      var sig = currentSig();
+      var listed = scanOk;
+      var unread = targets.filter(function (r) { return r.unread; }).map(function (r) { return r.name; });
+      // Nothing matched yet (a scan that has not run): the one this page knows.
+      var rows = shooters.length ? shooters : [{ name: target, url: "", isVertical: false }];
+      return deliverForm(job).then(function (form) {
+        if (!form) return deliverRefused();
+        // The bar draws, it does not photograph; it is written with the rest
+        // and does not decide whether the capture settings were delivered.
+        return deliverPlace(rows, form, true).then(function (results) {
+          return deliverAfter(job, form, rows, deliverResult(sig, results, unread, listed));
+        });
+      });
+    });
+  }
+
+  function deliverBuild(job) {
+    var sig = currentSig();
+    var pick = job.pick;
+    var host = job.host;
+    return deliverForm(job).then(function (form) {
+      if (!form) return deliverRefused();
+      return makeOrWrite(host, pick.name, pick.overwrite, overlayUrl(form), 1920, 1080, true)
+        .then(function () {
+          // The bar gets a source of its own, so OBS can place it, size it,
+          // and put it in one scene and not another — none of which it could
+          // do while it was drawn inside the overlay's canvas (§4.11).
+          //
+          // The suffix is English on every channel. It is a name in OBS, and
+          // a name that changed when the broadcaster changed this page's
+          // language would leave the old source behind, unwritten, drawing.
+          //
+          // 480x56: one row, smaller than the 560x64 it replaced. The bar is a
+          // small part of the effect, not its headline; the type gets its
+          // size from filling the row rather than from a bigger box. An
+          // existing 560x64 source still fits — the strip sizes itself off
+          // whatever box it is given (overlay shell.html, the #bar block).
+          return resolveBarName(pick.name + " bar")
+            .then(function (bar) {
+              // The overlay is already written by now, so "no" here is only
+              // "no bar" — said, because a source that quietly did not
+              // appear looks like one that failed.
+              if (!bar) { log(t("log.barskipped"), "warn"); return; }
+              return makeOrWrite(host, bar.name, bar.overwrite, barUrl(), 480, 56, false)
+                .then(function () { log(t("log.barcreated", { n: bar.name }), "ok"); });
+            })
+            .then(function () { return makeVertical(host, pick.name, form); })
+            .catch(function (e) {
+              // The overlay is the half that matters. A bar that failed to
+              // appear is something the broadcaster can add later.
+              log(t("log.barcreatefail", { m: e.message }), "warn");
+            });
+        })
+        .then(function () {
+          target = pick.name;
+          return loadScenes().then(scanTargets);
+        })
+        .then(function () {
+          // Every overlay OBS has, read back — the ones just made and any that
+          // were already there, which get this envelope too.
+          var rows = shootingTargets();
+          if (!rows.length) rows = [{ name: pick.name, url: "", isVertical: false }];
+          var unread = targets.filter(function (r) { return r.unread; }).map(function (r) { return r.name; });
+          return deliverVerify(rows, form, {}).then(function (results) {
+            return deliverAfter(job, form, rows, deliverResult(sig, results, unread, scanOk));
+          });
+        });
+    });
+  }
+
+  /* The broadcaster chose to send the password as text once more (§4.4): the
+   * overlay lost its key, so no envelope can reach it until it has
+   * authenticated and put a new key in OBS. Only the password goes; the rest
+   * follows sealed to the new key, in the same job. */
+  function deliverRetry(job) {
+    var shooters = shootingTargets();
+    if (!target && !shooters.length) return Promise.reject(new Error("no target"));
+    job.plain = true;
+    var sig = currentSig();
+    var unread = targets.filter(function (r) { return r.unread; }).map(function (r) { return r.name; });
+    var rows = shooters.length ? shooters : [{ name: target, url: "", isVertical: false }];
+    return deliverForm(job).then(function (form) {
+      return deliverPlace(rows, form, false).then(function (results) {
+        return deliverAfter(job, form, rows, deliverResult(sig, results, unread, scanOk));
+      });
+    });
+  }
+
+  function deliverResult(sig, results, unread, listed) {
+    var all = results.length > 0 && results.every(function (x) { return x.written; });
+    return { refused: false, sig: all && listed && !unread.length ? sig : "", results: results, unread: unread, listed: listed };
+  }
+
+  /* ---- the form: an envelope, the first write's password, or nothing ---- */
+
+  function sealRead(slot) {
+    return request("GetPersistentData", { realm: SEAL_REALM, slotName: slot })
+      .then(function (d) { return d.slotValue === undefined ? null : d.slotValue; });
+  }
+
+  /**
+   * Decide what this job's URLs carry (§4.2). Resolves to a form, or null when
+   * the broadcaster declined at the "the overlay's key changed" question.
+   *
+   *   the key is there          sealed to it — after asking, if its kid is not
+   *                             the one this page last heard a receipt from
+   *   no key (null, {}, junk)   the password alone, as text (the first write)
+   *   the read failed           no secret at all: never fall back to text on
+   *                             a failure that says nothing about the key
+   */
+  function deliverForm(job) {
+    return sealRead(SEAL_SLOT_KEY).then(function (v) {
+      return sealKeyFrom(v).then(function (key) { return { read: true, key: key }; });
+    }, function () { return { read: false }; }).then(function (got) {
+      if (!got.read) {
+        log(t("log.seal.readfail"), "warn");
+        return { mode: "none" };
+      }
+      if (job.plain) return deliverFirst();
+      if (!got.key && deliverKeyWait.until > Date.now() && deliverKeyWait.pw === (cfg.pw || "")) {
+        var until = deliverKeyWait.until;
+        deliverKeyWait = { until: 0, pw: "" };
+        return deliverAwait(SEAL_SLOT_KEY, sealKeyFrom, until).then(function (w) {
+          return deliverFormFor(job, w.value || null);
+        });
+      }
+      return deliverFormFor(job, got.key);
+    });
+  }
+
+  function deliverFormFor(job, key) {
+    return Promise.resolve().then(function () {
+      var got = { key: key };
+      var known = ui.sealKid || "";
+      var changed = !!known && !job.trustKid && (!got.key || got.key.kid !== known);
+      /* A key this page has not heard back from before (§1.2). Not a defence
+       * against whoever can talk to obs-websocket — they own OBS — but the one
+       * cheap sign that the key was replaced, and on an OBS without a password
+       * the only one. A first kid is not asked about: it cannot be told apart
+       * from a first write. */
+      var asked = changed
+        ? ask(t("dlg.sealKidTitle"), t("dlg.sealKid"), [
+            { label: "dlg.cancel", value: "cancel", primary: true },
+            { label: "dlg.sealKidGo", value: "go" }
+          ])
+        : Promise.resolve("go");
+      return asked.then(function (answer) {
+        if (answer !== "go") { log(t("log.seal.kidstop"), "warn"); return null; }
+        if (changed) job.trustKid = true;         // asked once for this job
+        return got.key ? deliverSealTo(got.key, job) : deliverFirst();
+      });
+    });
+  }
+
+  function deliverFirst() {
+    var pw = cfg.pw || "";
+    if (pw) log(t("log.seal.first"), "warn");
+    return { mode: "first", pw: pw };
+  }
+
+  /* The epoch only goes up: past the last one the overlay acknowledged, even
+   * when this machine's clock is behind the one that wrote it (§4.2). */
+  function deliverSealTo(key, job) {
+    var secrets = {};
+    SECRETS.forEach(function (k) { if (cfg[k]) secrets[k] = cfg[k]; });
+    if (!SECRETS.some(function (k) { return !!secrets[k]; })) return Promise.resolve({ mode: "none", key: key });
+    return sealRead(SEAL_SLOT_ACK).then(null, function () { return null; }).then(function (ack) {
+      var floor = ack && typeof ack.epoch === "number" && isFinite(ack.epoch) ? ack.epoch + 1 : 0;
+      var epoch = Math.max(Date.now(), floor);
+      return sealWith(key, secrets, epoch).then(function (box) {
+        return { mode: "seal", seal: box, key: key, kid: key.kid };
+      });
+    });
+  }
+
+  /* ---- writing, and reading back ---- */
+
+  /**
+   * Point one source at an address, and settle its audio routing while there.
+   *
+   * `reroute` is carried here and not left alone for the reason makeOrWrite()
+   * gives — but this is the path that made it invisible. Writing it false on
+   * every push means a broadcaster who ticks "Control audio via OBS" by hand
+   * has it silently unticked the next time they change a setting: the box goes
+   * back, the sound leaves the broadcast, and nothing in the log mentions
+   * audio. Fixing only the creation path would have left that intact for
+   * everybody who already has a source.
+   */
+  function setUrl(name, url, reroute) {
+    return request("SetInputSettings", {
+      inputName: name,
+      inputSettings: { is_local_file: false, url: url, reroute_audio: !!reroute },
+      overlay: true
+    });
+  }
+
+  /**
+   * One source, written — answered, never thrown, so one failure cannot hide
+   * the others. Tried a second time at once: a write to the obs-websocket on
+   * this machine that fails is rare and passing (a source vanishing that
+   * moment), and a second failure is reported by name.
+   */
+  function writeOne(name, url, reroute) {
+    return setUrl(name, url, reroute)
+      .catch(function () { return setUrl(name, url, reroute); })
+      .then(function () { return true; }, function () { return false; });
+  }
+
+  function deliverUrlFor(row, form) {
+    return row.isVertical ? verticalUrl(form) : overlayUrl(form);
+  }
+
+  /**
+   * Write every overlay (and the bar, when `withBar`), then read each back.
+   *
+   * Every overlay that can take a photograph gets the settings — all the
+   * landscape ones and all the vertical ones — because the scene gate and the
+   * test window are safety decisions, and an overlay left out keeps
+   * photographing under the old ones while the EBS takes presses from
+   * whichever is open (docs/security-plan.md §2.3).
+   */
+  function deliverPlace(rows, form, withBar) {
+    var wrote = {};
+    var jobs = rows.map(function (r) {
+      return writeOne(r.name, deliverUrlFor(r, form), !r.isVertical).then(function (ok) { wrote[r.name] = ok; });
+    });
+    var bar = withBar && barTarget ? writeOne(barTarget, barUrl(), false) : Promise.resolve(true);
+    return Promise.all([Promise.all(jobs), bar]).then(function () {
+      return deliverVerify(rows, form, wrote);
+    });
+  }
+
+  /** Whether a URL read back from OBS is this job's, and carries no secret it should not. */
+  function deliverLanded(url, form, want) {
+    var c = urlConfig(url);
+    if (!c) return false;
+    var stray = SECRETS.some(function (k) {
+      if (!(typeof c[k] === "string" && c[k])) return false;
+      return !(form.mode === "first" && k === "pw" && c[k] === form.pw);
+    });
+    if (stray) return false;
+    if (form.mode === "seal") return !!(c.seal && c.seal.nonce === form.seal.nonce);
+    return url === want;
+  }
+
+  /**
+   * Read every overlay back and hold it to this job's form (§4.2): the
+   * envelope's nonce and no plaintext. One that is wrong — a write that did
+   * not land, or somebody else's write in between — is written once more and
+   * read again. `wrote` says which were already written by this job and how
+   * that went: one whose write already failed twice is not written a third
+   * time (it is named instead), and one this job never wrote is written now.
+   */
+  function deliverVerify(rows, form, wrote) {
+    return Promise.all(rows.map(function (r) {
+      var want = deliverUrlFor(r, form);
+      var before = urlConfig(r.url);
+      var answer = function (ok) {
+        return { name: r.name, written: ok, testUntil: before ? Number(before.testUntil || 0) : 0, known: !!before };
+      };
+      if (wrote[r.name] === false) return answer(false);
+      var readBack = function () {
+        return request("GetInputSettings", { inputName: r.name })
+          .then(function (d) { return ((d && d.inputSettings) || {}).url || ""; }, function () { return null; });
+      };
+      return readBack().then(function (url) {
+        if (url !== null && deliverLanded(url, form, want)) return url;
+        return writeOne(r.name, want, !r.isVertical).then(function (ok) {
+          return ok ? readBack() : null;
+        }).then(function (again) {
+          return again !== null && deliverLanded(again, form, want) ? again : null;
+        });
+      }).then(function (landed) {
+        // What OBS holds now, so the dock's plaintext check sees it.
+        targets.forEach(function (row) { if (row.name === r.name && landed !== null) row.url = landed; });
+        return answer(landed !== null);
+      });
+    })).then(function (results) {
+      notePlainLeft(form.mode === "first");
+      return results;
+    });
+  }
+
+  /* ---- after the write: the key to appear, or the receipt ---- */
+
+  /** Poll one slot every 500 ms for up to 10 s, until `pick` finds something. */
+  function deliverAwait(slot, pick, until) {
+    until = until || Date.now() + DELIVER_WAIT_MS;
+    return new Promise(function (resolve) {
+      (function tick() {
+        if (deliverSuperseded()) { resolve({ superseded: true }); return; }
+        sealRead(slot).then(null, function () { return null; })
+          .then(function (v) { return pick(v); })
+          .then(function (hit) {
+            if (hit) { resolve({ value: hit }); return; }
+            if (Date.now() >= until || !identified) { resolve({ timeout: true }); return; }
+            setTimeout(tick, DELIVER_POLL_MS);
+          });
+      })();
+    });
+  }
+
+  function deliverAfter(job, form, rows, res) {
+    // Nothing secret on this page at all (no password, no pairing, no
+    // webhook): there is nothing a key would be needed for, and nothing to wait on.
+    if (form.mode === "first" && !SECRETS.some(function (k) { return !!cfg[k]; })) return Promise.resolve(res);
+    if (form.mode === "first") {
+      /* The key is the overlay's to put in OBS, and it can only do that once it
+       * has authenticated — with the password just written. When it appears,
+       * everything is sealed to it and written again, to EVERY overlay,
+       * whether or not it is running: nothing else will take the text out. */
+      var until = Date.now() + DELIVER_WAIT_MS;
+      return deliverAwait(SEAL_SLOT_KEY, function (v) {
+        return sealKeyFrom(v).then(function (k) { return k && k.kid !== job.notKid ? k : null; });
+      }, until).then(function (w) {
+        if (w.superseded) {
+          if (!job.notKid) deliverKeyWait = { until: until, pw: form.pw || "" };
+          return res;
+        }
+        if (!w.value) {
+          log(t(form.pw ? "log.seal.nokey.pw" : "log.seal.nokey"), "warn");
+          res.sig = "";
+          return res;
+        }
+        job.trustKid = true;
+        return deliverSealTo(w.value, job).then(function (next) {
+          if (next.mode !== "seal") return res;
+          return deliverPlace(rows, next, false).then(function (results) {
+            var again = deliverResult(res.sig, results, res.unread, res.listed);
+            if (!res.sig) again.sig = "";
+            return deliverAfter(job, next, rows, again);
+          });
+        });
+      });
+    }
+    if (form.mode !== "seal" || !res.results.some(function (x) { return x.written; })) return Promise.resolve(res);
+    return deliverAwait(SEAL_SLOT_ACK, function (v) {
+      return v && typeof v === "object" && v.kid === form.kid && v.nonce === form.seal.nonce ? v : null;
+    }).then(function (w) {
+      if (w.superseded) return res;
+      var ack = w.value;
+      if (ack && ack.ok === true) {
+        ui.sealKid = form.kid;
+        saveUi();
+        return res;
+      }
+      if (ack && ack.reason === "stale") {
+        /* Another envelope of the same epoch was taken first (two setup pages
+         * at once), or this clock is behind. Sealed again, once, past the
+         * epoch the receipt names — never down to text (§4.4). */
+        if (job.resealed) { log(t("log.seal.racing"), "bad"); return res; }
+        job.resealed = true;
+        job.trustKid = true;
+        return deliverSealTo(form.key, job).then(function (next) {
+          if (next.mode !== "seal") return res;
+          return deliverPlace(rows, next, false).then(function (results) {
+            var again = deliverResult(res.sig, results, res.unread, res.listed);
+            if (!res.sig) again.sig = "";
+            return deliverAfter(job, next, rows, again);
+          });
+        });
+      }
+      // ok:false, or nothing in ten seconds.
+      return deliverAskRetry(form.kid).then(function () { return res; });
+    });
+  }
+
+  /* The overlay could not open it, or never said (§4.4). The cause is not
+   * known from here — the key may have gone with the CEF profile, or the
+   * receipt may not have been written — so the question says both, and
+   * sending the password in the clear is never the default. */
+  function deliverAskRetry(kid) {
+    return ask(t("dlg.sealRetryTitle"), t("dlg.sealRetry"), [
+      { label: "dlg.cancel", value: "cancel", primary: true },
+      { label: "dlg.sealRetryGo", value: "go" }
+    ]).then(function (answer) {
+      if (answer !== "go") return;
+      // Queued behind this job, which the callers are still waiting on.
+      deliver({ kind: "retry", notKid: kid }).then(function (res) {
+        sayUndelivered(res);
+        if (res.sig) markPushed(res.sig);
+        else renderDock();
+      }, function (e) { log(t("log.pushfail", { m: e.message }), "bad"); });
+    });
+  }
+
+  /* ---- making the sources ---- */
+
+  /* The source for a vertical scene.
+   *
+   * WHY THIS PAGE MAKES IT. A broadcaster who streams dual format builds a
+   * second scene at 1080x1920 (docs/vertical-plan.md §2), and the overlay
+   * belongs in it — it is the same page, and it lays itself out for whatever
+   * frame it is given. What it cannot do is be given the wrong one: OBS's
+   * browser source takes its size from its own properties, and dragging the
+   * source bigger on the canvas is a transform the page never sees. Stretched
+   * that way it draws the landscape layout squeezed into a tall box. So the
+   * one number that matters is one this page can simply set.
+   *
+   * WHY IT LANDS IN THE NORMAL SCENE, DISABLED. The vertical canvas belongs to
+   * a plugin — Aitum Vertical — and obs-websocket cannot reach it: of the 21
+   * requests the plugin registers, every one switches scenes, reads status or
+   * starts a stream, and none creates a source (confirmed against
+   * Aitum/obs-vertical-canvas, 2026-09-14). A source, though, is a source:
+   * made here in a normal scene, it is in OBS's input list, and the plugin's
+   * own "+" adds an existing one to a vertical scene. That is the published
+   * route. It arrives switched off so it does not draw a 1080x1920 rectangle
+   * across the landscape scene while it waits to be picked up.
+   *
+   * SILENT. reroute false, like the bar: the landscape source already carries
+   * the shutter into OBS, and a second one routed the same way would put it in
+   * twice. Whether the two make any sound together once BOTH canvases are live
+   * is not something this repository can measure (§5.2) — but nothing is
+   * routed into the mix from here, so the broadcast cannot double.
+   *
+   * A step of the build job, with the build's form: the two sources carry the
+   * same envelope. */
+  function makeVertical(scene, baseName, form) {
+    // English on every channel, for the reason the bar's suffix is.
+    var want = baseName + " vertical";
+    var existing = targets.filter(function (r) { return r.name === want; })[0];
+    var taken = inputNames.indexOf(want) !== -1;
+    if (taken && !(existing && existing.match && existing.isVertical)) {
+      // Somebody else's source wears the name. Say so and leave it alone: the
+      // landscape overlay is already written, and this one can be added later.
+      log(t("log.verticalskipped", { n: want }), "warn");
+      return Promise.resolve();
+    }
+    return makeOrWrite(scene, want, taken, verticalUrl(form), 1080, 1920, false, false)
+      .then(function () { log(t("log.verticalcreated", { n: want }), "ok"); })
+      .catch(function (e) { log(t("log.verticalfail", { m: e.message }), "warn"); });
+  }
+
+  /**
+   * The browser source is made here rather than by hand.
+   *
+   * Asking a broadcaster to add an empty browser source, uncheck "shutdown when
+   * not visible", and set it to 1920x1080 before this page can do anything is
+   * three chances to get it wrong, and the page can simply do all three.
+   * is_local_file has to be false: OBS ignores the url field while it is set,
+   * and the local-file field has nowhere to put the settings.
+   *
+   * `reroute` is "Control audio via OBS", and the overlay needs it on. Left off
+   * — which is the OBS default, and which this page used to write explicitly on
+   * every push — the page's sound goes to the machine's playback device instead
+   * of into OBS. The broadcaster hears the shutter and **the audience does
+   * not**, unless a Desktop Audio capture happens to be in the scene, and then
+   * it arrives welded to every other sound the machine makes. So the one thing
+   * this extension can put in the broadcast — §2.4 forbids the viewer's frame
+   * from making any (CLAUDE.md) — reached nobody it was for.
+   *
+   * On, the audio becomes a track on this input: one path to the stream on
+   * every machine, with its own fader, and nothing for a Desktop Audio source
+   * to pick up twice.
+   *
+   * The bar passes false. It is the same page with `#bar`, and that page never
+   * calls ensureAudio() — an audio track that is silent by construction is
+   * clutter in the mixer.
+   */
+  /* `enabled` is the scene item, not the source: false makes it and leaves it
+   * switched off in the scene it was made in. Only the vertical source passes
+   * it — it is made in a landscape scene because that is the only kind
+   * obs-websocket can reach, and it belongs to a scene the plugin owns. Note
+   * the source itself still runs (shutdown is false), which is what the
+   * broadcaster wants: by the time they add it to their vertical scene it has
+   * already connected and is ready. */
+  function makeOrWrite(scene, name, overwrite, url, w, h, reroute, enabled) {
+    var settings = {
+      is_local_file: false,
+      url: url,
+      width: w,
+      height: h,
+      shutdown: false,           // it has to keep running while hidden
+      reroute_audio: !!reroute
+    };
+    if (overwrite) {
+      return request("SetInputSettings", { inputName: name, inputSettings: settings, overlay: true });
+    }
+    return request("CreateInput", {
+      sceneName: scene, inputName: name, inputKind: "browser_source",
+      inputSettings: settings, sceneItemEnabled: enabled !== false
+    }).then(function () { log(t("log.created", { n: name, s: scene }), "ok"); });
+  }
   /* ================= broadcaster settings =================
 
      Streams differ in what they can afford to give an overlay. A preset moves
@@ -8055,7 +8792,7 @@
     // overlay ten minutes later is a twenty-minute window wearing the wrong
     // label. Nothing is stored until there is somewhere to write it.
     //
-    // Order matters, and getting it wrong is silent: writeAll() reads the
+    // Order matters, and getting it wrong is silent: deliver() reads the
     // config as it builds the URL, so calling it before the deadline is set
     // sends the previous one — the page counts down, OBS is never told, and
     // both look like they are working.
@@ -8082,7 +8819,7 @@
     // for the whole write it was supposed to be dead for.
     testBusy = true;
     drawTestLeft();
-    writeAll().then(function (res) {
+    deliver({ kind: "write" }).then(function (res) {
       // Refused at the dialog is not a failure, so it arrives here and not in
       // the catch — but nothing reached OBS all the same, and it has already
       // said so. The same rule as the catch below then: the window that was
@@ -8145,7 +8882,7 @@
     // a failed write must not leave the page showing a window it has stopped
     // counting. The overlay hears about it on the next write in that case.
     if (!target || !identified) { log(t("log.testend"), "ok"); testBusy = false; drawTestLeft(); return; }
-    writeAll()
+    deliver({ kind: "write" })
       .then(function (res) {
         // Refused at the dialog: the window is still over on this page (see
         // above), but OBS was not told, and the dock must keep saying so. The

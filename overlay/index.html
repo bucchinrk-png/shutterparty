@@ -2417,7 +2417,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-7b1704e25eec";
+  var BUILD = "sp-dd9cc41c1645";
   /* @end build */
 
   /**
@@ -3145,7 +3145,6 @@
       "phase.standby.desc": "SHUTTER PARTY の前に、待っている写真を先に流しています",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "SHUTTER PARTY の受付は終了。受け付けた写真を出し切っています",
-      "someone": "匿名さん",
       "counter": "{n}人が撮影中",
       "ebs.off": "拡張未接続", "ebs.connecting": "接続中…", "ebs.live": "拡張と接続済み", "ebs.error": "拡張に接続できません",
       "st.ebs.live": "拡張と接続済み", "st.ebs.error": "拡張に接続できません",
@@ -3159,6 +3158,12 @@
       "log.ebs.notoken": "連携の鍵がまだ届いていません。オーバーレイが受け取るまで待ちます",
       "log.secret.locked": "保存してあるパスワードと連携の鍵を開けませんでした。消えてはいませんが、このプロファイルでは読めません。設定ページから入れ直してください",
       "log.secret.nostore": "この環境ではパスワードと連携の鍵を暗号化して保存できません。書き留めずに、URL に載ったまま使います",
+      "log.seal.cannot": "設定ページから届いた秘密を開けませんでした。設定ページで書き込み直してください",
+      "log.seal.stale": "古い設定の秘密は使いませんでした（もっと新しい設定を受け取っています）",
+      "log.seal.plainstale": "古い形の設定の秘密は使いませんでした（封をした設定をもう受け取っています）",
+      "log.seal.oldform": "古い形の連携トークン / Discord の webhook は使いませんでした。設定ページで書き込んでください",
+      "log.seal.nolock": "この OBS では秘密の封をできません（鍵を OBS に置きません）",
+      "log.seal.persistfail": "OBS に受け取りの印を置けません（obs-websocket が永続データに対応していない・OBS の設定の書き込みに失敗）",
       "log.ebs.failed": "EBS に接続できません: {m}",
       "st.idle": "未接続", "st.connecting": "接続中…", "st.ok": "接続済み", "st.lost": "切断。再接続中です",
       "st.failed": "つながりません",
@@ -3220,7 +3225,6 @@
       "phase.standby.desc": "Clearing the waiting photos before the SHUTTER PARTY",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "The SHUTTER PARTY is closed; accepted photos are still going out",
-      "someone": "Anonymous",
       "counter": "{n} shooting now",
       "ebs.off": "extension not linked", "ebs.connecting": "connecting…", "ebs.live": "extension linked", "ebs.error": "cannot reach the extension",
       "st.ebs.live": "extension linked", "st.ebs.error": "cannot reach the extension",
@@ -3234,6 +3238,12 @@
       "log.ebs.notoken": "the pairing key has not arrived yet. Waiting for the overlay to receive it",
       "log.secret.locked": "the saved password and pairing key could not be opened. They are not lost, but this profile can no longer read them — set them again from the setup page",
       "log.secret.nostore": "this browser cannot store the password and pairing key encrypted, so they are not written down — they stay in the URL instead",
+      "log.seal.cannot": "could not open the secrets the setup page sent. Write the settings again from the setup page",
+      "log.seal.stale": "did not use the secrets from an older copy of the settings (newer ones have already arrived)",
+      "log.seal.plainstale": "did not use a secret written in the old, unsealed form (sealed settings have already arrived)",
+      "log.seal.oldform": "did not use a pairing token or Discord webhook written in the old form. Write the settings from the setup page",
+      "log.seal.nolock": "secrets cannot be sealed in this OBS, so no key is left in OBS",
+      "log.seal.persistfail": "could not leave the receipt in OBS (obs-websocket does not support persistent data, or OBS failed to save it)",
       "log.ebs.failed": "cannot reach the EBS: {m}",
       "st.idle": "not connected", "st.connecting": "connecting…", "st.ok": "connected", "st.lost": "lost — reconnecting",
       "st.failed": "cannot connect",
@@ -3300,7 +3310,6 @@
       "phase.standby.desc": "SHUTTER PARTY 开始前，先把等待中的照片放出来",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "SHUTTER PARTY 已停止接单，正在放完已接收的照片",
-      "someone": "匿名",
       "ebs.off": "未确认",
       "ebs.connecting": "确认中…",
       "ebs.live": "扩展已连接",
@@ -3317,6 +3326,12 @@
       "log.ebs.notoken": "配对密钥尚未送达。正在等待叠加层收到它",
       "log.secret.locked": "无法打开已保存的密码和配对密钥。它们没有丢失，但此配置文件已无法读取，请在设置页面重新输入",
       "log.secret.nostore": "此环境无法加密保存密码和配对密钥，因此不写入本地，改为保留在 URL 中",
+      "log.seal.cannot": "无法打开设置页面发送的机密信息。请在设置页面重新写入",
+      "log.seal.stale": "未使用旧设置中的机密信息（已收到更新的设置）",
+      "log.seal.plainstale": "未使用旧格式的机密信息（已收到加封的设置）",
+      "log.seal.oldform": "未使用旧格式的配对令牌 / Discord webhook。请在设置页面写入",
+      "log.seal.nolock": "此 OBS 无法对机密信息加封，因此不在 OBS 中放置密钥",
+      "log.seal.persistfail": "无法在 OBS 中留下接收记录（obs-websocket 不支持持久数据，或 OBS 保存失败）",
       "log.ebs.failed": "无法连接 EBS：{m}",
       "st.idle": "未连接",
       "st.connecting": "连接中…",
@@ -3381,7 +3396,6 @@
       "phase.standby.desc": "Sacando las fotos en espera antes de la SHUTTER PARTY",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "La SHUTTER PARTY ya cerró; siguen saliendo las fotos aceptadas",
-      "someone": "Anónimo",
       "ebs.off": "sin comprobar",
       "ebs.connecting": "comprobando…",
       "ebs.live": "extensión conectada",
@@ -3398,6 +3412,12 @@
       "log.ebs.notoken": "la clave de emparejamiento aún no ha llegado. Esperando a que la superposición la reciba",
       "log.secret.locked": "no se pudieron abrir la contraseña y la clave de emparejamiento guardadas. No se han perdido, pero este perfil ya no puede leerlas: vuelve a introducirlas desde la página de configuración",
       "log.secret.nostore": "este navegador no puede guardar cifrados la contraseña y la clave de emparejamiento, así que no se escriben: permanecen en la URL",
+      "log.seal.cannot": "no se pudieron abrir los secretos que envió la página de configuración. Vuelve a escribir los ajustes desde la página de configuración",
+      "log.seal.stale": "no se usaron los secretos de una copia antigua de los ajustes (ya llegaron otros más recientes)",
+      "log.seal.plainstale": "no se usó un secreto escrito en el formato antiguo, sin sellar (ya llegaron ajustes sellados)",
+      "log.seal.oldform": "no se usaron el token de emparejamiento ni el webhook de Discord escritos en el formato antiguo. Escribe los ajustes desde la página de configuración",
+      "log.seal.nolock": "en este OBS no se pueden sellar los secretos, así que no se deja ninguna clave en OBS",
+      "log.seal.persistfail": "no se pudo dejar el acuse de recibo en OBS (obs-websocket no admite datos persistentes, o OBS no pudo guardarlo)",
       "log.ebs.failed": "no se puede conectar con el EBS: {m}",
       "st.idle": "sin conexión",
       "st.connecting": "conectando…",
@@ -3462,7 +3482,6 @@
       "phase.standby.desc": "Soltando as fotos na espera antes da SHUTTER PARTY",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "A SHUTTER PARTY fechou; as fotos aceitas ainda estão saindo",
-      "someone": "Anônimo",
       "ebs.off": "não verificado",
       "ebs.connecting": "verificando…",
       "ebs.live": "extensão conectada",
@@ -3479,6 +3498,12 @@
       "log.ebs.notoken": "a chave de pareamento ainda não chegou. Aguardando a sobreposição recebê-la",
       "log.secret.locked": "não foi possível abrir a senha e a chave de pareamento salvas. Elas não se perderam, mas este perfil não consegue mais lê-las — informe-as novamente na página de configuração",
       "log.secret.nostore": "este navegador não consegue guardar a senha e a chave de pareamento cifradas, então elas não são gravadas — permanecem na URL",
+      "log.seal.cannot": "não foi possível abrir os segredos enviados pela página de configuração. Grave as configurações novamente pela página de configuração",
+      "log.seal.stale": "os segredos de uma cópia antiga das configurações não foram usados (já chegaram outros mais recentes)",
+      "log.seal.plainstale": "um segredo gravado no formato antigo, sem lacre, não foi usado (configurações lacradas já chegaram)",
+      "log.seal.oldform": "o token de pareamento e o webhook do Discord gravados no formato antigo não foram usados. Grave as configurações pela página de configuração",
+      "log.seal.nolock": "neste OBS não é possível lacrar os segredos, então nenhuma chave é deixada no OBS",
+      "log.seal.persistfail": "não foi possível deixar o recibo no OBS (o obs-websocket não suporta dados persistentes, ou o OBS não conseguiu salvá-lo)",
       "log.ebs.failed": "não dá para alcançar o EBS: {m}",
       "st.idle": "sem conexão",
       "st.connecting": "conectando…",
@@ -3543,7 +3568,6 @@
       "phase.standby.desc": "Wartende Fotos laufen noch vor der SHUTTER PARTY durch",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "Die SHUTTER PARTY ist geschlossen; angenommene Fotos laufen noch",
-      "someone": "Anonym",
       "ebs.off": "nicht geprüft",
       "ebs.connecting": "prüfe…",
       "ebs.live": "Erweiterung verbunden",
@@ -3560,6 +3584,12 @@
       "log.ebs.notoken": "der Kopplungsschlüssel ist noch nicht da. Warte darauf, dass das Overlay ihn erhält",
       "log.secret.locked": "das gespeicherte Passwort und der Kopplungsschlüssel ließen sich nicht öffnen. Sie sind nicht verloren, aber dieses Profil kann sie nicht mehr lesen — gib sie auf der Einrichtungsseite erneut ein",
       "log.secret.nostore": "dieser Browser kann Passwort und Kopplungsschlüssel nicht verschlüsselt speichern, also werden sie nicht abgelegt — sie bleiben in der URL",
+      "log.seal.cannot": "die von der Einrichtungsseite gesendeten Geheimnisse ließen sich nicht öffnen. Schreib die Einstellungen auf der Einrichtungsseite erneut",
+      "log.seal.stale": "die Geheimnisse aus einer älteren Kopie der Einstellungen wurden nicht verwendet (neuere sind schon angekommen)",
+      "log.seal.plainstale": "ein Geheimnis in der alten, unversiegelten Form wurde nicht verwendet (versiegelte Einstellungen sind schon angekommen)",
+      "log.seal.oldform": "Kopplungstoken und Discord-Webhook in der alten Form wurden nicht verwendet. Schreib die Einstellungen auf der Einrichtungsseite",
+      "log.seal.nolock": "in diesem OBS lassen sich Geheimnisse nicht versiegeln, daher wird kein Schlüssel in OBS abgelegt",
+      "log.seal.persistfail": "die Empfangsbestätigung ließ sich nicht in OBS ablegen (obs-websocket unterstützt keine persistenten Daten, oder OBS konnte sie nicht speichern)",
       "log.ebs.failed": "EBS ist nicht erreichbar: {m}",
       "st.idle": "nicht verbunden",
       "st.connecting": "verbinde…",
@@ -3624,7 +3654,6 @@
       "phase.standby.desc": "Les photos en attente sortent avant la SHUTTER PARTY",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "La SHUTTER PARTY est fermée ; les photos acceptées continuent de sortir",
-      "someone": "Anonyme",
       "ebs.off": "non vérifié",
       "ebs.connecting": "vérification…",
       "ebs.live": "extension connectée",
@@ -3641,6 +3670,12 @@
       "log.ebs.notoken": "la clé d’appairage n’est pas encore arrivée. En attente de sa réception par l’overlay",
       "log.secret.locked": "impossible d’ouvrir le mot de passe et la clé d’appairage enregistrés. Ils ne sont pas perdus, mais ce profil ne peut plus les lire — saisis-les à nouveau depuis la page de configuration",
       "log.secret.nostore": "ce navigateur ne peut pas stocker le mot de passe et la clé d’appairage chiffrés ; ils ne sont donc pas enregistrés et restent dans l’URL",
+      "log.seal.cannot": "impossible d’ouvrir les secrets envoyés par la page de configuration. Réécris les réglages depuis la page de configuration",
+      "log.seal.stale": "les secrets d’une ancienne copie des réglages n’ont pas été utilisés (des réglages plus récents sont déjà arrivés)",
+      "log.seal.plainstale": "un secret écrit dans l’ancienne forme, non scellée, n’a pas été utilisé (des réglages scellés sont déjà arrivés)",
+      "log.seal.oldform": "le jeton d’appairage et le webhook Discord écrits dans l’ancienne forme n’ont pas été utilisés. Écris les réglages depuis la page de configuration",
+      "log.seal.nolock": "cet OBS ne permet pas de sceller les secrets ; aucune clé n’est donc laissée dans OBS",
+      "log.seal.persistfail": "impossible de laisser l’accusé de réception dans OBS (obs-websocket ne prend pas en charge les données persistantes, ou OBS n’a pas pu l’enregistrer)",
       "log.ebs.failed": "EBS inaccessible : {m}",
       "st.idle": "non connecté",
       "st.connecting": "connexion…",
@@ -3705,7 +3740,6 @@
       "phase.standby.desc": "Перед SHUTTER PARTY выпускаем фотографии из очереди",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "Приём в SHUTTER PARTY закрыт; принятые фотографии ещё выходят",
-      "someone": "Аноним",
       "ebs.off": "не проверено",
       "ebs.connecting": "проверяю…",
       "ebs.live": "расширение подключено",
@@ -3722,6 +3756,12 @@
       "log.ebs.notoken": "ключ связи ещё не получен. Ожидание, пока его получит оверлей",
       "log.secret.locked": "не удалось открыть сохранённые пароль и ключ связи. Они не потеряны, но этот профиль больше не может их прочитать — введите их заново на странице настройки",
       "log.secret.nostore": "этот браузер не может хранить пароль и ключ связи в зашифрованном виде, поэтому они не записываются и остаются в URL",
+      "log.seal.cannot": "не удалось открыть секреты, присланные страницей настройки. Запишите настройки заново со страницы настройки",
+      "log.seal.stale": "секреты из старой копии настроек не использованы (уже пришли более новые)",
+      "log.seal.plainstale": "секрет в старом, незапечатанном виде не использован (запечатанные настройки уже пришли)",
+      "log.seal.oldform": "ключ связи и вебхук Discord в старом виде не использованы. Запишите настройки со страницы настройки",
+      "log.seal.nolock": "в этом OBS нельзя запечатать секреты, поэтому ключ в OBS не оставляется",
+      "log.seal.persistfail": "не удалось оставить в OBS отметку о получении (obs-websocket не поддерживает постоянные данные, или OBS не смог её сохранить)",
       "log.ebs.failed": "не удалось подключиться к EBS: {m}",
       "st.idle": "нет подключения",
       "st.connecting": "подключение…",
@@ -3786,7 +3826,6 @@
       "phase.standby.desc": "SHUTTER PARTY 전에 대기 중인 사진을 먼저 내보내는 중",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "SHUTTER PARTY 접수는 끝났고, 받은 사진을 내보내는 중",
-      "someone": "익명",
       "ebs.off": "확인 안 함",
       "ebs.connecting": "확인 중…",
       "ebs.live": "확장 프로그램 연결됨",
@@ -3803,6 +3842,12 @@
       "log.ebs.notoken": "연동 키가 아직 도착하지 않았습니다. 오버레이가 받을 때까지 기다립니다",
       "log.secret.locked": "저장된 비밀번호와 연동 키를 열 수 없었습니다. 사라진 것은 아니지만 이 프로필에서는 읽을 수 없습니다. 설정 페이지에서 다시 입력해 주세요",
       "log.secret.nostore": "이 환경에서는 비밀번호와 연동 키를 암호화해 저장할 수 없어 기록하지 않고 URL에 남겨 둡니다",
+      "log.seal.cannot": "설정 페이지가 보낸 비밀 정보를 열 수 없었습니다. 설정 페이지에서 다시 기록해 주세요",
+      "log.seal.stale": "이전 설정 사본의 비밀 정보는 사용하지 않았습니다(더 새로운 설정을 이미 받았습니다)",
+      "log.seal.plainstale": "봉인되지 않은 이전 형식의 비밀 정보는 사용하지 않았습니다(봉인된 설정을 이미 받았습니다)",
+      "log.seal.oldform": "이전 형식의 연동 토큰 / Discord 웹후크는 사용하지 않았습니다. 설정 페이지에서 기록해 주세요",
+      "log.seal.nolock": "이 OBS에서는 비밀 정보를 봉인할 수 없어 OBS에 키를 두지 않습니다",
+      "log.seal.persistfail": "OBS에 수신 확인 표시를 남길 수 없습니다(obs-websocket이 영구 데이터를 지원하지 않거나 OBS가 저장에 실패했습니다)",
       "log.ebs.failed": "EBS 에 연결할 수 없습니다: {m}",
       "st.idle": "연결 안 됨",
       "st.connecting": "연결 중…",
@@ -3867,7 +3912,6 @@
       "phase.standby.desc": "In uscita gli scatti in attesa prima della SHUTTER PARTY",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "La SHUTTER PARTY è chiusa; gli scatti accettati stanno ancora uscendo",
-      "someone": "Anonimo",
       "ebs.off": "non verificato",
       "ebs.connecting": "verifica…",
       "ebs.live": "estensione connessa",
@@ -3884,6 +3928,12 @@
       "log.ebs.notoken": "la chiave di abbinamento non è ancora arrivata. In attesa che l’overlay la riceva",
       "log.secret.locked": "non è stato possibile aprire la password e la chiave di abbinamento salvate. Non sono perse, ma questo profilo non riesce più a leggerle: reinseriscile dalla pagina di configurazione",
       "log.secret.nostore": "questo browser non può salvare cifrate la password e la chiave di abbinamento, quindi non vengono scritte: restano nell’URL",
+      "log.seal.cannot": "non è stato possibile aprire i segreti inviati dalla pagina di configurazione. Riscrivi le impostazioni dalla pagina di configurazione",
+      "log.seal.stale": "i segreti di una copia vecchia delle impostazioni non sono stati usati (ne sono già arrivati di più recenti)",
+      "log.seal.plainstale": "un segreto scritto nel vecchio formato, non sigillato, non è stato usato (sono già arrivate impostazioni sigillate)",
+      "log.seal.oldform": "il token di abbinamento e il webhook di Discord scritti nel vecchio formato non sono stati usati. Scrivi le impostazioni dalla pagina di configurazione",
+      "log.seal.nolock": "in questo OBS non è possibile sigillare i segreti, quindi non viene lasciata alcuna chiave in OBS",
+      "log.seal.persistfail": "impossibile lasciare la ricevuta in OBS (obs-websocket non supporta i dati persistenti, oppure OBS non è riuscito a salvarla)",
       "log.ebs.failed": "EBS non raggiungibile: {m}",
       "st.idle": "non connesso",
       "st.connecting": "connessione…",
@@ -3948,7 +3998,6 @@
       "phase.standby.desc": "Przed SHUTTER PARTY puszczamy zdjęcia z kolejki",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "SHUTTER PARTY jest zamknięte; przyjęte zdjęcia nadal wychodzą",
-      "someone": "Anonim",
       "ebs.off": "niesprawdzone",
       "ebs.connecting": "sprawdzam…",
       "ebs.live": "rozszerzenie połączone",
@@ -3965,6 +4014,12 @@
       "log.ebs.notoken": "klucz parowania jeszcze nie dotarł. Czekam, aż overlay go otrzyma",
       "log.secret.locked": "nie udało się otworzyć zapisanego hasła i klucza parowania. Nie zginęły, ale ten profil nie może ich już odczytać — wprowadź je ponownie na stronie konfiguracji",
       "log.secret.nostore": "ta przeglądarka nie potrafi zapisać hasła i klucza parowania w postaci zaszyfrowanej, więc nie są zapisywane — zostają w adresie URL",
+      "log.seal.cannot": "nie udało się otworzyć sekretów wysłanych przez stronę konfiguracji. Zapisz ustawienia ponownie na stronie konfiguracji",
+      "log.seal.stale": "nie użyto sekretów ze starej kopii ustawień (dotarły już nowsze)",
+      "log.seal.plainstale": "nie użyto sekretu zapisanego w starej, niezapieczętowanej formie (dotarły już zapieczętowane ustawienia)",
+      "log.seal.oldform": "nie użyto tokenu parowania ani webhooka Discord zapisanych w starej formie. Zapisz ustawienia na stronie konfiguracji",
+      "log.seal.nolock": "w tym OBS nie da się zapieczętować sekretów, więc w OBS nie zostaje żaden klucz",
+      "log.seal.persistfail": "nie udało się zostawić w OBS potwierdzenia odbioru (obs-websocket nie obsługuje danych trwałych albo OBS nie zdołał go zapisać)",
       "log.ebs.failed": "nie można dosięgnąć EBS: {m}",
       "st.idle": "brak połączenia",
       "st.connecting": "łączenie…",
@@ -4029,7 +4084,6 @@
       "phase.standby.desc": "SHUTTER PARTY öncesinde bekleyen fotoğraflar yayına çıkıyor",
       "phase.wrapping_up.badge": "WRAPPING UP",
       "phase.wrapping_up.desc": "SHUTTER PARTY alımı kapandı; kabul edilen fotoğraflar hâlâ çıkıyor",
-      "someone": "Anonim",
       "ebs.off": "denenmedi",
       "ebs.connecting": "deneniyor…",
       "ebs.live": "uzantı bağlı",
@@ -4046,6 +4100,12 @@
       "log.ebs.notoken": "eşleştirme anahtarı henüz gelmedi. Yer paylaşımının onu almasını bekliyorum",
       "log.secret.locked": "kayıtlı parola ve eşleştirme anahtarı açılamadı. Kaybolmadılar, ama bu profil artık onları okuyamıyor — kurulum sayfasından yeniden girin",
       "log.secret.nostore": "bu tarayıcı parolayı ve eşleştirme anahtarını şifreli saklayamıyor, bu yüzden yazılmıyorlar — URL’de kalıyorlar",
+      "log.seal.cannot": "kurulum sayfasının gönderdiği gizli bilgiler açılamadı. Ayarları kurulum sayfasından yeniden yazın",
+      "log.seal.stale": "ayarların eski bir kopyasındaki gizli bilgiler kullanılmadı (daha yenileri zaten geldi)",
+      "log.seal.plainstale": "eski, mühürsüz biçimde yazılmış bir gizli bilgi kullanılmadı (mühürlü ayarlar zaten geldi)",
+      "log.seal.oldform": "eski biçimde yazılmış eşleştirme belirteci ve Discord webhook’u kullanılmadı. Ayarları kurulum sayfasından yazın",
+      "log.seal.nolock": "bu OBS’te gizli bilgiler mühürlenemiyor, bu yüzden OBS’e anahtar bırakılmıyor",
+      "log.seal.persistfail": "alındı işareti OBS’e bırakılamadı (obs-websocket kalıcı verileri desteklemiyor ya da OBS kaydedemedi)",
       "log.ebs.failed": "EBS'ye ulaşılamıyor: {m}",
       "st.idle": "bağlı değil",
       "st.connecting": "bağlanıyor…",
@@ -4163,7 +4223,7 @@
 
   /* The two settings that are secret, named once for everyone who asks.
    *
-   * The overlay's URL clean-up walks this list, the setup page is checked
+   * The envelope carries exactly these (seal.js), the setup page is checked
    * against it (tools/contract-check.mjs 「秘密を URL に載せない」), and this
    * store is what holds them. A new one is added here and nowhere else.
    *
@@ -4183,8 +4243,8 @@
 
   /* What is known to be written down, by value.
    *
-   * The overlay drops a secret out of its own URL only once the copy in
-   * storage is real (30-configuration.js: scrubSecretsFromUrl), and with an
+   * The overlay acknowledges an envelope only once the copy in storage is
+   * real (28-sealed-secrets.js: sealIn), and with an
    * asynchronous store "real" has to mean "the write came back and read back
    * as what we sent" rather than "we called setItem". Nothing is entered here
    * that was not read out of storage again afterwards. */
@@ -4461,7 +4521,7 @@
    * Keep these secrets, and prove they were kept.
    *
    * Resolves true only when the ciphertext has been read back and decrypted
-   * into the same values — which is what lets the overlay drop its URL copy.
+   * into the same values — which is what lets the overlay acknowledge an envelope.
    * Everything is written together: they live in one blob, so a partial write
    * is not a shape this can be in.
    */
@@ -4531,10 +4591,9 @@
       secretState = "nostore";
       /* Deliberately not written as text instead.
        *
-       * The overlay only takes a secret out of its URL once this comes back
-       * true, so a false here leaves the URL carrying it and the product keeps
-       * working — with the secret in the browser source's properties, which is
-       * where it already was. Falling back to plaintext localStorage would add
+       * A false here means the overlay keeps what arrived in memory for this
+       * load and acknowledges nothing, so the setup page hears that its write
+       * was not kept. Falling back to plaintext localStorage would add
        * a second copy in a second place to buy nothing. */
       return Promise.resolve(false);
     }
@@ -4656,6 +4715,373 @@
   function secretIsStored(key, value) {
     return !!value && secretsHeld[key] === value;
   }
+  /* ================= the envelope =================
+
+     The secrets used to ride to the overlay in its own URL as text, and OBS
+     writes that URL into its log when a browser source complains
+     (docs/security-plan.md V6). So they ride sealed instead: the overlay keeps
+     an ECDH P-256 key pair whose private half never leaves its IndexedDB, puts
+     the public half in OBS's persistent data, and the setup page seals the
+     three secrets to it (docs/sealed-secrets-plan.md §4).
+
+     Both pages carry this file, and that is the point of it being one file:
+     the bytes the AAD is built from and the way the AES key is derived have to
+     agree exactly on both ends, and two copies would drift the way the two
+     obs-websocket clients did (obs-ws.js). tools/seal-check.mjs runs this very
+     text in node against a fixed test vector.
+
+     WHAT IT DOES NOT DO: anybody who can talk to obs-websocket can put their
+     own public key where the overlay's was and read the next envelope. That is
+     out of scope on purpose (§1.2) — they can already make OBS open any page
+     they like. The envelope takes the plaintext out of logs, files and screen
+     shares; it is not a defence against whoever holds OBS. */
+
+  var SEAL_INFO = "shutterparty seal v1";
+  var SEAL_REALM = "OBS_WEBSOCKET_DATA_REALM_GLOBAL";
+  var SEAL_SLOT_KEY = "shutterparty.sealKey";
+  var SEAL_SLOT_ACK = "shutterparty.sealAck";
+  var SEAL_CURVE = { name: "ECDH", namedCurve: "P-256" };
+
+  function sealB64u(buf) {
+    var b = new Uint8Array(buf), s = "";
+    for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function sealUnb64u(str) {
+    if (typeof str !== "string" || !/^[A-Za-z0-9_-]+$/.test(str)) throw new Error("not base64url");
+    var b = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (b.length % 4) b += "=";
+    var bin = atob(b), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  /** The public key as it travels: these four members, in sorted order. */
+  function sealPublicJwk(jwk) {
+    return { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y };
+  }
+
+  /** The first 16 characters of the base64url SHA-256 of the sorted JWK (§4.1). */
+  function sealKidOf(jwk) {
+    var text = JSON.stringify(sealPublicJwk(jwk));
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+      .then(function (h) { return sealB64u(h).slice(0, 16); });
+  }
+
+  /**
+   * The additional data: the envelope's own strings joined with "|", as UTF-8.
+   *
+   * Taken from what is IN the envelope rather than rebuilt from parsed values,
+   * so the two ends cannot normalise differently — none of the five can hold a
+   * "|" (base64url, a decimal integer, and the digit 1), so the join is
+   * unambiguous. Changing anything outside the ciphertext fails the open.
+   */
+  function sealAad(box) {
+    return new TextEncoder().encode([box.v, box.kid, box.epk, box.epoch, box.nonce].join("|"));
+  }
+
+  /** ECDH, then HKDF-SHA256 with an empty salt, to one AES-GCM 256 key. */
+  function sealAesKey(priv, pub, usage) {
+    return crypto.subtle.deriveBits({ name: "ECDH", public: pub }, priv, 256)
+      .then(function (bits) { return crypto.subtle.importKey("raw", bits, "HKDF", false, ["deriveKey"]); })
+      .then(function (hk) {
+        return crypto.subtle.deriveKey(
+          { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: new TextEncoder().encode(SEAL_INFO) },
+          hk, { name: "AES-GCM", length: 256 }, false, [usage]);
+      });
+  }
+
+  /** Whether a value has the envelope's shape at all. Anything else is not opened. */
+  function sealShapeOk(box) {
+    var word = /^[A-Za-z0-9_-]+$/;
+    return !!box && typeof box === "object" && box.v === 1 &&
+      typeof box.epoch === "number" && isFinite(box.epoch) && box.epoch >= 0 &&
+      Math.floor(box.epoch) === box.epoch &&
+      ["kid", "epk", "nonce", "iv", "ct"].every(function (k) {
+        return typeof box[k] === "string" && word.test(box[k]);
+      });
+  }
+
+  /**
+   * A public key as OBS holds it, or null.
+   *
+   * null, {} and every shape that is not a key all mean "there is no key": a
+   * slot cannot be emptied, only overwritten with {} (§2, 実測 2026-09-18).
+   * The kid is checked against the key it names, so a slot edited by hand is
+   * read as no key rather than sealed to.
+   */
+  function sealKeyFrom(v) {
+    if (!v || typeof v !== "object" || v.v !== 1 || typeof v.kid !== "string") return Promise.resolve(null);
+    var j = v.jwk;
+    if (!j || j.kty !== "EC" || j.crv !== "P-256" || typeof j.x !== "string" || typeof j.y !== "string") {
+      return Promise.resolve(null);
+    }
+    /* And the point has to import: a kid that matches a jwk whose point is not
+     * on P-256 would otherwise be "a key", and every seal to it would throw
+     * instead of the slot being read as no key. */
+    return sealKidOf(j).then(function (kid) {
+      if (kid !== v.kid) return null;
+      return crypto.subtle.importKey("jwk", sealPublicJwk(j), SEAL_CURVE, true, [])
+        .then(function () { return { kid: kid, jwk: sealPublicJwk(j) }; });
+    }).then(null, function () { return null; });
+  }
+
+  /**
+   * Seal the secrets to one public key.
+   *
+   * Only the non-empty ones go in: an empty secret is "I do not have one",
+   * never "forget yours" (setup: overlayConfig). `fixed` supplies the
+   * ephemeral key pair, the nonce and the IV, and exists for the fixed test
+   * vector alone — every real envelope takes fresh random ones, so an IV is
+   * never reused even though every envelope's AES key is already its own.
+   */
+  function sealWith(to, secrets, epoch, fixed) {
+    fixed = fixed || {};
+    var eph = null;
+    var made = fixed.eph ? Promise.resolve(fixed.eph)
+      : crypto.subtle.generateKey(SEAL_CURVE, false, ["deriveBits"]);
+    return Promise.all([
+      made,
+      crypto.subtle.importKey("jwk", sealPublicJwk(to.jwk), SEAL_CURVE, true, [])
+    ]).then(function (got) {
+      eph = got[0];
+      var pub = got[1];
+      return crypto.subtle.exportKey("raw", eph.publicKey).then(function (raw) {
+        var iv = fixed.iv || crypto.getRandomValues(new Uint8Array(12));
+        var box = {
+          v: 1, kid: to.kid, epk: sealB64u(raw), epoch: epoch,
+          nonce: sealB64u(fixed.nonce || crypto.getRandomValues(new Uint8Array(16))),
+          iv: sealB64u(iv)
+        };
+        var body = {};
+        SECRETS.forEach(function (k) {
+          if (typeof secrets[k] === "string" && secrets[k]) body[k] = secrets[k];
+        });
+        return sealAesKey(eph.privateKey, pub, "encrypt").then(function (key) {
+          return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv, additionalData: sealAad(box) },
+            key, new TextEncoder().encode(JSON.stringify(body)));
+        }).then(function (ct) {
+          box.ct = sealB64u(ct);
+          return box;
+        });
+      });
+    });
+  }
+
+  /** Open one envelope with the private key. Resolves to the secrets in it. */
+  function sealOpen(priv, box) {
+    if (!sealShapeOk(box)) return Promise.reject(new Error("malformed"));
+    return Promise.resolve().then(function () {
+      return crypto.subtle.importKey("raw", sealUnb64u(box.epk), SEAL_CURVE, false, []);
+    }).then(function (pub) {
+      return sealAesKey(priv, pub, "decrypt");
+    }).then(function (key) {
+      return crypto.subtle.decrypt({ name: "AES-GCM", iv: sealUnb64u(box.iv), additionalData: sealAad(box) },
+        key, sealUnb64u(box.ct));
+    }).then(function (plain) {
+      var got = JSON.parse(new TextDecoder().decode(plain));
+      var out = {};
+      SECRETS.forEach(function (k) {
+        if (got && typeof got[k] === "string" && got[k]) out[k] = got[k];
+      });
+      return out;
+    });
+  }
+  /* ================= the secrets, received =================
+
+     sealIn() is the ONE door a secret comes in by (docs/sealed-secrets-plan.md
+     §4.0). The page load and every hashchange hand it what arrived, and it
+     decides — nothing else here reads a secret out of the URL.
+
+     What it accepts:
+
+       an envelope   sealed to this overlay's key (the kid matches), opened,
+                     and newer than the last one taken: a larger epoch, or the
+                     same epoch AND the same nonce (a reload opening the one it
+                     already took). Anything older is a scene collection backup
+                     or an old duplicated source, and it would put an old
+                     password over a new one — so it is opened, not used, and
+                     the setup page is told "stale".
+       a bare pw     only while nothing sealed has ever been taken. That is the
+                     first write, before this overlay has a key in OBS, and the
+                     one after a lost key that the broadcaster chose to resend
+                     (§4.4). After that a bare password can only be an old URL.
+       a bare token  never. The setup page never sends the pairing token or the
+       or webhook    webhook unsealed, so one in the URL is from before this
+                     version and is said and left (§4.3).
+
+     The URL is never written from here — not to take a secret out, not to
+     tidy up (§4.0). The setup page is the one writer; it replaces a plaintext
+     password with an envelope the next time it writes. Two writers is how a
+     late clean-up used to land on top of a newer write.
+
+     The decision and the record it leaves are made under one Web Lock across
+     every document in this CEF profile: the landscape and vertical overlays
+     can be handed two different envelopes of the same epoch by two setup
+     pages at once, and without the lock both would read the old record and
+     both would keep theirs. */
+
+  var SEAL_LOCK = "sp-seal";
+  var SEAL_ID = "seal";
+
+  function sealLocks() {
+    try {
+      return navigator.locks && typeof navigator.locks.request === "function" ? navigator.locks : null;
+    } catch (e) { return null; }
+  }
+
+  /* Under the lock where there is one. Where there is none this page never
+   * puts a key in OBS (56-ack-out.js), so no envelope is ever made for it and
+   * what runs here unlocked is the bare-password case alone. */
+  function sealSerial(fn) {
+    var locks = sealLocks();
+    if (!locks) return Promise.resolve().then(fn);
+    return locks.request(SEAL_LOCK, function () { return Promise.resolve().then(fn); });
+  }
+
+  /** The key pair and the record of what was taken, or null. Never cached: another document may have moved it. */
+  function sealRecord() {
+    if (!secretsUsable()) return Promise.resolve(null);
+    return secTx("readonly", function (store) { return store.get(SEAL_ID); })
+      .then(function (r) { return r || null; });
+  }
+
+  /**
+   * This profile's key pair, made once and shared by every overlay in it.
+   *
+   * The same get-then-put as the AES key (secret-store.js secGetKey): read,
+   * generate OUTSIDE any transaction if there is none, then read again and put
+   * inside one readwrite transaction, then read back. Two overlays starting
+   * together both end up with whichever pair landed first. The private half is
+   * extractable:false — the public half is always exportable (WebCrypto's ECDH
+   * generateKey), so nothing is ever taken out and put back.
+   */
+  function sealKeyPair() {
+    return sealRecord().then(function (found) {
+      if (found && found.priv) return found;
+      return crypto.subtle.generateKey(SEAL_CURVE, false, ["deriveBits"]).then(function (pair) {
+        return crypto.subtle.exportKey("jwk", pair.publicKey).then(function (jwk) {
+          var pub = sealPublicJwk(jwk);
+          return sealKidOf(pub).then(function (kid) {
+            var fresh = { priv: pair.privateKey, jwk: pub, kid: kid };
+            return secTx("readwrite", function (store) {
+              var again = store.get(SEAL_ID);
+              again.onsuccess = function () {
+                if (!(again.result && again.result.priv)) store.put(fresh, SEAL_ID);
+              };
+            });
+          });
+        });
+      }).then(sealRecord);
+    }).then(function (rec) {
+      if (!rec || !rec.priv) throw new Error("no seal key");
+      return rec;
+    });
+  }
+
+  /** Write down the envelope just taken, and read it back. */
+  function sealRemember(epoch, nonce) {
+    return secTx("readwrite", function (store) {
+      var r = store.get(SEAL_ID);
+      r.onsuccess = function () {
+        var rec = r.result;
+        if (!rec || !rec.priv) return;
+        rec.epoch = epoch;
+        rec.nonce = nonce;
+        store.put(rec, SEAL_ID);
+      };
+    }).then(sealRecord).then(function (back) {
+      return !!back && back.epoch === epoch && back.nonce === nonce;
+    });
+  }
+
+  /** Note that the receipt for the envelope taken has been placed in OBS (under the lock). */
+  function sealNoteAcked(nonce) {
+    return secTx("readwrite", function (store) {
+      var r = store.get(SEAL_ID);
+      r.onsuccess = function () {
+        var rec = r.result;
+        if (!rec || !rec.priv || rec.nonce !== nonce) return;
+        rec.acked = nonce;
+        store.put(rec, SEAL_ID);
+      };
+    });
+  }
+
+  /** Whether an envelope has ever been taken in this profile. */
+  function sealTaken(rec) {
+    return !!rec && typeof rec.epoch === "number";
+  }
+
+  /**
+   * Take what arrived — at load, and on every hashchange.
+   *
+   * Resolves once whatever was accepted is in cfg and written down (or known
+   * not to be), and never rejects: the page goes on to connect either way.
+   */
+  function sealIn(sent) {
+    if (DEMO || BAR_ONLY || !sent) return Promise.resolve();
+    var box = sent.seal && typeof sent.seal === "object" ? sent.seal : null;
+    var pw = typeof sent.pw === "string" ? sent.pw : "";
+    var old = ["ebsToken", "discordWebhook"].filter(function (k) {
+      return typeof sent[k] === "string" && sent[k];
+    });
+    if (old.length) log(t("log.seal.oldform"), "warn");
+    if (!box && !pw) return Promise.resolve();
+    return sealSerial(function () {
+      return sealRecord().then(function (rec) {
+        return box ? sealTake(box, rec) : sealTakePlain(pw, rec);
+      });
+    }).catch(function () { /* the store would not answer; cfg keeps what it had */ });
+  }
+
+  function sealTakePlain(pw, rec) {
+    if (sealTaken(rec)) {
+      // An old URL — a backup from before the envelope, or the first write's
+      // URL put back. The store has something newer. No receipt: nothing is
+      // waiting for one without a nonce.
+      log(t("log.seal.plainstale"), "warn");
+      return;
+    }
+    cfg.pw = pw;
+    return saveSecrets();
+  }
+
+  function sealTake(box, rec) {
+    var last = sealTaken(rec) ? rec.epoch : 0;
+    function cannot() {
+      log(t("log.seal.cannot"), "bad");
+      ackOut({ v: 1, kid: String(box.kid || ""), nonce: String(box.nonce || ""), epoch: last, ok: false, at: Date.now() });
+    }
+    if (!sealShapeOk(box) || !rec || !rec.priv || box.kid !== rec.kid) { cannot(); return; }
+    return sealOpen(rec.priv, box).then(function (got) {
+      if (sealTaken(rec) && (box.epoch < rec.epoch || (box.epoch === rec.epoch && box.nonce !== rec.nonce))) {
+        // Opened, and older than what was taken: not used. The receipt
+        // carries this envelope's nonce, so the page that wrote it hears it.
+        log(t("log.seal.stale"), "warn");
+        ackOut({ v: 1, kid: box.kid, nonce: box.nonce, epoch: rec.epoch, ok: false, reason: "stale", at: Date.now() });
+        return;
+      }
+      // The same envelope again (a reload): taken already. Its receipt is
+      // placed once per nonce (§4.3) — so again only when the record says it
+      // never was: the document that took it may have gone before placing it
+      // (a failed write, a reload before authenticating), and a setup page
+      // that never hears one offers to resend the password as text.
+      var again = sealTaken(rec) && box.epoch === rec.epoch && box.nonce === rec.nonce;
+      SECRETS.forEach(function (k) { if (got[k]) cfg[k] = got[k]; });
+      return saveSecrets().then(function (kept) {
+        if (!kept) return;
+        if (again) {
+          if (rec.acked !== box.nonce) ackOut({ v: 1, kid: box.kid, nonce: box.nonce, epoch: box.epoch, ok: true, at: Date.now() });
+          return;
+        }
+        return sealRemember(box.epoch, box.nonce).then(function (noted) {
+          if (noted) ackOut({ v: 1, kid: box.kid, nonce: box.nonce, epoch: box.epoch, ok: true, at: Date.now() });
+        });
+      });
+    }, cannot);
+  }
   /* ================= configuration =================
 
      This page has no settings UI, and that is the point. A panel drawn on the
@@ -4667,12 +5093,11 @@
      A fragment rather than a query string: it is never sent anywhere, and this
      page is meant to be unobservable.
 
-     The password is the one part that should not stay in the scene collection,
-     where OBS shows it in the source's properties. It is kept here the first
-     time it is seen and then erased from the URL — which this page can do,
-     because it is already talking to the OBS that owns that URL. The erasure
-     only happens once the password is known to have been stored, so a browser
-     that refuses storage keeps a working URL rather than losing the password. */
+     The three secrets are the exception. They arrive sealed to this page's
+     own key (28-sealed-secrets.js: sealIn), and they are read from the URL
+     there and nowhere else — loadCfg() below does not copy them. This page
+     never writes its own URL: the setup page is the one writer
+     (docs/sealed-secrets-plan.md §4.0). */
 
   var CFG_KEY = "sp-config";
   // Anything not named here is dropped on the way in, whatever the setup page
@@ -4774,9 +5199,13 @@
         for (var s in DEFAULTS) if (typeof saved[s] === "string") base[s] = saved[s];
       }
     } catch (e) { /* storage blocked, or private mode */ }
-    // What the setup page just wrote wins over what we remembered.
+    // What the setup page just wrote wins over what we remembered — except the
+    // secrets, which only sealIn() may take out of the URL, by its rules.
     if (pushed) {
-      for (var p in DEFAULTS) if (typeof pushed[p] === "string") base[p] = pushed[p];
+      for (var p in DEFAULTS) {
+        if (SECRETS.indexOf(p) !== -1) continue;
+        if (typeof pushed[p] === "string") base[p] = pushed[p];
+      }
     }
     return base;
   }
@@ -4865,12 +5294,9 @@
 
   var cfg = loadCfg();
 
-  /* What arrived in THIS page load, before the store has said anything.
-   *
-   * Either the setup page just wrote it into the URL, or it is still sitting in
-   * the old plaintext config and is about to be migrated. Both are "a value
-   * this page brought", and both have to end up in the store — the difference
-   * between them is not one this page has to care about. */
+  /* What is still sitting in the old plaintext config, before the store has
+   * said anything, and is about to be migrated into it. What arrived in the
+   * URL is not here: sealIn() takes that, after this. */
   var broughtSecrets = {};
   SECRETS.forEach(function (k) { if (cfg[k]) broughtSecrets[k] = cfg[k]; });
 
@@ -4884,9 +5310,14 @@
    * without them and the two things that need them wait on this
    * (99-go.js: connect() and ebsConnect()).
    *
-   * The URL still wins, exactly as it does for every other setting: a value
-   * this load brought is kept and written down, and the store only fills in
-   * what was not brought.
+   * The URL still wins, exactly as it does for every other setting — through
+   * sealIn(), which is the FIRST thing this waits for once the store is open.
+   * claimKeeper() and discordSettle() come after it, and connect() and
+   * ebsConnect() after this whole chain: discordSettle() forgets a webhook
+   * that does not match discordHook, so run before the envelope's new webhook
+   * is in cfg it would erase the old one against the new ID and race the
+   * envelope's own save (docs/sealed-secrets-plan.md §4.3). And a page whose
+   * password is only inside the envelope must not connect without it.
    */
   var secretsSettled = (
     /* The sample asks for nothing, here as everywhere else.
@@ -4907,6 +5338,8 @@
       return broughtSecrets[k] && r.values[k] !== broughtSecrets[k];
     });
     return news ? saveSecrets() : Promise.resolve(false);
+  }).then(function () {
+    return sealIn(pushed);
   }).then(function () {
     claimKeeper();
     discordSettle();
@@ -4955,30 +5388,17 @@
   });
 
   /**
-   * Secrets that arrived after load: keep them, then take them out of the URL.
+   * Secrets that arrived after load: sealIn(), once the load's own has settled.
    *
-   * The setup page writes overlayConfig() — secrets included — on every
-   * change, and the scene gate is changed without a reload (setup:
-   * pushSafety). The clean-up used to happen once, at load, so everything
-   * written after that stayed in OBS's source settings, and in the scene
-   * collection file, until the page next loaded for some other reason
-   * (docs/discord-plan.md §4.1, Codex 12巡目).
-   *
-   * The value that arrived wins, as it does at load. Writing back is asked
-   * only once the store says it holds it; the fragment OBS then gives this
-   * page carries no secret, so that round ends there.
+   * The setup page writes on every change, and the scene gate is changed
+   * without a reload (setup: pushSafety), so an envelope can arrive here. It
+   * goes through the same door as the one at load, by the same rules. A
+   * connection already open keeps what it opened with; a new value is used
+   * from the next connect, like every other setting read at load.
    */
   function takeLiveSecrets(sent) {
     if (DEMO || BAR_ONLY) return Promise.resolve();
-    var came = SECRETS.filter(function (k) { return typeof sent[k] === "string" && sent[k]; });
-    if (!came.length) return secretsSettled;
-    return secretsSettled.then(function () {
-      // A connection already open keeps what it opened with; the new value is
-      // used from the next connect, like every other setting read at load.
-      came.forEach(function (k) { cfg[k] = sent[k]; });
-      var fresh = came.some(function (k) { return !secretIsStored(k, sent[k]); });
-      return fresh ? saveSecrets() : null;
-    }).then(function () { scrubSecretsFromUrl(sent); });
+    return secretsSettled.then(function () { return sealIn(sent); });
   }
 
   /**
@@ -5018,96 +5438,6 @@
   }
 
   pickLanguage();
-
-  /**
-   * Take the secrets back out of the browser source's URL.
-   *
-   * Rewriting the URL makes OBS reload this page, so this must run at most once:
-   * the reloaded page sees no secret in the fragment and does nothing.
-   *
-   * Each secret is dropped only once THAT secret is known to have been written
-   * down, and they are decided one at a time: a browser that refuses storage
-   * keeps a working URL rather than losing the only copy, and a password that
-   * could not be stored does not take the token down with it.
-   *
-   * 2026-09-10: this used to be about the password alone, which had two costs.
-   * The token stayed in the URL — and it is the one that is worth something to
-   * somebody else. And the whole clean-up was skipped for a broadcaster running
-   * obs-websocket without authentication: there was no password to take out, so
-   * the function returned on its first line and the token stayed for ever.
-   */
-  function scrubSecretsFromUrl(live) {
-    /* `live` is a fragment that arrived after load (takeLiveSecrets). What is
-     * written back is then built from IT, not from cfg: cfg still holds the
-     * appearance this page loaded with, and the fragment may carry newer
-     * settings that are waiting for a reload — writing cfg over them would
-     * undo the broadcaster's change from the page that was only tidying up. */
-    var from = live || pushed;
-    if (!from) return;
-    var drop = SECRETS.filter(function (k) {
-      return from[k] && secretIsStored(k, from[k]);
-    });
-    if (!drop.length) return;                      // nothing safe to take out
-    /* A secret is left out when it is being dropped — and also when there is
-     * nothing to say about it. Writing pw:"" or ebsToken:"" back into the URL
-     * would be an instruction to forget, because the URL wins over storage on
-     * the next load: the same shape as the 2026-09-03 outage, from the page
-     * that is supposed to be cleaning up (setup: barConfig, overlayConfig). */
-    var clean = {};
-    for (var k in DEFAULTS) {
-      if (drop.indexOf(k) !== -1) continue;
-      var v = live ? live[k] : cfg[k];
-      if (typeof v !== "string") continue;
-      if (SECRETS.indexOf(k) !== -1 && !v) continue;
-      clean[k] = v;
-    }
-    /* Everything else in the fragment is put back.
-     *
-     * The fragment is not only the settings: #debug turns the status chip on
-     * and #preview draws the bar at full size, and both are how a broadcaster
-     * is looking at this page at the moment they set it up. Rebuilding the URL
-     * from the settings alone swept them away — which never showed while the
-     * clean-up needed a password, because that is not the state you are in
-     * while adjusting anything. */
-    var rest = hashParts().filter(function (part) { return part.slice(0, 2) !== "c="; });
-    var wanted = location.href.split("#")[0] + "#c=" + encodeURIComponent(JSON.stringify(clean)) +
-      (rest.length ? "&" + rest.join("&") : "");
-
-    request("GetInputList", { inputKind: "browser_source" })
-      .then(function (d) {
-        var names = (d.inputs || []).map(function (i) { return i.inputName; });
-        return Promise.all(names.map(function (name) {
-          return request("GetInputSettings", { inputName: name })
-            .then(function (r) { return { name: name, url: (r.inputSettings || {}).url || "" }; })
-            .catch(function () { return { name: name, url: "" }; });
-        }));
-      })
-      .then(function (rows) {
-        var mine = rows.filter(function (r) { return r.url === location.href; });
-        /* All of them, not the one.
-         *
-         * This used to give up unless exactly one source matched, on the
-         * reasoning that it could not tell which one it was. But a source
-         * whose url is character-for-character this page's url IS this page,
-         * settings and secrets and all, and the replacement built for one is
-         * correct for every one of them. Giving up left a broadcaster who had
-         * duplicated the browser source with the password and the token in
-         * every copy — in the properties window and in the scene collection —
-         * and nothing said so, because from here it looked like a clean-up
-         * that had simply not happened yet (Codex 1巡目 HIGH). */
-        if (!mine.length) return;                  // none of these is us
-        return Promise.all(mine.map(function (row) {
-          return request("SetInputSettings", {
-            inputName: row.name,
-            inputSettings: { url: wanted },
-            overlay: true
-          });
-        }));
-      })
-      .catch(function () { /* the URL simply keeps the password */ });
-  }
-
-
   /* ================= elements ================= */
 
   var el = {
@@ -5814,13 +6144,132 @@
       reportOverlayState();
     }).catch(function () { /* older obs-websocket: stays off */ });
     reportOverlayState();
-    scrubSecretsFromUrl();
+    ackOnIdentified();            // the public key, and any receipt waiting (56-ack-out.js)
   }
 
   function obsOnDisconnect() {
     cancelCaptureProbe();
     cancelSceneProbe();
     reportOverlayState();          // the EBS must stop accepting presses
+  }
+  /* ================= what this page leaves in OBS =================
+
+     ackOut is the ONE way this page writes to OBS's persistent data
+     (docs/sealed-secrets-plan.md §4.0). Two outputs, independent of each
+     other — neither waits for the other:
+
+       sealKey   the public half of this profile's key pair, put in place every
+                 time the socket authenticates, whether or not anything has
+                 arrived. The very first envelope cannot be made without it.
+       sealAck   a receipt for the last envelope sealIn() took (or refused),
+                 so the setup page knows its write was opened and kept. Only
+                 the newest one is held; it is placed after authenticating
+                 (an overlay whose password was only inside the envelope has
+                 no socket until after it opened it) and forgotten once placed.
+
+     A failed write is tried again at 1, 3 and 10 seconds, then said once and
+     carried to the next authentication. A receipt is checked against the
+     record under the sp-seal lock immediately before EVERY attempt: another
+     overlay may have taken a newer envelope meanwhile, and an old receipt
+     landing late in the one slot would make the setup page time out and offer
+     to resend the password in the clear.
+
+     No Web Locks, no key: a receipt made without the lock cannot promise that
+     the envelope it names is the one that was kept (§4.3). The setup page then
+     sees "no key", which is the first-write shape. */
+
+  var ackWaiting = null;         // the newest receipt not yet placed
+  var ackTimer = null;
+  var ACK_BACKOFF = [1000, 3000, 10000];
+  var sealNoLockSaid = false;
+
+  function ackOut(receipt) {
+    if (DEMO || BAR_ONLY || !sealLocks()) return;
+    ackWaiting = receipt;
+    clearTimeout(ackTimer);
+    ackTimer = null;
+    if (identified) ackPlace(receipt, 0);
+  }
+
+  /** Called from obsOnIdentified(): the key, and whatever receipt is waiting. */
+  function ackOnIdentified() {
+    if (DEMO || BAR_ONLY) return;
+    if (!sealLocks()) {
+      if (!sealNoLockSaid) { sealNoLockSaid = true; log(t("log.seal.nolock"), "warn"); }
+      return;
+    }
+    ackKey(0);
+    if (ackWaiting) {
+      clearTimeout(ackTimer);
+      ackTimer = null;
+      ackPlace(ackWaiting, 0);
+    }
+  }
+
+  function ackKey(attempt) {
+    if (!secretsUsable()) return;          // nowhere to keep a private key
+    var gen = connectGen;
+    sealKeyPair().then(function (pair) {
+      return request("GetPersistentData", { realm: SEAL_REALM, slotName: SEAL_SLOT_KEY })
+        .then(function (d) { return d.slotValue; }, function () { return null; })
+        .then(function (v) {
+          // Put back only when it is not ours: another PC's OBS settings, or a
+          // key lost with the CEF profile. Every overlay here puts the same one.
+          // "Ours" is read the way the setup page reads it (sealKeyFrom) and
+          // then held to OUR x and y: a slot with our kid but a missing or
+          // broken jwk is "no key" to the setup page, which would then write
+          // the password as text on every write until this slot was mended.
+          return sealKeyFrom(v).then(function (k) {
+            return !!k && k.kid === pair.kid && k.jwk.x === pair.jwk.x && k.jwk.y === pair.jwk.y;
+          });
+        })
+        .then(function (mine) {
+          if (mine) return;
+          return request("SetPersistentData", {
+            realm: SEAL_REALM, slotName: SEAL_SLOT_KEY,
+            slotValue: { v: 1, kid: pair.kid, jwk: pair.jwk, at: Date.now() }
+          });
+        });
+    }).catch(function () {
+      if (gen !== connectGen || !identified) return;       // the next identify tries again
+      if (attempt >= ACK_BACKOFF.length) { log(t("log.seal.persistfail"), "warn"); return; }
+      setTimeout(function () {
+        if (gen === connectGen && identified) ackKey(attempt + 1);
+      }, ACK_BACKOFF[attempt]);
+    });
+  }
+
+  /** Whether a receipt still describes what this profile has taken. */
+  function ackStillTrue(r, rec) {
+    if (r.ok) return !!rec && rec.kid === r.kid && rec.epoch === r.epoch && rec.nonce === r.nonce;
+    // A refusal carries the epoch taken so far; once a newer one is taken it
+    // speaks for a state that is gone.
+    return (sealTaken(rec) ? rec.epoch : 0) === r.epoch;
+  }
+
+  function ackPlace(receipt, attempt) {
+    var gen = connectGen;
+    sealSerial(function () {
+      return sealRecord().then(function (rec) {
+        if (!ackStillTrue(receipt, rec)) return;      // superseded: dropped
+        return request("SetPersistentData", { realm: SEAL_REALM, slotName: SEAL_SLOT_ACK, slotValue: receipt })
+          .then(function () {
+            // Placed: a reload opening the same envelope does not place it
+            // again (§4.3). Not noting it only costs one more placement.
+            if (receipt.ok) return sealNoteAcked(receipt.nonce).catch(function () {});
+          });
+      });
+    }).then(function () {
+      if (ackWaiting === receipt) ackWaiting = null;
+    }, function () {
+      if (ackWaiting !== receipt) return;            // a newer one took its place
+      if (gen !== connectGen || !identified) return; // kept for the next identify
+      if (attempt >= ACK_BACKOFF.length) { log(t("log.seal.persistfail"), "warn"); return; }
+      ackTimer = setTimeout(function () {
+        ackTimer = null;
+        if (ackWaiting === receipt && identified) ackPlace(receipt, attempt + 1);
+      }, ACK_BACKOFF[attempt]);
+    });
   }
   /* ================= one keeper per machine =================
 
@@ -8170,9 +8619,13 @@
     var who = null, when = null;
     if (paid) {
       // textContent, never innerHTML: this is a name a viewer chose.
+      //
+      // Nothing when there is no name — not a stand-in word. A viewer who
+      // asked to stay off the photo asked for no name on it, and "匿名さん"
+      // is still a label hung on their purchase (本人の決定 2026-09-18).
       who = document.createElement("span");
       who.className = "who";
-      who.textContent = paid.name || t("someone");
+      who.textContent = paid.name || "";
       cap.appendChild(who);
       when = document.createElement("span");
       when.className = "when";
@@ -9567,7 +10020,8 @@
     var el = document.createElement("div");
     el.className = "bitspop";
     if (tone) el.style.setProperty("--glow-rgb", "var(--b" + tone + ")");
-    el.textContent = "+" + amount + " Bits  " + (name || t("someone"));
+    // The amount alone when nobody is named — no stand-in word (85-display.js).
+    el.textContent = "+" + amount + " Bits" + (name ? "  " + name : "");
     el.style.left = (W * 0.035) + "px";
     el.style.top = (H * 0.12) + "px";
     ovSparks.appendChild(el);
@@ -10047,8 +10501,8 @@
    * The token this socket is opened with.
    *
    * Not simply cfg.ebsToken, because two of the three pages running this file
-   * do not have it in their URL. The overlay takes it out of its own URL once
-   * it is stored (scrubSecretsFromUrl) and the bar is never handed it at all
+   * do not have it in their URL as text. The overlay is handed it sealed and
+   * keeps it in storage (28-sealed-secrets.js) and the bar is never handed it at all
    * (setup: barConfig) — the token is the one secret that is worth something to
    * somebody who is not at this machine, and OBS puts a browser source's URL on
    * screen in its properties (docs/plan.md §3.2.2).
@@ -10624,8 +11078,7 @@
    * secretsSettled never rejects, so there is no path where this page simply
    * does not start: a store that cannot be opened resolves to "locked" and a
    * browser without one resolves to "nostore", and both go on to connect with
-   * whatever the URL brought — which, for a page whose secrets were never
-   * scrubbed out of its URL, is everything it needs. */
+   * whatever sealIn() took out of the URL for this load. */
   secretsSettled.then(function (state) {
     // Said once, after the answer exists. "locked" is the line that has to be
     // distinguishable: it means there IS a password saved and this profile can
