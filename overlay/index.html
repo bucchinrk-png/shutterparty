@@ -47,6 +47,9 @@
                             The EBS is pinned to *.workers.dev, which is where it
                             is and where it would move to; http://localhost and
                             http://127.0.0.1 are a development EBS (Phase 3).
+                            https://discord.com is the broadcaster's Discord
+                            webhook, used only when they chose to send photos
+                            there (docs/discord-plan.md §4.3).
                             https: and http: to anywhere else are refused, which
                             is the easy way out for anything that should not be
                             leaving.
@@ -54,7 +57,7 @@
        base-uri / form-action
                             Neither page has a <base> or a <form>; naming them
                             'none' is what keeps that true. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; font-src data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; font-src data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:* https://discord.com; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <!-- The tab is the only place this page is allowed to say anything.
      Opened by hand it is a blank transparent rectangle, which reads as a broken
      download (docs/onboarding-plan.md §2.E) — and the body cannot answer that,
@@ -2414,7 +2417,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-9ede71a50da8";
+  var BUILD = "sp-7b1704e25eec";
   /* @end build */
 
   /**
@@ -3185,6 +3188,19 @@
       "log.cardmade": "枠つきで保存するためのソース「{n}」を OBS に作りました。画面の外に置いてあるので配信にも写真にも出ません。消さないでください（消しても次の保存で作り直します）",
       "log.sheetsaved": "コンタクトシートを書き出しました: {p}",
       "log.sheetfail": "コンタクトシートを書き出せませんでした: {m}（配信画面には出ています）",
+      "discord.sheet": "SHUTTER PARTY のコンタクトシート",
+      "log.discord.full": "Discord に送る写真が {n} 件たまっているので、この写真は送りません（保存は続きます）",
+      "log.discord.skip": "Discord に送りません（{k} #{n}）: {why}",
+      "log.discord.toobig": "画像が大きすぎるので Discord に送りません（#{n}・{mb} MB）",
+      "log.discord.sent": "Discord に {n} 枚送りました",
+      "log.discord.unsure": "Discord に届いたか分かりません（{n} 枚）。二重に出ないよう、送り直しません",
+      "log.discord.bad": "Discord が送信を受け付けませんでした（{m}）。設定ページで webhook を確かめてください。フォーラムやメディアのチャンネルの webhook は使えません",
+      "log.discord.gone": "Discord の webhook が使えません（{m}）。消されたか URL が違います。設定ページで入れ直すまで送りません",
+      "log.discord.gaveup": "Discord の回数制限が続いたので、{n} 枚を送らずに捨てました（{m}）",
+      "log.discord.wait": "Discord の回数制限で {s} 秒待ちます（{scope}）",
+      "log.discord.fail": "Discord に送れませんでした（{m}）",
+      "log.keeper": "このオーバーレイが保存と Discord への送信を受け持ちます（同じ PC の他のオーバーレイは画面に出すだけです）",
+      "log.keeper.nolock": "このブラウザでは受け持つオーバーレイを決められないので、縦型ではないオーバーレイが保存と Discord への送信をします。同じソースを複製していると二重になります",
       "log.cardfail": "枠つきの保存ができませんでした: {m}（写真そのものは撮れています）",
       "log.shot": "{kb} KB の画像を受け取りました",
       "log.shotstale": "撮影中に対象のシーンが変わったので、この1枚は使いません",
@@ -3250,6 +3266,19 @@
       "log.cardmade": "added the source “{n}” to OBS for framed saving. It sits outside the canvas, so it appears neither on the broadcast nor in the photo. Leave it there — it is rebuilt on the next photo if removed",
       "log.sheetsaved": "wrote the contact sheet: {p}",
       "log.sheetfail": "could not write the contact sheet: {m} (it did go out on the channel)",
+      "discord.sheet": "SHUTTER PARTY contact sheet",
+      "log.discord.full": "{n} photos are already waiting for Discord; this one is not sent (saving goes on)",
+      "log.discord.skip": "not sent to Discord ({k} #{n}): {why}",
+      "log.discord.toobig": "image too large for Discord, not sent (#{n}, {mb} MB)",
+      "log.discord.sent": "sent {n} to Discord",
+      "log.discord.unsure": "could not tell whether Discord received {n}; not sending again, so nothing is posted twice",
+      "log.discord.bad": "Discord did not accept the post ({m}). Check the webhook on the setup page. Webhooks of forum or media channels cannot be used",
+      "log.discord.gone": "the Discord webhook cannot be used ({m}): deleted, or the URL is wrong. Nothing is sent until it is entered again on the setup page",
+      "log.discord.gaveup": "Discord kept rate-limiting; {n} dropped without sending ({m})",
+      "log.discord.wait": "waiting {s}s for Discord's rate limit ({scope})",
+      "log.discord.fail": "could not send to Discord ({m})",
+      "log.keeper": "this overlay does the saving and the Discord posts (other overlays on this PC only show the photos)",
+      "log.keeper.nolock": "this browser cannot pick a single overlay, so the non-vertical one saves and posts to Discord. A duplicated source will do both twice",
       "log.cardfail": "could not save the framed copy: {m} (the photo itself was taken)",
       "log.failed": "could not connect. Check that OBS is running, the WebSocket server is enabled, and the port matches",
       "log.authfail": "authentication failed — check the password",
@@ -3320,6 +3349,19 @@
       "log.cardmade": "已在 OBS 中创建用于带框保存的源“{n}”。它放在画面外，所以不会出现在直播或照片中。请不要删除（删除后会在下次保存时重新创建）",
       "log.sheetsaved": "已导出联系表：{p}",
       "log.sheetfail": "无法导出联系表：{m}（直播画面中已经显示）",
+      "discord.sheet": "SHUTTER PARTY 联系表",
+      "log.discord.full": "已有 {n} 张照片等待发送到 Discord，本张不发送（保存照常进行）",
+      "log.discord.skip": "未发送到 Discord（{k} #{n}）：{why}",
+      "log.discord.toobig": "图片过大，未发送到 Discord（#{n}，{mb} MB）",
+      "log.discord.sent": "已向 Discord 发送 {n} 张",
+      "log.discord.unsure": "无法确认 Discord 是否收到 {n} 张；为避免重复，不再重发",
+      "log.discord.bad": "Discord 未接受此次发送（{m}）。请在设置页面检查 webhook。论坛或媒体频道的 webhook 无法使用",
+      "log.discord.gone": "Discord webhook 无法使用（{m}）：已被删除或 URL 有误。在设置页面重新填写前不会发送",
+      "log.discord.gaveup": "Discord 持续限流，已放弃发送 {n} 张（{m}）",
+      "log.discord.wait": "因 Discord 限流等待 {s} 秒（{scope}）",
+      "log.discord.fail": "无法发送到 Discord（{m}）",
+      "log.keeper": "此叠加层负责保存和发送到 Discord（本机其他叠加层只显示照片）",
+      "log.keeper.nolock": "此浏览器无法选定唯一的叠加层，将由非竖屏叠加层负责保存和发送到 Discord。复制的来源会重复执行",
       "log.cardfail": "无法保存带框版本：{m}（照片本身已经拍到）",
       "log.shot": "收到了 {kb} KB 的图像",
       "log.shotstale": "拍摄期间目标场景发生了变化，这一张已丢弃",
@@ -3388,6 +3430,19 @@
       "log.cardmade": "se añadió en OBS la fuente “{n}” para guardar con marco. Está fuera del lienzo, así que no aparece ni en la transmisión ni en la foto. Déjala ahí; si se borra, se reconstruye en la próxima foto",
       "log.sheetsaved": "hoja de contacto escrita: {p}",
       "log.sheetfail": "no se pudo escribir la hoja de contacto: {m} (sí salió en la transmisión)",
+      "discord.sheet": "Hoja de contacto de SHUTTER PARTY",
+      "log.discord.full": "ya hay {n} fotos esperando para Discord; esta no se envía (el guardado continúa)",
+      "log.discord.skip": "no enviado a Discord ({k} #{n}): {why}",
+      "log.discord.toobig": "imagen demasiado grande para Discord, no enviada (#{n}, {mb} MB)",
+      "log.discord.sent": "{n} enviadas a Discord",
+      "log.discord.unsure": "no se sabe si Discord recibió {n}; no se reenvía para no publicar dos veces",
+      "log.discord.bad": "Discord no aceptó el envío ({m}). Revisa el webhook en la página de configuración. Los webhooks de canales de foro o multimedia no sirven",
+      "log.discord.gone": "el webhook de Discord no se puede usar ({m}): se eliminó o la URL es incorrecta. No se envía nada hasta volver a introducirlo en la página de configuración",
+      "log.discord.gaveup": "Discord siguió limitando; {n} descartadas sin enviar ({m})",
+      "log.discord.wait": "esperando {s} s por el límite de Discord ({scope})",
+      "log.discord.fail": "no se pudo enviar a Discord ({m})",
+      "log.keeper": "este overlay se encarga de guardar y publicar en Discord (los demás overlays de este PC solo muestran las fotos)",
+      "log.keeper.nolock": "este navegador no puede elegir un único overlay; guarda y publica en Discord el que no es vertical. Una fuente duplicada lo hará dos veces",
       "log.cardfail": "no se pudo guardar la copia con marco: {m} (la foto en sí se tomó)",
       "log.shot": "recibida una imagen de {kb} KB",
       "log.shotstale": "el objetivo cambió mientras se tomaba; esta captura se descartó",
@@ -3456,6 +3511,19 @@
       "log.cardmade": "a fonte «{n}» foi adicionada ao OBS para salvar com moldura. Ela fica fora da tela, então não aparece nem na live nem na foto. Deixe ali — se for apagada, é recriada na próxima foto",
       "log.sheetsaved": "folha de contato gravada: {p}",
       "log.sheetfail": "não foi possível gravar a folha de contato: {m} (ela apareceu na live)",
+      "discord.sheet": "Folha de contato do SHUTTER PARTY",
+      "log.discord.full": "já há {n} fotos aguardando o Discord; esta não será enviada (a gravação continua)",
+      "log.discord.skip": "não enviada ao Discord ({k} #{n}): {why}",
+      "log.discord.toobig": "imagem grande demais para o Discord, não enviada (#{n}, {mb} MB)",
+      "log.discord.sent": "{n} enviadas ao Discord",
+      "log.discord.unsure": "não foi possível saber se o Discord recebeu {n}; não será reenviado para não postar duas vezes",
+      "log.discord.bad": "o Discord não aceitou o envio ({m}). Verifique o webhook na página de configuração. Webhooks de canais de fórum ou mídia não funcionam",
+      "log.discord.gone": "o webhook do Discord não pode ser usado ({m}): foi excluído ou a URL está errada. Nada será enviado até ele ser inserido de novo na página de configuração",
+      "log.discord.gaveup": "o Discord continuou limitando; {n} descartadas sem envio ({m})",
+      "log.discord.wait": "aguardando {s} s pelo limite do Discord ({scope})",
+      "log.discord.fail": "não foi possível enviar ao Discord ({m})",
+      "log.keeper": "esta sobreposição cuida da gravação e das postagens no Discord (as outras deste PC só mostram as fotos)",
+      "log.keeper.nolock": "este navegador não consegue escolher uma única sobreposição; a que não é vertical grava e posta no Discord. Uma fonte duplicada fará tudo duas vezes",
       "log.cardfail": "não foi possível salvar a cópia com moldura: {m} (a foto em si foi tirada)",
       "log.shot": "imagem de {kb} KB recebida",
       "log.shotstale": "o alvo mudou enquanto a foto era tirada; este quadro foi descartado",
@@ -3524,6 +3592,19 @@
       "log.cardmade": "die Quelle „{n}“ wurde in OBS für das Speichern mit Rahmen angelegt. Sie liegt außerhalb des Bildes und erscheint daher weder im Stream noch im Foto. Lass sie dort; wenn sie gelöscht wird, entsteht sie beim nächsten Foto neu",
       "log.sheetsaved": "Kontaktbogen geschrieben: {p}",
       "log.sheetfail": "Kontaktbogen konnte nicht geschrieben werden: {m} (im Stream war er zu sehen)",
+      "discord.sheet": "SHUTTER PARTY Kontaktbogen",
+      "log.discord.full": "{n} Fotos warten bereits auf Discord; dieses wird nicht gesendet (Speichern läuft weiter)",
+      "log.discord.skip": "nicht an Discord gesendet ({k} #{n}): {why}",
+      "log.discord.toobig": "Bild zu groß für Discord, nicht gesendet (#{n}, {mb} MB)",
+      "log.discord.sent": "{n} an Discord gesendet",
+      "log.discord.unsure": "unklar, ob Discord {n} erhalten hat; wird nicht erneut gesendet, damit nichts doppelt erscheint",
+      "log.discord.bad": "Discord hat den Beitrag nicht angenommen ({m}). Prüfe den Webhook auf der Einrichtungsseite. Webhooks von Forum- oder Medienkanälen funktionieren nicht",
+      "log.discord.gone": "der Discord-Webhook ist nicht nutzbar ({m}): gelöscht oder falsche URL. Bis zur erneuten Eingabe auf der Einrichtungsseite wird nichts gesendet",
+      "log.discord.gaveup": "Discord hat weiter gedrosselt; {n} ungesendet verworfen ({m})",
+      "log.discord.wait": "warte {s} s wegen Discords Ratenlimit ({scope})",
+      "log.discord.fail": "Senden an Discord fehlgeschlagen ({m})",
+      "log.keeper": "dieses Overlay speichert und postet an Discord (andere Overlays auf diesem PC zeigen die Fotos nur an)",
+      "log.keeper.nolock": "dieser Browser kann kein einzelnes Overlay festlegen; das nicht vertikale speichert und postet an Discord. Eine duplizierte Quelle tut beides doppelt",
       "log.cardfail": "Kopie mit Rahmen konnte nicht gespeichert werden: {m} (das Foto selbst wurde aufgenommen)",
       "log.shot": "Bild mit {kb} KB empfangen",
       "log.shotstale": "das Ziel hat sich während der Aufnahme geändert; dieses Bild wurde verworfen",
@@ -3592,6 +3673,19 @@
       "log.cardmade": "la source « {n} » a été ajoutée dans OBS pour enregistrer avec cadre. Elle est hors du canevas, donc elle n’apparaît ni au stream ni sur la photo. Laisse-la là ; si elle est supprimée, elle sera recréée à la prochaine photo",
       "log.sheetsaved": "planche-contact écrite : {p}",
       "log.sheetfail": "planche-contact impossible à écrire : {m} (elle est bien sortie au stream)",
+      "discord.sheet": "Planche-contact SHUTTER PARTY",
+      "log.discord.full": "{n} photos attendent déjà Discord ; celle-ci n'est pas envoyée (l'enregistrement continue)",
+      "log.discord.skip": "non envoyée à Discord ({k} #{n}) : {why}",
+      "log.discord.toobig": "image trop lourde pour Discord, non envoyée (#{n}, {mb} Mo)",
+      "log.discord.sent": "{n} envoyée(s) à Discord",
+      "log.discord.unsure": "impossible de savoir si Discord a reçu {n} ; pas de renvoi, pour ne rien publier deux fois",
+      "log.discord.bad": "Discord a refusé l'envoi ({m}). Vérifiez le webhook sur la page de configuration. Les webhooks des salons forum ou médias ne fonctionnent pas",
+      "log.discord.gone": "le webhook Discord est inutilisable ({m}) : supprimé ou URL erronée. Rien n'est envoyé tant qu'il n'est pas saisi à nouveau sur la page de configuration",
+      "log.discord.gaveup": "Discord a continué de limiter ; {n} abandonnée(s) sans envoi ({m})",
+      "log.discord.wait": "attente de {s} s pour la limite de Discord ({scope})",
+      "log.discord.fail": "envoi à Discord impossible ({m})",
+      "log.keeper": "cet overlay se charge de l'enregistrement et des envois sur Discord (les autres overlays de ce PC affichent seulement les photos)",
+      "log.keeper.nolock": "ce navigateur ne peut pas désigner un seul overlay ; l'overlay non vertical enregistre et publie sur Discord. Une source dupliquée le fera deux fois",
       "log.cardfail": "copie avec cadre impossible à enregistrer : {m} (la photo elle-même a été prise)",
       "log.shot": "image de {kb} Ko reçue",
       "log.shotstale": "la cible a changé pendant la prise ; cette image a été écartée",
@@ -3660,6 +3754,19 @@
       "log.cardmade": "в OBS создан источник «{n}» для сохранения с рамкой. Он находится за пределами холста, поэтому не появляется ни в эфире, ни на фото. Не удаляйте его; если удалить, он будет создан заново при следующем фото",
       "log.sheetsaved": "контактный лист записан: {p}",
       "log.sheetfail": "контактный лист записать не удалось: {m} (в эфир он вышел)",
+      "discord.sheet": "Контактный лист SHUTTER PARTY",
+      "log.discord.full": "в очереди на Discord уже {n} снимков; этот не отправляется (сохранение продолжается)",
+      "log.discord.skip": "не отправлено в Discord ({k} #{n}): {why}",
+      "log.discord.toobig": "изображение слишком большое для Discord, не отправлено (#{n}, {mb} МБ)",
+      "log.discord.sent": "отправлено в Discord: {n}",
+      "log.discord.unsure": "неизвестно, получил ли Discord {n}; повторно не отправляем, чтобы не было дублей",
+      "log.discord.bad": "Discord не принял отправку ({m}). Проверьте webhook на странице настройки. Webhook каналов-форумов и медиаканалов не подходят",
+      "log.discord.gone": "webhook Discord недоступен ({m}): удалён или неверный URL. Ничего не отправляется, пока его не введут заново на странице настройки",
+      "log.discord.gaveup": "Discord продолжал ограничивать; {n} отброшено без отправки ({m})",
+      "log.discord.wait": "ждём {s} с из-за лимита Discord ({scope})",
+      "log.discord.fail": "не удалось отправить в Discord ({m})",
+      "log.keeper": "этот оверлей сохраняет снимки и отправляет их в Discord (другие оверлеи на этом ПК только показывают снимки)",
+      "log.keeper.nolock": "этот браузер не может выбрать один оверлей; сохраняет и отправляет в Discord невертикальный. Дублированный источник сделает всё дважды",
       "log.cardfail": "копию с рамкой сохранить не удалось: {m} (само фото снято)",
       "log.shot": "получено изображение {kb} КБ",
       "log.shotstale": "цель изменилась во время съёмки; этот кадр отброшен",
@@ -3728,6 +3835,19 @@
       "log.cardmade": "테두리 포함 저장을 위해 OBS 에 “{n}” 소스를 만들었습니다. 화면 밖에 있으므로 방송이나 사진에는 나오지 않습니다. 지우지 말아 주세요(지워도 다음 저장 때 다시 만듭니다)",
       "log.sheetsaved": "콘택트 시트를 내보냈습니다: {p}",
       "log.sheetfail": "콘택트 시트를 내보내지 못했습니다: {m}(방송 화면에는 나갔습니다)",
+      "discord.sheet": "SHUTTER PARTY 콘택트 시트",
+      "log.discord.full": "Discord로 보낼 사진이 이미 {n}장 대기 중이라 이 사진은 보내지 않습니다(저장은 계속됩니다)",
+      "log.discord.skip": "Discord로 보내지 않음({k} #{n}): {why}",
+      "log.discord.toobig": "이미지가 너무 커서 Discord로 보내지 않습니다(#{n}, {mb} MB)",
+      "log.discord.sent": "Discord로 {n}장 보냈습니다",
+      "log.discord.unsure": "Discord가 {n}장을 받았는지 알 수 없습니다. 중복 게시를 막기 위해 다시 보내지 않습니다",
+      "log.discord.bad": "Discord가 전송을 받아들이지 않았습니다({m}). 설정 페이지에서 webhook을 확인하세요. 포럼·미디어 채널의 webhook은 사용할 수 없습니다",
+      "log.discord.gone": "Discord webhook을 사용할 수 없습니다({m}). 삭제되었거나 URL이 틀립니다. 설정 페이지에서 다시 입력할 때까지 보내지 않습니다",
+      "log.discord.gaveup": "Discord의 속도 제한이 계속되어 {n}장을 보내지 않고 버렸습니다({m})",
+      "log.discord.wait": "Discord 속도 제한으로 {s}초 기다립니다({scope})",
+      "log.discord.fail": "Discord로 보내지 못했습니다({m})",
+      "log.keeper": "이 오버레이가 저장과 Discord 전송을 맡습니다(이 PC의 다른 오버레이는 사진을 화면에 보여 주기만 합니다)",
+      "log.keeper.nolock": "이 브라우저에서는 맡을 오버레이를 정할 수 없어 세로형이 아닌 오버레이가 저장과 Discord 전송을 합니다. 복제한 소스는 두 번 실행됩니다",
       "log.cardfail": "테두리 포함 저장을 하지 못했습니다: {m}(사진 자체는 촬영되었습니다)",
       "log.shot": "{kb} KB 이미지를 받았습니다",
       "log.shotstale": "촬영 중에 대상 씬이 바뀌어 이 한 장은 사용하지 않습니다",
@@ -3796,6 +3916,19 @@
       "log.cardmade": "aggiunta in OBS la fonte “{n}” per il salvataggio con cornice. Sta fuori dal canvas, quindi non appare né in diretta né nella foto. Lasciala lì; se viene rimossa, sarà ricreata al prossimo scatto",
       "log.sheetsaved": "provino a contatto scritto: {p}",
       "log.sheetfail": "impossibile scrivere il provino a contatto: {m} (è comunque uscito in diretta)",
+      "discord.sheet": "Provino a contatto SHUTTER PARTY",
+      "log.discord.full": "ci sono già {n} foto in attesa per Discord; questa non viene inviata (il salvataggio continua)",
+      "log.discord.skip": "non inviata a Discord ({k} #{n}): {why}",
+      "log.discord.toobig": "immagine troppo grande per Discord, non inviata (#{n}, {mb} MB)",
+      "log.discord.sent": "{n} inviate a Discord",
+      "log.discord.unsure": "non si sa se Discord abbia ricevuto {n}; non viene reinviata per non pubblicare due volte",
+      "log.discord.bad": "Discord non ha accettato l'invio ({m}). Controlla il webhook nella pagina di configurazione. I webhook dei canali forum o media non funzionano",
+      "log.discord.gone": "il webhook di Discord non è utilizzabile ({m}): eliminato o URL errato. Non si invia nulla finché non viene reinserito nella pagina di configurazione",
+      "log.discord.gaveup": "Discord ha continuato a limitare; {n} scartate senza invio ({m})",
+      "log.discord.wait": "attesa di {s} s per il limite di Discord ({scope})",
+      "log.discord.fail": "invio a Discord non riuscito ({m})",
+      "log.keeper": "questo overlay si occupa del salvataggio e degli invii a Discord (gli altri overlay di questo PC mostrano solo le foto)",
+      "log.keeper.nolock": "questo browser non può scegliere un unico overlay; salva e invia a Discord quello non verticale. Una sorgente duplicata lo farà due volte",
       "log.cardfail": "impossibile salvare la copia con cornice: {m} (la foto è stata scattata)",
       "log.shot": "ricevuta un'immagine da {kb} KB",
       "log.shotstale": "il bersaglio è cambiato durante lo scatto; questo fotogramma è stato scartato",
@@ -3864,6 +3997,19 @@
       "log.cardmade": "dodano w OBS źródło „{n}” do zapisu w ramce. Leży poza ekranem, więc nie pojawia się ani na streamie, ani na zdjęciu. Zostaw je tam; jeśli zostanie usunięte, powstanie ponownie przy następnym zdjęciu",
       "log.sheetsaved": "zapisano stykówkę: {p}",
       "log.sheetfail": "nie udało się zapisać stykówki: {m} (pojawiła się na streamie)",
+      "discord.sheet": "Stykówka SHUTTER PARTY",
+      "log.discord.full": "na Discord czeka już {n} zdjęć; to nie zostanie wysłane (zapisywanie trwa dalej)",
+      "log.discord.skip": "nie wysłano na Discord ({k} #{n}): {why}",
+      "log.discord.toobig": "obraz za duży dla Discorda, nie wysłano (#{n}, {mb} MB)",
+      "log.discord.sent": "wysłano na Discord: {n}",
+      "log.discord.unsure": "nie wiadomo, czy Discord odebrał {n}; nie wysyłamy ponownie, żeby nic nie pojawiło się dwa razy",
+      "log.discord.bad": "Discord nie przyjął wysyłki ({m}). Sprawdź webhook na stronie ustawień. Webhooki kanałów forum i multimediów nie działają",
+      "log.discord.gone": "webhook Discorda jest nieużyteczny ({m}): usunięty albo błędny URL. Nic nie zostanie wysłane, dopóki nie wpiszesz go ponownie na stronie ustawień",
+      "log.discord.gaveup": "Discord nadal ograniczał; {n} odrzucono bez wysyłki ({m})",
+      "log.discord.wait": "czekam {s} s na limit Discorda ({scope})",
+      "log.discord.fail": "nie udało się wysłać na Discord ({m})",
+      "log.keeper": "ta nakładka zapisuje zdjęcia i wysyła je na Discord (inne nakładki na tym komputerze tylko je pokazują)",
+      "log.keeper.nolock": "ta przeglądarka nie potrafi wybrać jednej nakładki; zapisuje i wysyła na Discord nakładka niepionowa. Zduplikowane źródło zrobi to dwa razy",
       "log.cardfail": "nie udało się zapisać kopii w ramce: {m} (samo zdjęcie zostało zrobione)",
       "log.shot": "odebrano obraz {kb} KB",
       "log.shotstale": "cel zmienił się podczas robienia zdjęcia; ta klatka została odrzucona",
@@ -3932,6 +4078,19 @@
       "log.cardmade": "çerçeveli kaydetme için OBS'ye “{n}” kaynağı eklendi. Tuvalin dışında durur, bu yüzden yayında ya da fotoğrafta görünmez. Orada bırakın; silinirse sonraki fotoğrafta yeniden oluşturulur",
       "log.sheetsaved": "kontakt sayfası yazıldı: {p}",
       "log.sheetfail": "kontakt sayfası yazılamadı: {m} (yayına çıktı)",
+      "discord.sheet": "SHUTTER PARTY kontakt sayfası",
+      "log.discord.full": "Discord'a gitmeyi bekleyen {n} fotoğraf var; bu gönderilmiyor (kaydetme sürüyor)",
+      "log.discord.skip": "Discord'a gönderilmedi ({k} #{n}): {why}",
+      "log.discord.toobig": "görüntü Discord için çok büyük, gönderilmedi (#{n}, {mb} MB)",
+      "log.discord.sent": "Discord'a {n} gönderildi",
+      "log.discord.unsure": "Discord'un {n} tanesini alıp almadığı bilinmiyor; iki kez paylaşılmasın diye yeniden gönderilmiyor",
+      "log.discord.bad": "Discord gönderiyi kabul etmedi ({m}). Kurulum sayfasında webhook'u kontrol edin. Forum veya medya kanallarının webhook'ları kullanılamaz",
+      "log.discord.gone": "Discord webhook'u kullanılamıyor ({m}): silinmiş ya da URL yanlış. Kurulum sayfasında yeniden girilene kadar gönderilmiyor",
+      "log.discord.gaveup": "Discord sınırlamayı sürdürdü; {n} gönderilmeden atıldı ({m})",
+      "log.discord.wait": "Discord hız sınırı için {s} sn bekleniyor ({scope})",
+      "log.discord.fail": "Discord'a gönderilemedi ({m})",
+      "log.keeper": "kaydetme ve Discord gönderimini bu katman üstlenir (bu bilgisayardaki diğer katmanlar yalnızca fotoğrafları gösterir)",
+      "log.keeper.nolock": "bu tarayıcı tek bir katman seçemiyor; kaydetmeyi ve Discord'a göndermeyi dikey olmayan katman yapar. Çoğaltılmış bir kaynak ikisini de iki kez yapar",
       "log.cardfail": "çerçeveli kopya kaydedilemedi: {m} (fotoğrafın kendisi çekildi)",
       "log.shot": "{kb} KB'lık görüntü alındı",
       "log.shotstale": "çekim sırasında hedef değişti; bu kare atıldı",
@@ -4006,8 +4165,11 @@
    *
    * The overlay's URL clean-up walks this list, the setup page is checked
    * against it (tools/contract-check.mjs 「秘密を URL に載せない」), and this
-   * store is what holds them. A third one is added here and nowhere else. */
-  var SECRETS = ["pw", "ebsToken"];
+   * store is what holds them. A new one is added here and nowhere else.
+   *
+   * The third is the Discord webhook URL: its token is the whole credential for
+   * posting into the broadcaster's server (docs/discord-plan.md §4.1). */
+  var SECRETS = ["pw", "ebsToken", "discordWebhook"];
 
   /* Where the store got to. Four answers, and they are four because they need
    * four different things said to the broadcaster:
@@ -4524,7 +4686,8 @@
     saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
     stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
     gateSet: "", testUntil: "", theme: "liquid", pack: "",
-    packSlots: ""
+    packSlots: "", discordWebhook: "", discordHook: "", discordSheet: "0",
+    discordPaid: "0"
   };
   /* @end config-defaults */
 
@@ -4745,6 +4908,8 @@
     });
     return news ? saveSecrets() : Promise.resolve(false);
   }).then(function () {
+    claimKeeper();
+    discordSettle();
     return DEMO ? "demo" : secretState;
   });
 
@@ -4763,7 +4928,10 @@
   window.addEventListener("hashchange", function () {
     var sent = fromHash();
     if (!sent) return;
-    ["gateSet", "scenes", "testUntil"].forEach(function (k) {
+    /* The three Discord settings too: they decide whether anything leaves
+     * this machine, and "stop sending" that waits for the next reload is not
+     * a stop (docs/discord-plan.md §4.1, Codex 15巡目). */
+    ["gateSet", "scenes", "testUntil", "discordHook", "discordSheet", "discordPaid"].forEach(function (k) {
       if (typeof sent[k] === "string") cfg[k] = sent[k];
     });
     saveCfg(cfg);
@@ -4782,7 +4950,53 @@
     // waiting for. It re-asks sceneOpen() itself; the call above is what puts
     // the reason in the log even when there is no EBS link to report to.
     reportOverlayState();
+    discordPrune();              // before the store answers: stop at once
+    takeLiveSecrets(sent).then(discordSettle);
   });
+
+  /**
+   * Secrets that arrived after load: keep them, then take them out of the URL.
+   *
+   * The setup page writes overlayConfig() — secrets included — on every
+   * change, and the scene gate is changed without a reload (setup:
+   * pushSafety). The clean-up used to happen once, at load, so everything
+   * written after that stayed in OBS's source settings, and in the scene
+   * collection file, until the page next loaded for some other reason
+   * (docs/discord-plan.md §4.1, Codex 12巡目).
+   *
+   * The value that arrived wins, as it does at load. Writing back is asked
+   * only once the store says it holds it; the fragment OBS then gives this
+   * page carries no secret, so that round ends there.
+   */
+  function takeLiveSecrets(sent) {
+    if (DEMO || BAR_ONLY) return Promise.resolve();
+    var came = SECRETS.filter(function (k) { return typeof sent[k] === "string" && sent[k]; });
+    if (!came.length) return secretsSettled;
+    return secretsSettled.then(function () {
+      // A connection already open keeps what it opened with; the new value is
+      // used from the next connect, like every other setting read at load.
+      came.forEach(function (k) { cfg[k] = sent[k]; });
+      var fresh = came.some(function (k) { return !secretIsStored(k, sent[k]); });
+      return fresh ? saveSecrets() : null;
+    }).then(function () { scrubSecretsFromUrl(sent); });
+  }
+
+  /**
+   * Forget one secret and keep the others.
+   *
+   * The store holds them in one blob and treats "all empty" as nothing to
+   * write (shared: secret-store.js), so the last one standing is removed by
+   * clearing the store instead. Used for a Discord webhook the setup page no
+   * longer names (62-discord.js: discordSettle).
+   */
+  function forgetSecret(key) {
+    if (DEMO || BAR_ONLY || !cfg[key]) return Promise.resolve(false);
+    cfg[key] = "";
+    delete broughtSecrets[key];
+    var others = SECRETS.some(function (k) { return k !== key && cfg[k]; });
+    var gone = others ? saveSecrets() : secretsClear();
+    return gone.then(function (ok) { saveCfg(cfg); return ok; });
+  }
   saveCfg(cfg);
 
   /**
@@ -4822,10 +5036,16 @@
    * obs-websocket without authentication: there was no password to take out, so
    * the function returned on its first line and the token stayed for ever.
    */
-  function scrubSecretsFromUrl() {
-    if (!pushed) return;
+  function scrubSecretsFromUrl(live) {
+    /* `live` is a fragment that arrived after load (takeLiveSecrets). What is
+     * written back is then built from IT, not from cfg: cfg still holds the
+     * appearance this page loaded with, and the fragment may carry newer
+     * settings that are waiting for a reload — writing cfg over them would
+     * undo the broadcaster's change from the page that was only tidying up. */
+    var from = live || pushed;
+    if (!from) return;
     var drop = SECRETS.filter(function (k) {
-      return pushed[k] && secretIsStored(k, pushed[k]);
+      return from[k] && secretIsStored(k, from[k]);
     });
     if (!drop.length) return;                      // nothing safe to take out
     /* A secret is left out when it is being dropped — and also when there is
@@ -4836,8 +5056,10 @@
     var clean = {};
     for (var k in DEFAULTS) {
       if (drop.indexOf(k) !== -1) continue;
-      if (SECRETS.indexOf(k) !== -1 && !cfg[k]) continue;
-      clean[k] = cfg[k];
+      var v = live ? live[k] : cfg[k];
+      if (typeof v !== "string") continue;
+      if (SECRETS.indexOf(k) !== -1 && !v) continue;
+      clean[k] = v;
     }
     /* Everything else in the fragment is put back.
      *
@@ -5600,6 +5822,55 @@
     cancelSceneProbe();
     reportOverlayState();          // the EBS must stop accepting presses
   }
+  /* ================= one keeper per machine =================
+
+     A broadcaster with a landscape and a vertical overlay — or one browser
+     source duplicated — has two pages that each take the photograph. Each used
+     to write it to disk under the same names, draw it into the one shared card
+     source, save its own contact sheet, and post it to Discord: every print
+     arrived twice, two sheets landed per party, and the two pages redrew the
+     same card under each other (本人の実機 2026-09-18).
+
+     They are the same file under the same origin, so they agree through the
+     browser: whoever holds the Web Lock is the KEEPER — it saves, draws the
+     card, writes the sheet and sends to Discord. The others take the
+     photograph for their own screen and nothing more. The lock is held for the
+     life of the page and passes to the next one when it closes.
+
+     Measured in OBS 32.2.2's CEF on file:// (本人の実機 2026-09-18): the lock
+     is granted, and it moves to the other overlay when one reloads.
+
+     Where there is no Web Locks API, the vertical one stands down instead: the
+     flag is the only thing that tells the two apart, and duplicated sources
+     still double up there — said once in the log. */
+  var KEEPER_LOCK = "sp-keeper";
+  var isKeeper = false;
+  var keeperAsked = false;
+
+  function claimKeeper() {
+    if (keeperAsked || DEMO || BAR_ONLY) return;
+    keeperAsked = true;
+    var locks = null;
+    try { locks = navigator.locks && typeof navigator.locks.request === "function" ? navigator.locks : null; }
+    catch (e) { locks = null; }
+    if (!locks) {
+      isKeeper = !hashFlag("vertical");
+      log(t("log.keeper.nolock"), "warn");
+      return;
+    }
+    try {
+      locks.request(KEEPER_LOCK, function () {
+        isKeeper = true;
+        log(t("log.keeper"), "ok");
+        return new Promise(function () {});        // held until the page goes
+      }).catch(function () {
+        isKeeper = !hashFlag("vertical");
+      });
+    } catch (e) {
+      isKeeper = !hashFlag("vertical");
+    }
+  }
+
   /* ================= capture ================= */
 
   var DEDUPE_MS = 150;   // one capture per window, however many presses land in it
@@ -5765,12 +6036,32 @@
     // a file is needed anyway. The two are different questions and the second
     // one is easy to miss: the contact sheet is assembled by pointing the card
     // source at addresses, so a party frame that never reached disk cannot be
-    // in it (saveSheet refuses a set with any data: URL in it). Skipping saves
+    // in it (saveSheet draws only the file: ones). Skipping saves
     // naively therefore takes the sheet down with the photographs.
-    if (!cfg.saveDir || saveGaveUp) captureToScreen(source, people, paid, !!ignition);
-    else if (keepThisShot(paid) || needScratch(!!ignition)) {
-      captureToDisk(source, people, paid, !!ignition);
+    //
+    // Sending to Discord is a third question beside those two
+    // (docs/discord-plan.md §3): a paid print the broadcaster does not keep
+    // may still be one they send, and the card is made from the bare frame on
+    // disk, so it goes to disk too — to a scratch name, never as a keeper.
+    // Only the keeper touches the disk and the card (58-one-keeper.js). The
+    // others photograph for their own screen, whose sheet is drawn from the
+    // data: URLs that path hands back.
+    if (!cfg.saveDir || saveGaveUp || !isKeeper) { captureToScreen(source, people, paid, !!ignition); return; }
+    var send = sendThisShot(paid);
+    if (keepThisShot(paid) || needScratch(!!ignition) || send) {
+      captureToDisk(source, people, paid, !!ignition, send);
     } else captureToScreen(source, people, paid, !!ignition);
+  }
+
+  /**
+   * A place in the Discord queue for this paid print, or null.
+   *
+   * Asked at the fork, while the press's own yes is the current one: a print
+   * taken off air — a test window — is never one that leaves (§4.2).
+   */
+  function sendThisShot(paid) {
+    if (!paid || !mayPost(sceneProof)) return null;
+    return discordReserve("paid");
   }
 
   /* ---- what the broadcaster asked to keep ----
@@ -6464,12 +6755,24 @@
    * a party ends, the nine on the sheet have to still be on disk.
    */
   function saveSheet(done) {
-    if (!cfg.saveDir) return Promise.resolve();
-    var picks = pickSheet(done.shots, done.paidAt || [], 9);
-    if (!picks.length) return Promise.resolve();
+    if (!cfg.saveDir || saveGaveUp || !isKeeper) return Promise.resolve();
     // Only what OBS wrote can be redrawn from an address. Without a folder the
-    // shots are data: URLs, and those never reach here.
-    if (picks.some(function (u) { return String(u).slice(0, 5) !== "file:"; })) return Promise.resolve();
+    // shots are data: URLs, and those never reach here. A party can still hold
+    // both: this page became the keeper part-way through (the one that was
+    // saving closed), so what it photographed before that went to its screen
+    // only. The sheet is then drawn from the ones on disk — the sheet of the
+    // part it kept, rather than none (58-one-keeper.js). The tally still counts
+    // the whole party.
+    var onDisk = [], diskPaid = [];
+    (done.shots || []).forEach(function (u, i) {
+      if (String(u).slice(0, 5) !== "file:") return;
+      if ((done.paidAt || []).indexOf(i) !== -1) diskPaid.push(onDisk.length);
+      onDisk.push(u);
+    });
+    var picks = pickSheet(onDisk, diskPaid, 9);
+    if (!picks.length) return Promise.resolve();
+    // Asked now, at the close, while the party's own yes is the current one.
+    var send = mayPost(sceneProof) ? discordReserve("sheet") : null;
 
     return onCard(function () {
       return ensureCard().then(function (ok) {
@@ -6510,22 +6813,30 @@
             return request("SaveSourceScreenshot", {
               sourceName: CARD_SOURCE, imageFormat: "jpg", imageFilePath: out,
               imageCompressionQuality: 92
-            }).then(function () { log(t("log.sheetsaved", { p: out }), "ok"); });
+            }).then(function () {
+              log(t("log.sheetsaved", { p: out }), "ok");
+              if (send) return discordGrab(send, { w: undefined, q: 92 });
+            });
           });
         });
       }).catch(function (e) {
         cardReady = false;
         log(t("log.sheetfail", { m: e.message }), "warn");
-      });
+      }).then(function () { if (send && !send.blob) discordDrop(send); });
     });
   }
 
   /** Draw the photo into the card, then have OBS capture the card. */
-  function saveFramed(tempUrl, people, paid) {
-    return onCard(function () { return framedRun(tempUrl, people, paid); });
+  function saveFramed(tempUrl, people, paid, keep, send) {
+    return onCard(function () {
+      return framedRun(tempUrl, people, paid, keep, send)
+        // Whatever the job did, a place it did not hand to the queue is
+        // given back here, once (62-discord.js: discordDrop).
+        .then(function () { if (send && !send.blob) discordDrop(send); });
+    });
   }
 
-  function framedRun(tempUrl, people, paid) {
+  function framedRun(tempUrl, people, paid, keep, send) {
     var box = null;
     return ensureCard().then(function (ok) {
       if (!ok) return "stop";                 // ensureCard has already said why
@@ -6565,11 +6876,17 @@
         return new Promise(function (r) { setTimeout(r, wait); });
       }).then(function () {
         var sz = saveSize();
-        var out = joinPath(cfg.saveDir, keepName(people, paid));
-        return request("SaveSourceScreenshot", {
-          sourceName: CARD_SOURCE, imageFormat: "jpg", imageFilePath: out,
-          imageWidth: sz.w, imageCompressionQuality: sz.q
-        }).then(function () { logShot(t("log.savedTo", { p: out })); });
+        // Draw, wait, keep, send — one job, so nothing repaints the card in
+        // between (§3). A keep that fails sends nothing: the catch below.
+        var kept = Promise.resolve();
+        if (keep) {
+          var out = joinPath(cfg.saveDir, keepName(people, paid));
+          kept = request("SaveSourceScreenshot", {
+            sourceName: CARD_SOURCE, imageFormat: "jpg", imageFilePath: out,
+            imageWidth: sz.w, imageCompressionQuality: sz.q
+          }).then(function () { logShot(t("log.savedTo", { p: out })); });
+        }
+        return kept.then(function () { if (send) return discordGrab(send, sz); });
       });
     }).catch(function (e) {
       // The photo itself was taken and shown; only the framed copy is missing.
@@ -6578,12 +6895,12 @@
     });
   }
 
-  function captureToDisk(source, people, paid, lit) {
+  function captureToDisk(source, people, paid, lit, send) {
     // The same last word as captureToScreen: the target is still a scene, the
     // scene on air is still one the broadcaster allowed, and this is still a
     // connection. A press can be in flight while the broadcaster steps away,
     // and this path writes a file that outlives the moment.
-    if (!identified || !srcIsScene || !sceneOpen()) { settlePaidShot(paid); return; }
+    if (!identified || !srcIsScene || !sceneOpen()) { discordDrop(send); settlePaidShot(paid); return; }
     var proof = sceneProof;      // the yes this shot was allowed on
     // Started alongside the capture rather than awaited: the photo goes on
     // screen the moment the file lands, and this is only a few local requests.
@@ -6650,7 +6967,7 @@
       // file (it cannot delete one, docs/plan.md Phase 6). Before the saving
       // tally, too: an answer to a withdrawn question says nothing about
       // whether saving works now.
-      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); settlePaidShot(paid); return; }
+      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid); return; }
       if (saveFails) log(t("log.saveok"), "ok");
       saveFails = 0;
       setCaptureOk(true);
@@ -6687,8 +7004,12 @@
         // The card is the keeper — the only file that outlives this one — so
         // it is made for a photograph the broadcaster asked to keep, and not
         // otherwise.
-        if (keep) saveFramed(shown, people, paid);
+        // ...or one they send. A print that is only sent has its card drawn
+        // and photographed, and nothing of it is written (§3).
+        if (keep || send) saveFramed(shown, people, paid, keep, send);
+        else discordDrop(send);
       } catch (e) {
+        discordDrop(send);
         log(t("log.reqfail", { m: e.message }), "warn");
       }
     }).catch(function (e) {
@@ -6711,6 +7032,8 @@
       // the fallback capture was still running. The yes travels with it too:
       // the fallback refuses a press whose yes was withdrawn while the save
       // was failing, rather than taking it on a renewed one.
+      // No card comes of the fallback, so nothing is sent from it.
+      discordDrop(send);
       captureToScreen(source, people, paid, lit, proof);
     });
   }
@@ -6886,6 +7209,359 @@
     }).catch(function () {
       return false;                // unknown is refused, and asked again later
     });
+  }
+
+  /* ================= sending to Discord =================
+
+     The broadcaster may have the contact sheet and the paid prints posted to a
+     Discord webhook of their own (docs/discord-plan.md). Off by default, and
+     never the free prints: a party takes one every 150ms, and a webhook allows
+     a handful a second.
+
+     Sent from HERE, from the broadcaster's machine, and never through the EBS:
+     the policy says the photographs are not sent to us, and that stays true.
+
+     What is sent is the same card the folder gets. This page cannot read the
+     pixels of a file:// image, so the card source is photographed once more
+     with GetSourceScreenshot, inside the same card job that drew it
+     (60-capture.js: framedRun, saveSheet), and the answer is the bytes.
+
+     Three rules carry the weight, and each has a test (tools/discord-check.mjs):
+
+       - Nothing leaves unless mayPost() says so, asked before a card is
+         photographed, before an item is queued and right before the post —
+         plus one GetStreamStatus right before the post, because the events
+         that move `streaming` can arrive a moment late (§3).
+       - A post is sent once. Discord has no idempotency key, so a post whose
+         answer was lost is not sent again: a missing photograph is better
+         than the same one twice (§4.2). Only a 429, and a server error that
+         answered, are tried again — at most three more times.
+       - 400 / 401 / 403 / 404 stop this webhook until its ID changes. Discord
+         counts invalid requests per IP and shuts out the ones that keep
+         sending them, and a 404 webhook must never be used again.
+
+     The webhook URL is a secret (shared: secret-store.js) and is never
+     logged: the lines below name the host at most. */
+
+  var DISCORD_HELD_MAX = 30;                       // reserved items, all states
+  var DISCORD_BYTES_MAX = 32 * 1024 * 1024;        // Blob bytes held, all states
+  var DISCORD_FILE_MAX = 8 * 1024 * 1024;          // one image; Discord takes 20 MiB
+  var DISCORD_BATCH = 10;                          // this product's cap per post
+  var DISCORD_TRIES = 4;                           // the first post + three more on 429
+  var DISCORD_RE = /^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/([^\/?#\s]+)$/;
+
+  var discordHeld = 0;          // reserved: waiting for a card, queued, or posting
+  var discordBytes = 0;
+  var discordQueue = [];        // slots with a blob, in the order cards finished
+  var discordPosting = false;
+  var discordNextAt = 0;        // the bucket said wait until then
+  var discordTimer = null;
+  var discordStopped = {};      // webhook id -> true after 400/401/403/404
+  var discordSaid = {};         // warnings said once per kind
+  var discordSeq = 0;
+
+  /** The webhook ID in a URL of the one accepted shape, or "". */
+  function discordHookId(url) {
+    var m = DISCORD_RE.exec(String(url || ""));
+    return m ? m[1] : "";
+  }
+
+  /**
+   * The webhook this page may post to right now, or null.
+   *
+   * The stored URL is used only while its ID is the one the setup page last
+   * sent as discordHook. Emptying the box on the setup page sends no URL at
+   * all (an empty secret means "say nothing"), so the ID is what carries
+   * "stop" (§4.1).
+   */
+  function discordTarget() {
+    if (DEMO || BAR_ONLY || !isKeeper) return null;
+    var id = discordHookId(cfg.discordWebhook);
+    if (!id || id !== cfg.discordHook) return null;
+    if (discordStopped[id]) return null;
+    if (!cfg.saveDir) return null;               // cards exist only with a folder
+    return { url: cfg.discordWebhook, id: id };
+  }
+
+  function discordWants(kind) {
+    if (!discordTarget()) return false;
+    return kind === "sheet" ? cfg.discordSheet === "1" : cfg.discordPaid === "1";
+  }
+
+  /**
+   * May anything leave for the outside right now, for a shot allowed on
+   * `proof`?
+   *
+   * sceneOpen() alone is not enough: it is true during a test window, which
+   * is off air by design (52-obs-hooks.js). `streaming` is what says somebody
+   * is watching, and only a photograph that could have been seen is sent.
+   */
+  function mayPost(proof) {
+    return streaming === true && sceneOpen() && proof === sceneProof;
+  }
+
+  function discordOnce(key, msg, cls) {
+    if (discordSaid[key]) return;
+    discordSaid[key] = true;
+    log(msg, cls || "warn");
+  }
+
+  /**
+   * Take one of the thirty places, or say no.
+   *
+   * Taken the moment "send this" is decided, before the card job is even
+   * queued: that queue has no end of its own (60-capture.js: onCard), so a
+   * place taken later would not bound anything (§4.2, Codex 13巡目). A shot
+   * that gets no place is still kept if the broadcaster keeps it.
+   */
+  function discordReserve(kind) {
+    if (!discordWants(kind)) return null;
+    if (discordHeld >= DISCORD_HELD_MAX) {
+      discordOnce("full", t("log.discord.full", { n: DISCORD_HELD_MAX }));
+      return null;
+    }
+    discordHeld++;
+    return { kind: kind, seq: ++discordSeq, proof: sceneProof, hook: cfg.discordHook, blob: null, done: false };
+  }
+
+  /** Give the place back. Safe to call more than once. */
+  function discordDrop(slot, why) {
+    if (!slot || slot.done) return;
+    slot.done = true;
+    discordHeld = Math.max(0, discordHeld - 1);
+    if (slot.blob) discordBytes = Math.max(0, discordBytes - slot.blob.size);
+    slot.blob = null;                              // let the image go at once
+    if (why) log(t("log.discord.skip", { k: slot.kind, n: slot.seq, why: why }), "warn");
+  }
+
+  function discordStillWanted(slot) {
+    return !slot.done && slot.hook === cfg.discordHook && discordWants(slot.kind);
+  }
+
+  /** base64 from obs-websocket, as bytes. The string is not kept. */
+  function discordBlob(dataUrl) {
+    var s = String(dataUrl || "");
+    var bin = atob(s.slice(s.indexOf(",") + 1));
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return new Blob([out], { type: "image/jpeg" });
+  }
+
+  /**
+   * Photograph the card as it stands, and queue it.
+   *
+   * Called from inside a card job, after the card has been drawn and waited
+   * for, so nothing else can repaint it in between (60-capture.js: onCard).
+   * This is one more trip through OBS's graphics lock, which is the cost the
+   * plan measures on the real machine (§6).
+   */
+  function discordGrab(slot, shot) {
+    if (!slot || slot.done) return Promise.resolve();
+    if (!discordStillWanted(slot)) { discordDrop(slot); return Promise.resolve(); }
+    if (!mayPost(slot.proof)) { discordDrop(slot, "offair"); return Promise.resolve(); }
+    return request("GetSourceScreenshot", {
+      sourceName: CARD_SOURCE, imageFormat: "jpg",
+      imageWidth: shot.w, imageCompressionQuality: shot.q
+    }).then(function (d) {
+      if (!d || !d.imageData) throw new Error("empty imageData");
+      var blob = discordBlob(d.imageData);
+      d = null;
+      if (!discordStillWanted(slot)) { discordDrop(slot); return; }
+      if (!mayPost(slot.proof)) { discordDrop(slot, "offair"); return; }
+      if (blob.size >= DISCORD_FILE_MAX) {
+        log(t("log.discord.toobig", { n: slot.seq, mb: (blob.size / 1048576).toFixed(1) }), "warn");
+        discordDrop(slot);
+        return;
+      }
+      if (discordBytes + blob.size > DISCORD_BYTES_MAX) {
+        discordOnce("bytes", t("log.discord.full", { n: DISCORD_HELD_MAX }));
+        discordDrop(slot);
+        return;
+      }
+      slot.blob = blob;
+      discordBytes += blob.size;
+      discordQueue.push(slot);
+      discordPump();
+    }).catch(function (e) {
+      discordDrop(slot, e.message);
+    });
+  }
+
+  /**
+   * Forget what is no longer wanted: a kind turned off, the webhook changed
+   * or stopped. Called when the settings move (30-configuration.js) and
+   * before each post.
+   */
+  function discordPrune() {
+    discordQueue = discordQueue.filter(function (s) {
+      if (discordStillWanted(s)) return true;
+      discordDrop(s);
+      return false;
+    });
+  }
+
+  function discordPump() {
+    if (discordPosting) return;
+    discordPrune();
+    if (!discordQueue.length) return;
+    var wait = discordNextAt - Date.now();
+    if (wait > 0) {
+      if (!discordTimer) discordTimer = setTimeout(function () { discordTimer = null; discordPump(); }, wait);
+      return;
+    }
+    // From the front, the same kind, up to the cap. A sheet goes alone.
+    var head = discordQueue[0];
+    var n = 1;
+    if (head.kind === "paid") {
+      while (n < discordQueue.length && n < DISCORD_BATCH && discordQueue[n].kind === "paid") n++;
+    }
+    var batch = discordQueue.splice(0, n);
+    discordPosting = true;
+    discordPost(batch, 1).then(function () {
+      batch.forEach(function (s) { discordDrop(s); });
+      discordPosting = false;
+      discordPump();
+    });
+  }
+
+  /** Seconds from a header or a body, as milliseconds; 0 when absent. */
+  function discordSecs(v) {
+    var n = Number(v);
+    return n > 0 && isFinite(n) ? Math.ceil(n * 1000) : 0;
+  }
+
+  function discordNote(res) {
+    var left = res.headers.get("X-RateLimit-Remaining");
+    var after = discordSecs(res.headers.get("X-RateLimit-Reset-After"));
+    if (left === "0" && after) {
+      discordNextAt = Math.max(discordNextAt, Date.now() + after);
+      log(t("log.discord.wait", {
+        s: (after / 1000).toFixed(1),
+        scope: res.headers.get("X-RateLimit-Scope") || "-"
+      }), "ok");
+    }
+  }
+
+  /** Discord's own words, short, with nothing of the URL in them. */
+  function discordWhy(res, body) {
+    var bits = [String(res.status)];
+    if (body && body.code !== undefined) bits.push(String(body.code));
+    if (body && typeof body.message === "string") bits.push(body.message.slice(0, 120));
+    return bits.join(" ");
+  }
+
+  /**
+   * The items of `batch` that may still go to `target`, dropping the rest.
+   * Asked before the stream question and again after it: the settings can
+   * move while OBS answers, and an item is only ever posted to the webhook
+   * it was taken for (Codex code review 1巡目).
+   */
+  function discordStillLive(batch, target) {
+    return batch.filter(function (s) {
+      if (s.done) return false;
+      if (!discordStillWanted(s) || !target || s.hook !== target.id) { discordDrop(s); return false; }
+      if (!mayPost(s.proof)) { discordDrop(s, "offair"); return false; }
+      return true;
+    });
+  }
+
+  function discordPost(batch, attempt) {
+    var target = discordTarget();
+    var live = discordStillLive(batch, target);
+    if (!live.length) return Promise.resolve();
+
+    // The last word, asked of OBS rather than remembered: an event that says
+    // the stream stopped may still be on its way (§3, Codex 20巡目).
+    return request("GetStreamStatus").then(function (d) {
+      return !!(d && d.outputActive);
+    }, function () { return false; }).then(function (onAir) {
+      if (!onAir) {
+        live.forEach(function (s) { discordDrop(s, "offair"); });
+        return;
+      }
+      // Asked again, whole: a kind turned off, or the webhook changed (even
+      // to another URL with the same ID), while OBS was answering.
+      var now = discordTarget();
+      if (!now || !target || now.id !== target.id || now.url !== target.url) {
+        live.forEach(function (s) { discordDrop(s); });
+        return;
+      }
+      live = discordStillLive(live, now);
+      if (!live.length) return;
+      var fd = new FormData();
+      var payload = {
+        username: "SHUTTERPARTY",
+        allowed_mentions: { parse: [] },
+        attachments: live.map(function (s, i) {
+          return { id: i, filename: "shutterparty-" + s.kind + "-" + s.seq + ".jpg" };
+        })
+      };
+      // A sheet carries one line; a paid print carries none. The buyer's name
+      // is in the picture, where the screen put it, and nowhere else.
+      if (live[0].kind === "sheet") payload.content = t("discord.sheet");
+      fd.append("payload_json", JSON.stringify(payload));
+      live.forEach(function (s, i) {
+        fd.append("files[" + i + "]", s.blob, payload.attachments[i].filename);
+      });
+
+      // No headers of our own, so the browser sends it as a simple request
+      // and asks nothing first (§5).
+      return window.fetch(now.url + "?wait=true", { method: "POST", body: fd })
+        .then(function (res) {
+          discordNote(res);
+          return res.json().catch(function () { return null; }).then(function (body) {
+            if (res.ok && body && body.id) {
+              // Not logShot(): its five-second hush would swallow the one
+              // line that says a post landed, and posts are few (batched).
+              log(t("log.discord.sent", { n: live.length }), "ok");
+              return;
+            }
+            if (res.ok) {
+              discordOnce("nobody", t("log.discord.unsure", { n: live.length }));
+              return;
+            }
+            if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
+              discordStopped[target.id] = true;
+              log(t(res.status === 400 ? "log.discord.bad" : "log.discord.gone", { m: discordWhy(res, body) }), "bad");
+              discordPrune();
+              return;
+            }
+            if (res.status === 429 || res.status >= 500) {
+              if (attempt >= DISCORD_TRIES) {
+                log(t("log.discord.gaveup", { n: live.length, m: discordWhy(res, body) }), "warn");
+                return;
+              }
+              var wait = discordSecs(body && body.retry_after) ||
+                discordSecs(res.headers.get("Retry-After")) || 1000 * attempt;
+              log(t("log.discord.wait", {
+                s: (wait / 1000).toFixed(1),
+                scope: res.headers.get("X-RateLimit-Scope") || "-"
+              }), "warn");
+              return new Promise(function (r) { setTimeout(r, wait); }).then(function () {
+                return discordPost(live, attempt + 1);
+              });
+            }
+            log(t("log.discord.fail", { m: discordWhy(res, body) }), "warn");
+          });
+        }, function () {
+          // No answer. It may have been posted, and there is no way to ask,
+          // so it is not sent again.
+          log(t("log.discord.unsure", { n: live.length }), "warn");
+        });
+    });
+  }
+
+  /**
+   * The settings moved (hashchange) or settled (load). A webhook whose ID the
+   * setup page no longer names is dropped from storage, and everything queued
+   * for something no longer wanted goes.
+   */
+  function discordSettle() {
+    if (DEMO || BAR_ONLY) return;
+    if (cfg.discordWebhook && discordHookId(cfg.discordWebhook) !== cfg.discordHook) {
+      forgetSecret("discordWebhook");
+    }
+    discordPrune();
   }
 
   /* ================= effects =================

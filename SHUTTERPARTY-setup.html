@@ -47,6 +47,9 @@
                             The EBS is pinned to *.workers.dev, which is where it
                             is and where it would move to; http://localhost and
                             http://127.0.0.1 are a development EBS (Phase 3).
+                            https://discord.com is the broadcaster's Discord
+                            webhook, used only when they chose to send photos
+                            there (docs/discord-plan.md §4.3).
                             https: and http: to anywhere else are refused, which
                             is the easy way out for anything that should not be
                             leaving.
@@ -56,7 +59,7 @@
        base-uri / form-action
                             Neither page has a <base> or a <form>; naming them
                             'none' is what keeps that true. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'; frame-src file:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:* https://discord.com; base-uri 'none'; form-action 'none'; frame-src file:">
 <title>SHUTTERPARTY — setup</title>
 <!--
   The broadcaster's setup page.
@@ -1118,6 +1121,34 @@
             <button class="mini" id="btnSaveTest" hidden></button>
           </div>
         </section>
+
+        <!-- Sending to Discord (docs/discord-plan.md §4.1). A step of its own,
+             under saving because it is made of what saving makes: the card is
+             what gets posted, and there is no card without a folder. Off until
+             a webhook is in and at least one box is ticked. There is no box
+             for free photographs, on purpose — a party takes one every 150ms.
+             The URL is a secret: masked here, kept encrypted, never sent to
+             the EBS. -->
+        <section class="step" id="stepDiscord">
+          <h2 id="sDiscord"></h2>
+          <p class="note" id="nDiscord"></p>
+          <p class="note warn" id="hDiscordDir" hidden></p>
+          <div class="row">
+            <div class="field wide">
+              <label for="discordWebhook" id="lDiscordWebhook"></label>
+              <input id="discordWebhook" type="password" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+          <p class="note warn" id="hDiscordBad" hidden></p>
+          <label class="check"><input id="discordSheet" type="checkbox"> <span id="lDiscordSheet"></span></label>
+          <label class="check"><input id="discordPaid" type="checkbox"> <span id="lDiscordPaid"></span></label>
+          <p class="note" id="hDiscordTemp"></p>
+          <div class="btns">
+            <button class="mini" id="btnDiscordTest"></button>
+            <button class="mini ghost" id="btnDiscordClear"></button>
+          </div>
+          <p class="note" id="hDiscordResult" role="status" hidden></p>
+        </section>
       </section>
 
     </main>
@@ -1326,6 +1357,24 @@
       "log.unquoted": "貼り付けたパスから引用符を取り除きました（エクスプローラーの「パスのコピー」は \" が付きます）",
       "log.recdir": "OBS の録画先を入れました: {p}",
       "log.norecdir": "OBS から録画先を取得できませんでした。フォルダを手で入れてください",
+      "s.discord": "Discord に送る",
+      "n.discord": "コンタクトシートと有料の写真を、あなたの Discord サーバーに自動で投稿します。送るのはこの PC の OBS からで、SHUTTERPARTY のサーバーは通りません。配信中だけ送り、無料の写真は送りません。写真の名前は配信画面と同じです（名前を出さない選択をした視聴者の名前は入りません）。",
+      "discord.needdir": "保存フォルダを決めると使えます（送る写真は、保存と同じ枠つきの画像を使います）",
+      "discord.webhook": "webhook の URL（Discord のチャンネル設定 → 連携サービス → ウェブフック）",
+      "discord.sheet": "コンタクトシート（SHUTTER PARTY 1回につき1枚）",
+      "discord.paid": "有料の写真（枠つき）",
+      "h.discordTemp": "送る写真の元画像は、保存フォルダに一時ファイル（_shutterparty-…）として残ります。不要なら手で消してください。",
+      "discord.test": "テスト送信",
+      "discord.clear": "webhook を消す",
+      "discord.badurl": "https://discord.com/api/webhooks/… の形の URL だけ使えます。保存していません",
+      "discord.testmsg": "SHUTTERPARTY から送る準備ができました",
+      "discord.ok": "届きました。Discord のチャンネルを確かめてください",
+      "discord.rejected": "送信の設定か内容が受け付けられませんでした。フォーラムやメディアのチャンネルの webhook は使えないので、通常のテキストチャンネルで作ってください",
+      "discord.gone": "この webhook は使えません。消されたか、URL が違います",
+      "discord.limited": "Discord の回数制限にかかりました。少し待ってから試してください",
+      "discord.failed": "送れませんでした。ネットワークか Discord の状態を確かめてください",
+      "log.discord.cleared": "Discord の webhook を消しました。以後は送りません",
+      "log.discord.testing": "Discord（{h}）にテスト送信しています",
       "newSrcName": "作るソースの名前",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "OBS に反映",
@@ -1558,6 +1607,24 @@
       "log.unquoted": "removed the quotes from the path you pasted (Explorer's Copy as path adds \")",
       "log.recdir": "filled in the OBS recording folder: {p}",
       "log.norecdir": "OBS would not say where it records. Enter a folder by hand",
+      "s.discord": "Send to Discord",
+      "n.discord": "Posts the contact sheet and paid photos to your Discord server automatically. They are sent from OBS on this PC and never pass through the SHUTTERPARTY server. Only while you are live, and never free photos. Names are the same as on stream (a viewer who chose not to show their name is not named).",
+      "discord.needdir": "Available once a save folder is set (what is sent is the same framed image that is saved)",
+      "discord.webhook": "Webhook URL (Discord channel settings → Integrations → Webhooks)",
+      "discord.sheet": "Contact sheet (one per SHUTTER PARTY)",
+      "discord.paid": "Paid photos (framed)",
+      "h.discordTemp": "The source image of each sent photo stays in the save folder as a temporary file (_shutterparty-…). Delete it by hand if you do not need it.",
+      "discord.test": "Send a test",
+      "discord.clear": "Remove webhook",
+      "discord.badurl": "Only URLs of the form https://discord.com/api/webhooks/… work. Not saved",
+      "discord.testmsg": "SHUTTERPARTY is ready to post here",
+      "discord.ok": "Delivered. Check your Discord channel",
+      "discord.rejected": "Discord did not accept the settings or the content. Webhooks of forum or media channels cannot be used; create one in a normal text channel",
+      "discord.gone": "This webhook cannot be used: it was deleted, or the URL is wrong",
+      "discord.limited": "Discord's rate limit was hit. Wait a moment and try again",
+      "discord.failed": "Could not send. Check the network or Discord's status",
+      "log.discord.cleared": "Removed the Discord webhook. Nothing more will be sent",
+      "log.discord.testing": "sending a test to Discord ({h})",
       "newSrcName": "Name for the source",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Write to OBS",
@@ -1790,6 +1857,24 @@
       "log.unquoted": "se quitaron las comillas de la ruta pegada (Copiar como ruta del Explorador añade \")",
       "log.recdir": "puesta la carpeta de grabación de OBS: {p}",
       "log.norecdir": "OBS no dijo dónde graba. Escribe una carpeta a mano",
+      "s.discord": "Enviar a Discord",
+      "n.discord": "Publica automáticamente la hoja de contacto y las fotos pagadas en tu servidor de Discord. Se envían desde OBS en este PC y nunca pasan por el servidor de SHUTTERPARTY. Solo mientras estás en directo, y nunca las fotos gratuitas. Los nombres son los mismos que en el directo (quien eligió no mostrar su nombre no aparece).",
+      "discord.needdir": "Disponible cuando haya una carpeta de guardado (lo que se envía es la misma imagen enmarcada que se guarda)",
+      "discord.webhook": "URL del webhook (ajustes del canal de Discord → Integraciones → Webhooks)",
+      "discord.sheet": "Hoja de contacto (una por SHUTTER PARTY)",
+      "discord.paid": "Fotos pagadas (con marco)",
+      "h.discordTemp": "La imagen original de cada foto enviada queda en la carpeta de guardado como archivo temporal (_shutterparty-…). Bórrala a mano si no la necesitas.",
+      "discord.test": "Enviar prueba",
+      "discord.clear": "Quitar webhook",
+      "discord.badurl": "Solo sirven URL con la forma https://discord.com/api/webhooks/…. No se ha guardado",
+      "discord.testmsg": "SHUTTERPARTY está listo para publicar aquí",
+      "discord.ok": "Entregado. Revisa tu canal de Discord",
+      "discord.rejected": "Discord no aceptó la configuración o el contenido. Los webhooks de canales de foro o multimedia no sirven; crea uno en un canal de texto normal",
+      "discord.gone": "Este webhook no se puede usar: se eliminó o la URL es incorrecta",
+      "discord.limited": "Se alcanzó el límite de Discord. Espera un momento y vuelve a intentarlo",
+      "discord.failed": "No se pudo enviar. Revisa la red o el estado de Discord",
+      "log.discord.cleared": "Webhook de Discord eliminado. No se enviará nada más",
+      "log.discord.testing": "enviando una prueba a Discord ({h})",
       "newSrcName": "Nombre de la fuente",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Escribir en OBS",
@@ -2022,6 +2107,24 @@
       "log.unquoted": "as aspas foram retiradas do caminho colado (o Copiar como caminho do Explorer acrescenta \")",
       "log.recdir": "pasta de gravação do OBS preenchida: {p}",
       "log.norecdir": "o OBS não disse onde grava. Digite uma pasta à mão",
+      "s.discord": "Enviar ao Discord",
+      "n.discord": "Publica automaticamente a folha de contato e as fotos pagas no seu servidor do Discord. O envio sai do OBS neste PC e nunca passa pelo servidor do SHUTTERPARTY. Só enquanto você está ao vivo, e nunca as fotos grátis. Os nomes são os mesmos da transmissão (quem escolheu não mostrar o nome não aparece).",
+      "discord.needdir": "Disponível quando houver uma pasta de gravação (o que é enviado é a mesma imagem com moldura que é gravada)",
+      "discord.webhook": "URL do webhook (configurações do canal no Discord → Integrações → Webhooks)",
+      "discord.sheet": "Folha de contato (uma por SHUTTER PARTY)",
+      "discord.paid": "Fotos pagas (com moldura)",
+      "h.discordTemp": "A imagem original de cada foto enviada fica na pasta de gravação como arquivo temporário (_shutterparty-…). Apague manualmente se não precisar.",
+      "discord.test": "Enviar teste",
+      "discord.clear": "Remover webhook",
+      "discord.badurl": "Só funcionam URLs no formato https://discord.com/api/webhooks/…. Não foi salvo",
+      "discord.testmsg": "O SHUTTERPARTY está pronto para postar aqui",
+      "discord.ok": "Entregue. Confira o seu canal do Discord",
+      "discord.rejected": "O Discord não aceitou a configuração ou o conteúdo. Webhooks de canais de fórum ou mídia não funcionam; crie um em um canal de texto comum",
+      "discord.gone": "Este webhook não pode ser usado: foi excluído ou a URL está errada",
+      "discord.limited": "O limite do Discord foi atingido. Aguarde um pouco e tente de novo",
+      "discord.failed": "Não foi possível enviar. Verifique a rede ou o status do Discord",
+      "log.discord.cleared": "Webhook do Discord removido. Nada mais será enviado",
+      "log.discord.testing": "enviando um teste ao Discord ({h})",
       "newSrcName": "Nome da fonte",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Escrever no OBS",
@@ -2254,6 +2357,24 @@
       "log.unquoted": "die Anführungszeichen im eingefügten Pfad wurden entfernt (Als Pfad kopieren im Explorer setzt \" hinzu)",
       "log.recdir": "Aufnahmeordner von OBS eingetragen: {p}",
       "log.norecdir": "OBS hat nicht verraten, wohin es aufnimmt. Trage einen Ordner von Hand ein",
+      "s.discord": "An Discord senden",
+      "n.discord": "Postet den Kontaktbogen und bezahlte Fotos automatisch auf deinem Discord-Server. Gesendet wird von OBS auf diesem PC, nie über den SHUTTERPARTY-Server. Nur während du live bist, und nie kostenlose Fotos. Namen wie im Stream (wer seinen Namen verbergen wollte, wird nicht genannt).",
+      "discord.needdir": "Verfügbar, sobald ein Speicherordner gesetzt ist (gesendet wird dasselbe gerahmte Bild, das gespeichert wird)",
+      "discord.webhook": "Webhook-URL (Discord-Kanaleinstellungen → Integrationen → Webhooks)",
+      "discord.sheet": "Kontaktbogen (einer pro SHUTTER PARTY)",
+      "discord.paid": "Bezahlte Fotos (gerahmt)",
+      "h.discordTemp": "Das Ausgangsbild jedes gesendeten Fotos bleibt als temporäre Datei (_shutterparty-…) im Speicherordner. Lösche es von Hand, wenn du es nicht brauchst.",
+      "discord.test": "Test senden",
+      "discord.clear": "Webhook entfernen",
+      "discord.badurl": "Nur URLs der Form https://discord.com/api/webhooks/… funktionieren. Nicht gespeichert",
+      "discord.testmsg": "SHUTTERPARTY ist bereit, hier zu posten",
+      "discord.ok": "Zugestellt. Sieh in deinem Discord-Kanal nach",
+      "discord.rejected": "Discord hat Einstellungen oder Inhalt nicht angenommen. Webhooks von Forum- oder Medienkanälen funktionieren nicht; lege einen in einem normalen Textkanal an",
+      "discord.gone": "Dieser Webhook ist nicht nutzbar: gelöscht oder falsche URL",
+      "discord.limited": "Discords Ratenlimit wurde erreicht. Warte kurz und versuche es erneut",
+      "discord.failed": "Senden fehlgeschlagen. Prüfe das Netzwerk oder den Discord-Status",
+      "log.discord.cleared": "Discord-Webhook entfernt. Es wird nichts mehr gesendet",
+      "log.discord.testing": "sende einen Test an Discord ({h})",
       "newSrcName": "Name der Quelle",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Auf OBS schreiben",
@@ -2486,6 +2607,24 @@
       "log.unquoted": "les guillemets ont été retirés du chemin collé (Copier en tant que chemin d'accès, dans l'Explorateur, en ajoute des \")",
       "log.recdir": "dossier d'enregistrement d'OBS repris : {p}",
       "log.norecdir": "OBS n'a pas dit où il enregistre. Saisis un dossier à la main",
+      "s.discord": "Envoyer sur Discord",
+      "n.discord": "Publie automatiquement la planche-contact et les photos payantes sur votre serveur Discord. L'envoi part d'OBS sur ce PC et ne passe jamais par le serveur SHUTTERPARTY. Seulement pendant le live, et jamais les photos gratuites. Les noms sont ceux affichés en live (un spectateur qui a choisi de masquer son nom n'est pas nommé).",
+      "discord.needdir": "Disponible une fois un dossier d'enregistrement choisi (l'image envoyée est la même image encadrée que celle enregistrée)",
+      "discord.webhook": "URL du webhook (paramètres du salon Discord → Intégrations → Webhooks)",
+      "discord.sheet": "Planche-contact (une par SHUTTER PARTY)",
+      "discord.paid": "Photos payantes (encadrées)",
+      "h.discordTemp": "L'image source de chaque photo envoyée reste dans le dossier d'enregistrement comme fichier temporaire (_shutterparty-…). Supprimez-la à la main si besoin.",
+      "discord.test": "Envoyer un test",
+      "discord.clear": "Retirer le webhook",
+      "discord.badurl": "Seules les URL de la forme https://discord.com/api/webhooks/… fonctionnent. Non enregistré",
+      "discord.testmsg": "SHUTTERPARTY est prêt à publier ici",
+      "discord.ok": "Livré. Vérifiez votre salon Discord",
+      "discord.rejected": "Discord n'a pas accepté les réglages ou le contenu. Les webhooks des salons forum ou médias ne fonctionnent pas ; créez-en un dans un salon textuel normal",
+      "discord.gone": "Ce webhook est inutilisable : supprimé ou URL erronée",
+      "discord.limited": "La limite de Discord a été atteinte. Patientez un instant puis réessayez",
+      "discord.failed": "Envoi impossible. Vérifiez le réseau ou l'état de Discord",
+      "log.discord.cleared": "Webhook Discord retiré. Plus rien ne sera envoyé",
+      "log.discord.testing": "envoi d'un test à Discord ({h})",
       "newSrcName": "Nom de la source",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Écrire dans OBS",
@@ -2718,6 +2857,24 @@
       "log.unquoted": "le virgolette sono state tolte dal percorso incollato (Copia come percorso di Esplora file aggiunge le \")",
       "log.recdir": "inserita la cartella di registrazione di OBS: {p}",
       "log.norecdir": "OBS non ha detto dove registra. Inserisci una cartella a mano",
+      "s.discord": "Invia a Discord",
+      "n.discord": "Pubblica automaticamente il provino a contatto e le foto a pagamento sul tuo server Discord. L'invio parte da OBS su questo PC e non passa mai dal server di SHUTTERPARTY. Solo mentre sei in diretta, e mai le foto gratuite. I nomi sono quelli mostrati in diretta (chi ha scelto di non mostrare il nome non compare).",
+      "discord.needdir": "Disponibile dopo aver scelto una cartella di salvataggio (si invia la stessa immagine con cornice che viene salvata)",
+      "discord.webhook": "URL del webhook (impostazioni del canale Discord → Integrazioni → Webhook)",
+      "discord.sheet": "Provino a contatto (uno per SHUTTER PARTY)",
+      "discord.paid": "Foto a pagamento (con cornice)",
+      "h.discordTemp": "L'immagine originale di ogni foto inviata resta nella cartella di salvataggio come file temporaneo (_shutterparty-…). Eliminala a mano se non ti serve.",
+      "discord.test": "Invia prova",
+      "discord.clear": "Rimuovi webhook",
+      "discord.badurl": "Funzionano solo URL nella forma https://discord.com/api/webhooks/…. Non salvato",
+      "discord.testmsg": "SHUTTERPARTY è pronto a pubblicare qui",
+      "discord.ok": "Consegnato. Controlla il tuo canale Discord",
+      "discord.rejected": "Discord non ha accettato le impostazioni o il contenuto. I webhook dei canali forum o media non funzionano; creane uno in un normale canale testuale",
+      "discord.gone": "Questo webhook non è utilizzabile: eliminato o URL errato",
+      "discord.limited": "Raggiunto il limite di Discord. Attendi un momento e riprova",
+      "discord.failed": "Invio non riuscito. Controlla la rete o lo stato di Discord",
+      "log.discord.cleared": "Webhook di Discord rimosso. Non verrà inviato altro",
+      "log.discord.testing": "invio di una prova a Discord ({h})",
       "newSrcName": "Nome della fonte",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Scrivi su OBS",
@@ -2950,6 +3107,24 @@
       "log.unquoted": "붙여 넣은 경로에서 따옴표를 지웠습니다(탐색기의 「경로로 복사」는 \" 가 붙습니다)",
       "log.recdir": "OBS 의 녹화 폴더를 넣었습니다: {p}",
       "log.norecdir": "OBS 에서 녹화 위치를 얻지 못했습니다. 폴더를 직접 입력해 주세요",
+      "s.discord": "Discord로 보내기",
+      "n.discord": "콘택트 시트와 유료 사진을 내 Discord 서버에 자동으로 올립니다. 이 PC의 OBS에서 보내며 SHUTTERPARTY 서버를 거치지 않습니다. 방송 중에만 보내고, 무료 사진은 보내지 않습니다. 이름은 방송 화면과 같습니다(이름을 숨기기로 한 시청자의 이름은 들어가지 않습니다).",
+      "discord.needdir": "저장 폴더를 정하면 사용할 수 있습니다(보내는 사진은 저장과 같은 테두리 이미지입니다)",
+      "discord.webhook": "webhook URL(Discord 채널 설정 → 연동 → 웹후크)",
+      "discord.sheet": "콘택트 시트(SHUTTER PARTY 1회에 1장)",
+      "discord.paid": "유료 사진(테두리 포함)",
+      "h.discordTemp": "보낸 사진의 원본 이미지는 저장 폴더에 임시 파일(_shutterparty-…)로 남습니다. 필요 없으면 직접 지워 주세요.",
+      "discord.test": "테스트 전송",
+      "discord.clear": "webhook 지우기",
+      "discord.badurl": "https://discord.com/api/webhooks/… 형식의 URL만 쓸 수 있습니다. 저장하지 않았습니다",
+      "discord.testmsg": "SHUTTERPARTY가 여기에 올릴 준비가 되었습니다",
+      "discord.ok": "도착했습니다. Discord 채널을 확인하세요",
+      "discord.rejected": "Discord가 설정이나 내용을 받아들이지 않았습니다. 포럼·미디어 채널의 webhook은 쓸 수 없으니 일반 텍스트 채널에서 만들어 주세요",
+      "discord.gone": "이 webhook은 쓸 수 없습니다. 삭제되었거나 URL이 틀립니다",
+      "discord.limited": "Discord 속도 제한에 걸렸습니다. 잠시 후 다시 시도하세요",
+      "discord.failed": "보내지 못했습니다. 네트워크나 Discord 상태를 확인하세요",
+      "log.discord.cleared": "Discord webhook을 지웠습니다. 이후에는 보내지 않습니다",
+      "log.discord.testing": "Discord({h})로 테스트 전송 중",
       "newSrcName": "만들 소스의 이름",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "OBS 에 반영",
@@ -3182,6 +3357,24 @@
       "log.unquoted": "已去掉粘贴进来的路径上的引号（资源管理器的「复制为路径」会带上 \"）",
       "log.recdir": "已填入 OBS 的录制文件夹：{p}",
       "log.norecdir": "没能从 OBS 取到录制位置。请手动填一个文件夹",
+      "s.discord": "发送到 Discord",
+      "n.discord": "自动把联系表和付费照片发到你的 Discord 服务器。由这台电脑上的 OBS 直接发送，不经过 SHUTTERPARTY 的服务器。仅在直播中发送，免费照片不发送。名字与直播画面一致（选择不显示名字的观众不会出现名字）。",
+      "discord.needdir": "设置保存文件夹后即可使用（发送的是与保存相同的带边框图片）",
+      "discord.webhook": "Webhook URL（Discord 频道设置 → 整合 → Webhook）",
+      "discord.sheet": "联系表（每次 SHUTTER PARTY 一张）",
+      "discord.paid": "付费照片（带边框）",
+      "h.discordTemp": "每张发送照片的原图会作为临时文件（_shutterparty-…）留在保存文件夹中。不需要的话请手动删除。",
+      "discord.test": "发送测试",
+      "discord.clear": "删除 webhook",
+      "discord.badurl": "仅支持 https://discord.com/api/webhooks/… 形式的 URL。未保存",
+      "discord.testmsg": "SHUTTERPARTY 已准备好在这里发帖",
+      "discord.ok": "已送达。请查看你的 Discord 频道",
+      "discord.rejected": "Discord 未接受设置或内容。论坛或媒体频道的 webhook 无法使用，请在普通文字频道中创建",
+      "discord.gone": "此 webhook 无法使用：已被删除或 URL 有误",
+      "discord.limited": "触发了 Discord 的频率限制。请稍候再试",
+      "discord.failed": "发送失败。请检查网络或 Discord 的状态",
+      "log.discord.cleared": "已删除 Discord webhook，之后不再发送",
+      "log.discord.testing": "正在向 Discord（{h}）发送测试",
       "newSrcName": "要创建的来源名字",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "写入 OBS",
@@ -3414,6 +3607,24 @@
       "log.unquoted": "кавычки из вставленного пути убраны («Копировать как путь» в проводнике добавляет \")",
       "log.recdir": "подставлена папка записи OBS: {p}",
       "log.norecdir": "OBS не сообщил, куда пишет запись. Введите папку вручную",
+      "s.discord": "Отправлять в Discord",
+      "n.discord": "Автоматически публикует контактный лист и платные снимки на вашем сервере Discord. Отправка идёт из OBS на этом ПК и никогда не проходит через сервер SHUTTERPARTY. Только во время эфира и никогда — бесплатные снимки. Имена такие же, как в эфире (зритель, скрывший имя, не указывается).",
+      "discord.needdir": "Доступно после выбора папки сохранения (отправляется то же изображение в рамке, что и сохраняется)",
+      "discord.webhook": "URL webhook (настройки канала Discord → Интеграция → Вебхуки)",
+      "discord.sheet": "Контактный лист (один на SHUTTER PARTY)",
+      "discord.paid": "Платные снимки (в рамке)",
+      "h.discordTemp": "Исходное изображение каждого отправленного снимка остаётся в папке сохранения как временный файл (_shutterparty-…). Если он не нужен, удалите вручную.",
+      "discord.test": "Отправить тест",
+      "discord.clear": "Удалить webhook",
+      "discord.badurl": "Подходят только URL вида https://discord.com/api/webhooks/…. Не сохранено",
+      "discord.testmsg": "SHUTTERPARTY готов публиковать здесь",
+      "discord.ok": "Доставлено. Проверьте канал Discord",
+      "discord.rejected": "Discord не принял настройки или содержимое. Webhook каналов-форумов и медиаканалов не подходят; создайте его в обычном текстовом канале",
+      "discord.gone": "Этот webhook недоступен: удалён или неверный URL",
+      "discord.limited": "Достигнут лимит Discord. Подождите немного и попробуйте снова",
+      "discord.failed": "Не удалось отправить. Проверьте сеть или состояние Discord",
+      "log.discord.cleared": "Webhook Discord удалён. Больше ничего не отправляется",
+      "log.discord.testing": "отправка теста в Discord ({h})",
       "newSrcName": "Имя источника",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Записать в OBS",
@@ -3646,6 +3857,24 @@
       "log.unquoted": "cudzysłowy zostały usunięte z wklejonej ścieżki (Kopiuj jako ścieżkę w Eksploratorze dodaje \")",
       "log.recdir": "wstawiono folder nagrań OBS: {p}",
       "log.norecdir": "OBS nie podał, gdzie nagrywa. Wpisz folder ręcznie",
+      "s.discord": "Wysyłaj na Discord",
+      "n.discord": "Automatycznie publikuje stykówkę i płatne zdjęcia na twoim serwerze Discord. Wysyła je OBS na tym komputerze, nigdy przez serwer SHUTTERPARTY. Tylko podczas transmisji i nigdy darmowych zdjęć. Imiona są takie jak na streamie (widz, który ukrył nazwę, nie jest podpisany).",
+      "discord.needdir": "Dostępne po wybraniu folderu zapisu (wysyłany jest ten sam obraz w ramce, który jest zapisywany)",
+      "discord.webhook": "URL webhooka (ustawienia kanału Discord → Integracje → Webhooki)",
+      "discord.sheet": "Stykówka (jedna na SHUTTER PARTY)",
+      "discord.paid": "Płatne zdjęcia (w ramce)",
+      "h.discordTemp": "Obraz źródłowy każdego wysłanego zdjęcia zostaje w folderze zapisu jako plik tymczasowy (_shutterparty-…). Usuń go ręcznie, jeśli nie jest potrzebny.",
+      "discord.test": "Wyślij test",
+      "discord.clear": "Usuń webhook",
+      "discord.badurl": "Działają tylko adresy w postaci https://discord.com/api/webhooks/…. Nie zapisano",
+      "discord.testmsg": "SHUTTERPARTY jest gotowe do publikowania tutaj",
+      "discord.ok": "Dostarczono. Sprawdź swój kanał Discord",
+      "discord.rejected": "Discord nie przyjął ustawień lub treści. Webhooki kanałów forum i multimediów nie działają; utwórz go w zwykłym kanale tekstowym",
+      "discord.gone": "Tego webhooka nie da się użyć: usunięty albo błędny URL",
+      "discord.limited": "Osiągnięto limit Discorda. Odczekaj chwilę i spróbuj ponownie",
+      "discord.failed": "Nie udało się wysłać. Sprawdź sieć lub stan Discorda",
+      "log.discord.cleared": "Usunięto webhook Discorda. Nic więcej nie zostanie wysłane",
+      "log.discord.testing": "wysyłam test na Discord ({h})",
       "newSrcName": "Nazwa źródła",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "Zapisz do OBS",
@@ -3878,6 +4107,24 @@
       "log.unquoted": "yapıştırılan yoldaki tırnaklar kaldırıldı (Dosya Gezgini'nin Yol olarak kopyala'sı \" ekler)",
       "log.recdir": "OBS'nin kayıt klasörü dolduruldu: {p}",
       "log.norecdir": "OBS nereye kaydettiğini söylemedi. Klasörü elle girin",
+      "s.discord": "Discord'a gönder",
+      "n.discord": "Kontakt sayfasını ve ücretli fotoğrafları Discord sunucunuza otomatik olarak gönderir. Gönderim bu bilgisayardaki OBS'den yapılır, SHUTTERPARTY sunucusundan asla geçmez. Yalnızca yayındayken ve ücretsiz fotoğraflar asla gönderilmez. İsimler yayındakiyle aynıdır (adını gizlemeyi seçen izleyicinin adı yazılmaz).",
+      "discord.needdir": "Bir kayıt klasörü belirlenince kullanılabilir (gönderilen, kaydedilenle aynı çerçeveli görüntüdür)",
+      "discord.webhook": "Webhook URL'si (Discord kanal ayarları → Entegrasyonlar → Webhook'lar)",
+      "discord.sheet": "Kontakt sayfası (her SHUTTER PARTY için bir tane)",
+      "discord.paid": "Ücretli fotoğraflar (çerçeveli)",
+      "h.discordTemp": "Gönderilen her fotoğrafın kaynak görüntüsü kayıt klasöründe geçici dosya (_shutterparty-…) olarak kalır. Gerekmiyorsa elle silin.",
+      "discord.test": "Test gönder",
+      "discord.clear": "Webhook'u kaldır",
+      "discord.badurl": "Yalnızca https://discord.com/api/webhooks/… biçimindeki URL'ler çalışır. Kaydedilmedi",
+      "discord.testmsg": "SHUTTERPARTY buraya gönderi yapmaya hazır",
+      "discord.ok": "Ulaştı. Discord kanalınızı kontrol edin",
+      "discord.rejected": "Discord ayarları veya içeriği kabul etmedi. Forum veya medya kanallarının webhook'ları kullanılamaz; normal bir metin kanalında oluşturun",
+      "discord.gone": "Bu webhook kullanılamıyor: silinmiş ya da URL yanlış",
+      "discord.limited": "Discord hız sınırına takıldı. Biraz bekleyip yeniden deneyin",
+      "discord.failed": "Gönderilemedi. Ağı veya Discord'un durumunu kontrol edin",
+      "log.discord.cleared": "Discord webhook'u kaldırıldı. Artık bir şey gönderilmeyecek",
+      "log.discord.testing": "Discord'a test gönderiliyor ({h})",
       "newSrcName": "Kaynağın adı",
       "newSrcDefault": "SHUTTERPARTY",
       "push": "OBS'ye yaz",
@@ -3981,7 +4228,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-9ede71a50da8";
+  var BUILD = "sp-7b1704e25eec";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -4046,8 +4293,11 @@
    *
    * The overlay's URL clean-up walks this list, the setup page is checked
    * against it (tools/contract-check.mjs 「秘密を URL に載せない」), and this
-   * store is what holds them. A third one is added here and nowhere else. */
-  var SECRETS = ["pw", "ebsToken"];
+   * store is what holds them. A new one is added here and nowhere else.
+   *
+   * The third is the Discord webhook URL: its token is the whole credential for
+   * posting into the broadcaster's server (docs/discord-plan.md §4.1). */
+  var SECRETS = ["pw", "ebsToken", "discordWebhook"];
 
   /* Where the store got to. Four answers, and they are four because they need
    * four different things said to the broadcaster:
@@ -4551,7 +4801,8 @@
     saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
     stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
     gateSet: "", testUntil: "", theme: "liquid", pack: "",
-    packSlots: ""
+    packSlots: "", discordWebhook: "", discordHook: "", discordSheet: "0",
+    discordPaid: "0"
   };
   /* @end config-defaults */
 
@@ -4597,7 +4848,7 @@
     // on purpose — a key belongs here by decision — but the list is checked
     // against the defaults (tools/contract-check.mjs), because the failure of
     // forgetting one is silence.
-    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil", "theme", "pack", "packSlots"].forEach(function (k) {
+    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil", "theme", "pack", "packSlots", "discordWebhook", "discordHook", "discordSheet", "discordPaid"].forEach(function (k) {
       if (q.get(k)) base[k] = q.get(k);
     });
     return base;
@@ -4915,6 +5166,9 @@
     stampSave: $("stampSave"), fStampSave: $("fStampSave"),
     hSaveWhat: $("hSaveWhat"), saveEstimate: $("saveEstimate"),
     saveTest: $("btnSaveTest"), recDir: $("btnRecDir"),
+    discordWebhook: $("discordWebhook"), dSheet: $("discordSheet"), dPaid: $("discordPaid"),
+    dTest: $("btnDiscordTest"), dClear: $("btnDiscordClear"),
+    hDiscordDir: $("hDiscordDir"), hDiscordBad: $("hDiscordBad"), hDiscordResult: $("hDiscordResult"),
     reset: $("btnReset"),
     dock: $("dock"), dockState: $("dockState"), dockLast: $("dockLast"),
     push: $("btnPush"), logBtn: $("btnLog"),
@@ -5049,6 +5303,17 @@
     el.saveDir.placeholder = t("saveDir.eg");
     el.saveTest.textContent = t("save.test");
     el.recDir.textContent = t("save.recdir");
+    setText("sDiscord", "s.discord");
+    setText("nDiscord", "n.discord");
+    setText("hDiscordDir", "discord.needdir");
+    setText("lDiscordWebhook", "discord.webhook");
+    el.discordWebhook.placeholder = "https://discord.com/api/webhooks/…";
+    setText("lDiscordSheet", "discord.sheet");
+    setText("lDiscordPaid", "discord.paid");
+    setText("hDiscordTemp", "h.discordTemp");
+    el.dTest.textContent = t("discord.test");
+    el.dClear.textContent = t("discord.clear");
+    renderDiscord();
     el.reset.textContent = t("reset");
 
     el.logBtn.textContent = t("logLabel");
@@ -6591,7 +6856,12 @@
       // the folder's name and which files are in it, never the images
       // (docs/theme-pack-plan.md §5). The overlay resolves themes/<pack>/
       // beside itself; the card, being the same file, resolves the same.
-      theme: cfg.theme, pack: cfg.pack, packSlots: cfg.packSlots
+      theme: cfg.theme, pack: cfg.pack, packSlots: cfg.packSlots,
+      // Discord (docs/discord-plan.md §4.1). The URL is a secret and follows
+      // the password's rule below; the ID is not, and it is what carries
+      // "stop" when the box is emptied (overlay 62-discord.js).
+      discordWebhook: cfg.discordWebhook, discordHook: cfg.discordHook || "",
+      discordSheet: cfg.discordSheet, discordPaid: cfg.discordPaid
     };
     /* An empty password is "I do not have one", never "erase the one you have".
      *
@@ -6615,6 +6885,8 @@
      * what this page remembers, and a broadcaster who turns authentication off
      * in OBS is not asking for anything to be scrubbed. */
     if (!c.pw) delete c.pw;
+    // The same for the webhook: an empty box is not an instruction.
+    if (!c.discordWebhook) delete c.discordWebhook;
     return c;
   }
 
@@ -6637,8 +6909,9 @@
    * how a broadcaster ends up with a page that cannot see its own source.
    *
    * So: the same trick the bar and the card already use, for the same reason —
-   * the flag is the only difference in the URL — except that this one is read
-   * by nobody but this page. */
+   * the flag is the only difference in the URL. The overlay reads it in one
+   * place: where the browser cannot pick a single Discord sender, the
+   * vertical one stands down (overlay 62-discord.js). */
   function verticalUrl() {
     return OVERLAY_URL + "?v=" + encodeURIComponent(BUILD) +
       "#c=" + encodeURIComponent(JSON.stringify(overlayConfig())) + "&vertical";
@@ -6677,6 +6950,8 @@
     delete c.pw;
     delete c.ebsToken;
     delete c.saveDir;
+    // A bar sends nothing anywhere (docs/discord-plan.md §4.1).
+    delete c.discordWebhook;
     return c;
   }
 
@@ -8059,6 +8334,8 @@
     cfg.saveSize = ({ std: 1, small: 1, min: 1 })[el.saveSize.value] ? el.saveSize.value : "std";
     showSaveEstimate();
     saveCfg(cfg);
+    // Sending needs the card, and the card needs the folder.
+    renderDiscord();
   }
 
   /**
@@ -8107,6 +8384,145 @@
   function joinPath(dir, name) {
     var sep = dir.indexOf("/") >= 0 && dir.indexOf("\\") === -1 ? "/" : "\\";
     return dir.replace(/[\\/]+$/, "") + sep + name;
+  }
+
+  /* ================= sending to Discord =================
+
+     The broadcaster's own webhook, and what goes to it (docs/discord-plan.md
+     §4.1). The overlay does the sending (overlay 62-discord.js); this page
+     only decides, and sends one line of text when asked to test.
+
+     Three settings and a secret:
+       discordWebhook  the URL — secret, encrypted here and in the overlay,
+                       never in the bar's URL, never sent to the EBS
+       discordHook     the webhook's ID, which is not secret. It is what tells
+                       the overlay to STOP: an emptied box sends no URL at all
+                       (an empty secret means "say nothing"), so the overlay
+                       uses its stored URL only while the IDs agree
+       discordSheet / discordPaid   "1" or "0"
+
+     All three go out the way the scene gate does (pushSafety): writing is
+     delivering, and "stop sending" that waits for a reload is not a stop. */
+
+  var DISCORD_RE = /^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/([^\/?#\s]+)$/;
+
+  function discordHookId(url) {
+    var m = DISCORD_RE.exec(String(url || ""));
+    return m ? m[1] : "";
+  }
+
+  /** The one host the page names; never the rest of the URL. */
+  function discordHost(url) {
+    try { return new URL(url).host; } catch (e) { return ""; }
+  }
+
+  function renderDiscord() {
+    var noDir = !cfg.saveDir;
+    el.hDiscordDir.hidden = !noDir;
+    el.discordWebhook.disabled = noDir;
+    el.dSheet.disabled = noDir;
+    el.dPaid.disabled = noDir;
+    el.dSheet.checked = cfg.discordSheet === "1";
+    el.dPaid.checked = cfg.discordPaid === "1";
+    el.dTest.disabled = noDir || !discordHookId(cfg.discordWebhook);
+    el.dClear.disabled = !cfg.discordWebhook && !cfg.discordHook;
+  }
+
+  /** Forget or keep the secrets, whichever the fields now say. */
+  function storeDiscordSecret() {
+    var any = SECRETS.some(function (k) { return !!cfg[k]; });
+    return any ? saveSecrets(true) : secretsClear();
+  }
+
+  /* Discord's own "Copy Webhook URL" still hands out the discordapp.com form
+   * (本人の報告 2026-09-18). The ID and the token are the same on either host,
+   * so it is rewritten to discord.com here — the one host the CSP allows and
+   * the overlay accepts — rather than widening either. */
+  function normalizeWebhook(v) {
+    return String(v || "").trim()
+      .replace(/^https:\/\/(?:www\.)?discordapp\.com\/api\/webhooks\//, "https://discord.com/api/webhooks/");
+  }
+
+  function applyDiscordWebhook() {
+    var v = normalizeWebhook(el.discordWebhook.value);
+    if (v !== el.discordWebhook.value) el.discordWebhook.value = v;
+    if (v && !discordHookId(v)) {
+      // Not kept. The shape is the whole check, and a URL that fails it is
+      // either a typo or something that is not a Discord webhook (§4.1).
+      el.hDiscordBad.textContent = t("discord.badurl");
+      el.hDiscordBad.hidden = false;
+      return;
+    }
+    el.hDiscordBad.hidden = true;
+    if (v === cfg.discordWebhook) return;
+    cfg.discordWebhook = v;
+    cfg.discordHook = discordHookId(v);
+    el.hDiscordResult.hidden = true;
+    saveCfg(cfg);
+    storeDiscordSecret();
+    renderDiscord();
+    pushSafety();
+  }
+
+  function applyDiscordKinds() {
+    cfg.discordSheet = el.dSheet.checked ? "1" : "0";
+    cfg.discordPaid = el.dPaid.checked ? "1" : "0";
+    saveCfg(cfg);
+    pushSafety();
+  }
+
+  function clearDiscord() {
+    el.discordWebhook.value = "";
+    el.hDiscordBad.hidden = true;
+    el.hDiscordResult.hidden = true;
+    cfg.discordWebhook = "";
+    cfg.discordHook = "";
+    saveCfg(cfg);
+    storeDiscordSecret();
+    renderDiscord();
+    pushSafety();
+    log(t("log.discord.cleared"), "warn");
+  }
+
+  function showDiscordResult(key, good, extra) {
+    el.hDiscordResult.className = "note " + (good ? "good" : "warn");
+    el.hDiscordResult.textContent = t(key) + (extra ? " (" + extra + ")" : "");
+    el.hDiscordResult.hidden = false;
+    log(el.hDiscordResult.textContent, good ? "ok" : "bad");
+  }
+
+  /**
+   * One line of text, to prove the webhook takes posts from this page.
+   *
+   * ?wait=true, and success is decided on the body: without it Discord
+   * answers 204 even for a message it did not keep (§2).
+   */
+  function testDiscord() {
+    var url = cfg.discordWebhook;
+    if (!discordHookId(url)) { showDiscordResult("discord.badurl", false); return; }
+    el.dTest.disabled = true;
+    var fd = new FormData();
+    fd.append("payload_json", JSON.stringify({
+      username: "SHUTTERPARTY",
+      content: t("discord.testmsg"),
+      allowed_mentions: { parse: [] }
+    }));
+    log(t("log.discord.testing", { h: discordHost(url) }));
+    window.fetch(url + "?wait=true", { method: "POST", body: fd }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (body) {
+        var why = [String(res.status)];
+        if (body && body.code !== undefined) why.push(String(body.code));
+        if (body && typeof body.message === "string") why.push(body.message.slice(0, 120));
+        why = why.join(" ");
+        if (res.ok && body && body.id) showDiscordResult("discord.ok", true);
+        else if (res.status === 400) showDiscordResult("discord.rejected", false, why);
+        else if (res.status === 401 || res.status === 403 || res.status === 404) showDiscordResult("discord.gone", false, why);
+        else if (res.status === 429) showDiscordResult("discord.limited", false, why);
+        else showDiscordResult("discord.failed", false, why);
+      });
+    }, function () {
+      showDiscordResult("discord.failed", false);
+    }).then(function () { renderDiscord(); });
   }
 
   /* ================= putting the pieces into a broadcast scene =================
@@ -8247,6 +8663,11 @@
   el.saveDir.addEventListener("change", applySaveMode);
   el.saveTest.addEventListener("click", testSave);
   el.recDir.addEventListener("click", function () { useRecordDir(true); });
+  el.discordWebhook.addEventListener("change", applyDiscordWebhook);
+  el.dSheet.addEventListener("change", applyDiscordKinds);
+  el.dPaid.addEventListener("change", applyDiscordKinds);
+  el.dTest.addEventListener("click", testDiscord);
+  el.dClear.addEventListener("click", clearDiscord);
 
   /* Asked first, because there is no way back.
    *
@@ -8309,6 +8730,9 @@
     el.saveParty.value = cfg.saveParty;
     el.saveSize.value = cfg.saveSize;
     el.stampSave.value = cfg.stampSave;
+    el.discordWebhook.value = "";
+    el.hDiscordBad.hidden = true;
+    el.hDiscordResult.hidden = true;
     applySaveMode();
     scenes = [];
     targets = [];
@@ -8446,6 +8870,8 @@
 
     el.pw.value = cfg.pw;
     el.pairCode.value = contractCode(cfg.ebs, cfg.ch, cfg.ebsToken);
+    el.discordWebhook.value = cfg.discordWebhook;
+    renderDiscord();
     // Together with the values, never before them.
     el.connect.disabled = false;
     el.ebsConnect.disabled = false;
@@ -8460,7 +8886,8 @@
     else if (r.state === "nostore") log(t("log.secret.nostore"), "warn");
     log("secrets " + r.state +
       " pw=" + (cfg.pw ? "set" : "EMPTY") +
-      " token=" + (cfg.ebsToken ? "set" : "EMPTY"));
+      " token=" + (cfg.ebsToken ? "set" : "EMPTY") +
+      " discord=" + (cfg.discordWebhook ? "set" : "EMPTY"));
 
     /* Anything this page brought that the store does not have yet is written
      * down now. That is the migration: a config saved before this existed has
