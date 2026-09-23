@@ -2417,7 +2417,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-dd9cc41c1645";
+  var BUILD = "sp-646e27dc2e83";
   /* @end build */
 
   /**
@@ -2896,6 +2896,436 @@
       "&packSlots=" + encodeURIComponent(cfg.packSlots || "");
   }
 
+  /* ================= the photo store =================
+
+     Where a bare frame lives between the shutter and the card.
+
+     THE OLD WAY WAS A FILE. OBS wrote the frame into the broadcaster's save
+     folder, the card read it back by address, and OBS photographed the card.
+     The file in the middle was never wanted: nothing here can delete one
+     (docs/plan.md Phase 6), so every press left a `_shutterparty-…` behind for
+     the broadcaster to sweep up by hand.
+
+     It was there because a file:// page is refused the pixels of a file://
+     image — measured, three ways (docs/no-scratch-plan.md §2). That refusal is
+     real, and it is about IMAGES ON DISK. It says nothing about base64 handed
+     over a socket: GetSourceScreenshot returns the frame as a data URL, and a
+     page may do anything with a string. The overlay without a save folder has
+     always drawn its wall that way.
+
+     So the frame goes here instead, and the card is handed a KEY.
+
+     WHY A KEY RATHER THAN THE PICTURE ITSELF. The card is a second document —
+     a browser source of its own — and the only channel to it is its URL, which
+     OBS persists into the scene collection. Measured 2026-09-22: with the
+     picture in the URL, the last photograph of a session stays in that JSON as
+     a real JPEG (237 KB for one, 321 KB for a sheet) and survives a crash. A
+     key is twenty characters and says nothing. That measurement is why B was
+     chosen over A (§4.2, §5.1k).
+
+     WHERE THIS IS. The CEF profile's own storage — a disk, but one inside the
+     browser, which this page can write AND delete. The promise this plan makes
+     is not "never touches a disk": it is "never writes to the broadcaster's
+     folder, and only ever puts a photograph somewhere it can clean up itself".
+
+     TWO DOCUMENTS READ THIS FILE. The overlay writes; the card reads. They are
+     the same HTML, so they have the same functions — but the card only ever
+     calls photoGet(), and never mints, deletes or sweeps a key.
+
+     Not the secret store (25-secret-store.js), though it is written in the
+     same style — open, one transaction, close. A different database on
+     purpose: photographs are swept and secrets must never be, and one store
+     cleaning up after itself must not be able to take a password with it. */
+  var PHOTO_DB = "sp-photos";
+  var PHOTO_STORE = "photos";
+  var PHOTO_TAG = "sp:";           // what marks a string as a key, not a picture
+
+  /* Who wrote a key.
+   *
+   * Two overlays run at once by design — landscape and portrait
+   * (docs/vertical-plan.md) — and a duplicated browser source makes more. They
+   * share this storage the way they share everything else in the profile, so a
+   * sweep that cannot tell one page's keys from another's would delete a
+   * photograph another page is still holding. Per LAUNCH rather than per page:
+   * a reload has to look like a different owner, because the keys the previous
+   * run held are no longer referenced by anybody. */
+  var photoOwner = "o" + Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36);
+  var photoSeq = 0;
+
+  function photoKeyNew() { return PHOTO_TAG + photoOwner + ":" + (++photoSeq); }
+  function isPhotoKey(s) { return String(s || "").slice(0, PHOTO_TAG.length) === PHOTO_TAG; }
+
+  /* Which way this page hands frames over — decided ONCE, at the start.
+   *
+   *   ""      not asked yet
+   *   store   keys (the normal way)
+   *   url     the picture itself, in the card's URL (the fallback)
+   *
+   * DECIDED ONCE, AND THAT IS THE WHOLE POINT (§4.6, 本人の決定 2026-09-22).
+   * The prototype fell back per photograph, and per photograph means a party
+   * whose nine frames are a mixture of keys and pictures — which is the case
+   * §4.3 spent twenty rounds on, because a picture handed over as a key is at
+   * the capture resolution and one squeezed into a URL is not, so the subject's
+   * box has to be recomputed per frame. Deciding once means the material of a
+   * run is all one kind, and that class of bug cannot happen.
+   *
+   * The fallback is deliberately narrower than the normal way: single
+   * photographs only, no contact sheet FILE (the sheet still goes out on the
+   * broadcast — that one is drawn from memory and never touches the card).
+   * Nothing has been seen yet that cannot open this store: it works in the OBS
+   * CEF (measured 2026-09-10 and again 2026-09-22). Carrying a second full
+   * implementation for an environment nobody has met is what that decision
+   * refuses. */
+  var photoMode = "";
+  var photoModeP = null;
+
+  function photoUsable() {
+    try { return !!window.indexedDB; } catch (e) { return false; }
+  }
+
+  function photoOpenDb() {
+    return new Promise(function (resolve, reject) {
+      var req;
+      try { req = indexedDB.open(PHOTO_DB, 1); }
+      catch (e) { reject(e); return; }
+      req.onupgradeneeded = function () {
+        try { req.result.createObjectStore(PHOTO_STORE); } catch (e) {}
+      };
+      req.onerror = function () { reject(req.error || new Error("indexedDB.open")); };
+      req.onblocked = function () { reject(new Error("indexedDB blocked")); };
+      req.onsuccess = function () { resolve(req.result); };
+    });
+  }
+
+  /** One transaction, then close. Resolves with whatever `fn` returned. */
+  function photoTx(mode, fn) {
+    return photoOpenDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, out;
+        try {
+          tx = db.transaction(PHOTO_STORE, mode);
+          out = fn(tx.objectStore(PHOTO_STORE));
+        } catch (e) { db.close(); reject(e); return; }
+        tx.oncomplete = function () {
+          db.close();
+          resolve(out && typeof out === "object" && "result" in out ? out.result : out);
+        };
+        tx.onerror = function () { db.close(); reject(tx.error || new Error("transaction")); };
+        tx.onabort = function () { db.close(); reject(tx.error || new Error("aborted")); };
+      });
+    });
+  }
+
+  /**
+   * Settle which way this page hands frames over. Asked once; the answer is
+   * kept.
+   *
+   * The probe is the whole round trip — write, read it back, delete it, and
+   * check it is gone — because a store that accepts a write and keeps nothing
+   * is a real thing (secret-store.js says the same, for the same reason). A
+   * store that cannot be emptied is no better than the save folder was.
+   *
+   * AND IT PROVES NOTHING ABOUT LATER. Quota runs out in the middle of a
+   * party, not at boot. A put that fails after this answered is handled where
+   * it happens (60-capture.js: that frame goes to the screen and no further) —
+   * the mode is NOT changed underneath a run, because changing it mid-party is
+   * exactly the mixture this decides once to avoid.
+   */
+  function photoReady() {
+    if (photoModeP) return photoModeP;
+    photoModeP = (function () {
+      if (!photoUsable()) return Promise.resolve("url");
+      var probe = PHOTO_TAG + photoOwner + ":probe";
+      var mark = { at: Date.now(), owner: photoOwner, url: "data:," + photoOwner };
+      return photoTx("readwrite", function (st) { st.put(mark, probe); })
+        .then(function () { return photoTx("readonly", function (st) { return st.get(probe); }); })
+        .then(function (back) {
+          if (!back || back.url !== mark.url) throw new Error("read back a different record");
+          return photoTx("readwrite", function (st) { st.delete(probe); });
+        })
+        .then(function () { return photoTx("readonly", function (st) { return st.get(probe); }); })
+        .then(function (gone) {
+          if (gone) throw new Error("the probe record would not delete");
+          return "store";
+        })
+        .catch(function () { return "url"; });
+    })().then(function (mode) {
+      photoMode = mode;
+      if (mode === "store") photoSweepOnce();
+      else log(t("log.photostore.off"), "warn");
+      return mode;
+    });
+    return photoModeP;
+  }
+
+  /**
+   * Put a frame in and get its key back — or null, which means this one frame
+   * could not be stored.
+   *
+   * Read back before the key is handed out. Getting this wrong is not a
+   * missing photograph, it is the WRONG photograph: the card keeps whatever it
+   * drew last, so a key that resolves to nothing and a card that is
+   * photographed anyway puts the previous viewer's picture into this viewer's
+   * file (2026-08-25, the accident this whole path is built around).
+   */
+  function photoPut(dataUrl, meta) {
+    if (photoMode !== "store") return Promise.resolve(null);
+    if (photoJammed()) return Promise.resolve(null);
+    photoRetryUnsure();                    // not awaited: this frame does not wait on the last one's tidying
+    var key = photoKeyNew();
+    var rec = { at: Date.now(), owner: photoOwner, url: String(dataUrl) };
+    /* What this frame is, travelling WITH the frame.
+     *
+     * The subject's box is measured in canvas pixels and the picture that
+     * comes back may be any width, so a box only means something next to the
+     * canvas it was measured against (§4.3). Keeping them together is the
+     * reason a key beats a URL for anything past the first version: a URL
+     * would have to carry every one of these fields, and grow by them.
+     *
+     * A page may hold frames from two different canvases at once — the
+     * broadcaster resized between presses — so this is per frame, not one
+     * shared value read at the end. */
+    if (meta) { rec.box = meta.box || null; rec.canvas = meta.canvas || null; }
+    return photoTx("readwrite", function (st) { st.put(rec, key); }).then(function () {
+      return photoTx("readonly", function (st) { return st.get(key); });
+    }).then(function (back) {
+      if (!(back && String(back.url) === rec.url)) return null;
+      photoMeta[key] = { box: rec.box, canvas: rec.canvas };
+      return key;
+    }).catch(function () { return null; });
+  }
+
+  /**
+   * Resolve one reference to a picture.
+   *
+   * Anything that is not a key comes back unchanged, which is what makes one
+   * reader work for all three shapes: a key, a data URL (the fallback, and the
+   * demo's SVG), and a file:// address (nothing writes those any more, but a
+   * page that has been running since before an update may still hold one).
+   * An empty string means "there was a key and it resolved to nothing" — never
+   * "there was no picture", because those two need opposite handling.
+   */
+  /* What the writer knows about its own frames, without a round trip.
+   *
+   * The card is a different document and has to read the record; the overlay
+   * wrote it and can simply remember. Dropped with the key. */
+  var photoMeta = {};
+
+  function photoMetaOf(ref) { return photoMeta[ref] || null; }
+
+  function photoGet(key) {
+    if (!isPhotoKey(key)) return Promise.resolve(String(key || ""));
+    if (!photoUsable()) return Promise.resolve("");
+    return photoTx("readonly", function (st) { return st.get(key); })
+      .then(function (rec) { return rec && rec.url ? String(rec.url) : ""; })
+      .catch(function () { return ""; });
+  }
+
+  /**
+   * The picture AND what it was taken against, for a reader in the other
+   * document.
+   *
+   * The card cannot ask the overlay anything, so the record is where it learns
+   * the box: one read gives it both. A reference that is not a key answers with
+   * the string and no box, which is the fallback's shape — there the card is
+   * told the box in its URL, as it always was.
+   */
+  function photoGetWith(key) {
+    if (!isPhotoKey(key)) return Promise.resolve({ url: String(key || ""), box: null, canvas: null });
+    if (!photoUsable()) return Promise.resolve({ url: "", box: null, canvas: null });
+    return photoTx("readonly", function (st) { return st.get(key); })
+      .then(function (rec) {
+        if (!rec || !rec.url) return { url: "", box: null, canvas: null };
+        return { url: String(rec.url), box: rec.box || null, canvas: rec.canvas || null };
+      })
+      .catch(function () { return { url: "", box: null, canvas: null }; });
+  }
+
+  /* ---- the card's answer ----
+   *
+   * The card has no socket and never talks to OBS (10-card-mode.js), so the
+   * only way it can say "drawn" is to leave the word somewhere the overlay
+   * looks. Two places, decided 2026-09-20: this store when the frame came as a
+   * key, localStorage when it came as a picture — the second is the fallback's
+   * channel, and it has to work in a profile where this store does not.
+   *
+   * The card picks by what it was handed, so neither document has to be told
+   * which mode the other is in.
+   *
+   * WHAT THE ANSWER MEANS is the part that was measured the hard way
+   * (2026-09-22): answering when the drawing code finished produced thirteen
+   * black photographs, because the frame had not been composited yet. The card
+   * waits two animation frames before it speaks. "Drawn" has to mean "on the
+   * surface OBS will capture", not "my function returned".
+   */
+  var PHOTO_ACK = PHOTO_TAG + "ack";
+  var PHOTO_ACK_LS = "sp-card-ack";
+
+  function photoAckClear(viaStore) {
+    if (!viaStore) {
+      try { localStorage.removeItem(PHOTO_ACK_LS); } catch (e) {}
+      return Promise.resolve();
+    }
+    if (!photoUsable()) return Promise.resolve();
+    return photoTx("readwrite", function (st) { st.delete(PHOTO_ACK); }).catch(function () {});
+  }
+
+  function photoAckPut(req, kind, viaStore) {
+    var said = { req: String(req), kind: kind, at: Date.now() };
+    if (!viaStore) {
+      try { localStorage.setItem(PHOTO_ACK_LS, JSON.stringify(said)); } catch (e) {}
+      return Promise.resolve();
+    }
+    if (!photoUsable()) return Promise.resolve();
+    return photoTx("readwrite", function (st) { st.put(said, PHOTO_ACK); }).catch(function () {});
+  }
+
+  function photoAckRead(viaStore) {
+    if (!viaStore) {
+      var raw;
+      try { raw = localStorage.getItem(PHOTO_ACK_LS); } catch (e) { return Promise.resolve(null); }
+      if (!raw) return Promise.resolve(null);
+      try { return Promise.resolve(JSON.parse(raw)); } catch (e) { return Promise.resolve(null); }
+    }
+    if (!photoUsable()) return Promise.resolve(null);
+    return photoTx("readonly", function (st) { return st.get(PHOTO_ACK); })
+      .then(function (r) { return r || null; }).catch(function () { return null; });
+  }
+
+  /* ---- how long a key lives ----
+   *
+   * Until its readers are done, and there are three of them: the print flying
+   * across the stream, the party's own list (which the closing sheet reaches
+   * back into), and the card's job — the framed save and the Discord post.
+   * They finish in no particular order, so the count decides.
+   *
+   * Never clear(). The card's work is one queue, so a press landing while the
+   * sheet is being drawn has a frame in flight that a wholesale clear would
+   * take with it (§4.3).
+   */
+  var photoRefs = {};
+
+  /** Take a reference. Returns what it was given, so it can wrap an argument. */
+  function photoHold(ref) {
+    if (!isPhotoKey(ref)) return ref;
+    photoRefs[ref] = (photoRefs[ref] || 0) + 1;
+    return ref;
+  }
+
+  /** Give one back, and delete the frame once nobody holds it. */
+  function photoDrop(ref) {
+    if (!isPhotoKey(ref)) return;
+    var n = (photoRefs[ref] || 0) - 1;
+    if (n > 0) { photoRefs[ref] = n; return; }
+    delete photoRefs[ref];
+    delete photoMeta[ref];
+    photoDel(ref);
+  }
+
+  /* Keys whose deletion was asked for and not confirmed.
+   *
+   * A delete that throws, or one whose transaction never completes, leaves a
+   * photograph in the profile with nobody to ask for it again — the reference
+   * count has already forgotten it. Remembered here instead, and retried by
+   * the sweep. Bounded: a profile under enough pressure to fail deletes is not
+   * one to hold an unbounded list for. */
+  var photoUnsure = [];
+  var PHOTO_UNSURE_MAX = 64;
+  var photoJammedSaid = false;
+
+  function photoDel(key) {
+    if (!isPhotoKey(key) || !photoUsable()) return Promise.resolve();
+    return photoTx("readwrite", function (st) { st.delete(key); })
+      .then(function () { return photoTx("readonly", function (st) { return st.get(key); }); })
+      .then(function (left) {
+        if (left) throw new Error("still there");
+        var at = photoUnsure.indexOf(key);
+        if (at !== -1) photoUnsure.splice(at, 1);      // it went in the end
+      })
+      .catch(function () {
+        if (photoUnsure.indexOf(key) === -1 && photoUnsure.length < PHOTO_UNSURE_MAX) photoUnsure.push(key);
+      });
+  }
+
+  /**
+   * Try the deletions that did not take, again.
+   *
+   * A delete that throws, or one whose transaction never completes, leaves a
+   * photograph in the profile that the reference count has already forgotten —
+   * nobody will ask for it again. The keys are remembered instead and retried
+   * here, which is cheap because the list is short and usually empty.
+   *
+   * Run when a new frame goes in, which is the moment that matters: that is
+   * when the store is being added to, and adding to a store that cannot be
+   * emptied is how a profile fills up.
+   */
+  function photoRetryUnsure() {
+    if (!photoUnsure.length) return Promise.resolve(0);
+    var trying = photoUnsure.slice(0, 8);              // a few at a time
+    return Promise.all(trying.map(photoDel)).then(function () {
+      return trying.length - photoUnsure.filter(function (k) { return trying.indexOf(k) !== -1; }).length;
+    });
+  }
+
+  /**
+   * Has cleaning up stopped working?
+   *
+   * The list is bounded, and reaching that bound means deletions have been
+   * failing for a while. Carrying on would grow the profile by a photograph a
+   * press with no way to get any of them back — so the store stops taking new
+   * ones, and frames go to the screen and no further (the same road as a put
+   * that fails, 60-capture.js). Said once: a broadcaster mid-party does not
+   * need it every 150ms.
+   */
+  function photoJammed() {
+    if (photoUnsure.length < PHOTO_UNSURE_MAX) return false;
+    if (!photoJammedSaid) {
+      photoJammedSaid = true;
+      log(t("log.photostore.jammed", { n: photoUnsure.length }), "warn");
+    }
+    return true;
+  }
+
+  /* ---- the sweep ----
+   *
+   * What is left over when a run does not finish: a crash, a browser source
+   * removed mid-party, a delete that failed. The folder could never be tidied
+   * — that was the complaint this plan answers — so this one is.
+   *
+   * IT MUST NOT TOUCH A RUNNING PAGE'S KEYS. Whether another owner is alive
+   * cannot be asked, so it is answered with time: ten minutes. A frame is
+   * wanted for seconds — a party is twenty of them and its sheet five more —
+   * so nothing ten minutes old has a reader. Keys of this run are left to the
+   * reference count, which knows exactly.
+   *
+   * Once per page. Sweeping per press would walk the whole store 130 times in
+   * a party.
+   */
+  var PHOTO_STALE_MS = 10 * 60 * 1000;
+  var photoSwept = false;
+
+  function photoSweepOnce() {
+    if (photoSwept || !photoUsable()) return Promise.resolve(0);
+    photoSwept = true;
+    var cut = Date.now() - PHOTO_STALE_MS;
+    var retry = photoUnsure.splice(0, photoUnsure.length);
+    return photoTx("readonly", function (st) { return st.getAllKeys(); }).then(function (keys) {
+      return Promise.all((keys || []).map(function (k) {
+        if (retry.indexOf(k) !== -1) return photoDel(k).then(function () { return k; });
+        if (photoRefs[k]) return null;                       // held by this run
+        return photoTx("readonly", function (st) { return st.get(k); }).then(function (rec) {
+          if (!rec) return null;
+          if (rec.owner === photoOwner) return null;         // ours: the count owns it
+          if (!(rec.at < cut)) return null;                  // may still be in use
+          return photoDel(k).then(function () { return k; });
+        }).catch(function () { return null; });
+      }));
+    }).then(function (gone) {
+      var n = (gone || []).filter(Boolean).length;
+      if (n) log(t("log.photostore.swept", { n: n }), "ok");
+      return n;
+    }).catch(function () { return 0; });
+  }
   /* ================= card mode =================
 
      Loaded with #card, this file is not an overlay at all: it draws one saved
@@ -2940,6 +3370,48 @@
      * place. `done` runs once the images have answered; painting waits for
      * it and for the subject, whichever comes last.
      */
+    /**
+     * Tell the overlay this handover has been drawn.
+     *
+     * TWO ANIMATION FRAMES, and they are not a flourish. Answering when the
+     * drawing code returned produced thirteen black photographs on
+     * 2026-09-22: the overlay asked OBS for the card the moment it heard, and
+     * OBS captured a surface the browser had not composited yet. The first
+     * callback runs before the next paint; the second runs after it.
+     *
+     * TWO ARE NOT ENOUGH FOR A SHEET, and the real machine is where that
+     * showed. The nine tiles land over about 170ms, one at a time, so the last
+     * of them is in the most recent painted frame — and what OBS holds of a
+     * browser source is a copy that lags the page: obs-browser is handed
+     * painted frames off-screen at the source's own rate, and the one it has
+     * when the screenshot arrives can be a frame or more behind. Measured
+     * 2026-09-23 on OBS 32.2.2: with `drew=9` already said, the file came out
+     * with TWO tiles on it and seven blank papers — one run in four, and only
+     * once the photographs were the size real ones are (~160KB).
+     *
+     * So a sheet waits past its own painting: two frames as before, and then
+     * a moment for the copy OBS is holding to catch up. A tenth of a second
+     * either way is nothing here — the sheet is written once per party, after
+     * a twenty-second party — and the thing it buys is the difference between
+     * the contact sheet and a page of blank paper.
+     *
+     * Which channel is decided by what arrived: a key means the store is the
+     * way back, a picture means it is not available and localStorage is
+     * (§4.6). Neither document has to know the other's mode.
+     */
+    var CARD_SETTLE_MS = 0;          // one picture: the two frames are the whole wait
+    var SHEET_SETTLE_MS = 250;       // nine: plus what OBS's copy needs
+    var cardAck = function (req, kind, viaStore) {
+      if (!req) return;
+      var hold = kind === "sheet" ? SHEET_SETTLE_MS : CARD_SETTLE_MS;
+      var say = function () {
+        if (!hold) return photoAckPut(req, kind, viaStore);
+        setTimeout(function () { photoAckPut(req, kind, viaStore); }, hold);
+      };
+      if (typeof requestAnimationFrame !== "function") { say(); return; }
+      requestAnimationFrame(function () { requestAnimationFrame(say); });
+    };
+
     var applyCardTheme = function (q, done) {
       document.documentElement.setAttribute("data-theme", themeId(q.get("theme")));
       loadPack(packOf(q.get("pack"), q.get("packSlots")), done);
@@ -2980,25 +3452,69 @@
       // settled would be stretched to the print's final height.
       var waiting = imgs.length + 1;
       var tray = document.querySelector(".sheet-tray");
-      var settled = function () { if (--waiting === 0) paintSheet(grid, tray); };
+      var drew = 0;
+      var settled = function () {
+        if (--waiting !== 0) return;
+        paintSheet(grid, tray);
+        // Only once something is actually on the paper. A sheet whose nine
+        // keys all resolved to nothing is a blank page, and answering for it
+        // would have OBS photograph the blank page.
+        if (drew) cardAck(q.get("req"), "sheet", true);
+      };
+      /* HOW BIG EACH TILE IS DRAWN, and why it is not the frame's own size.
+       *
+       * A tile is shown at about a third of the card's width — 380px on the
+       * 1280 the sheet is photographed at — and it used to be drawn at the
+       * full resolution of the crop, which for a full-canvas subject is
+       * 1920x1080. Nine of those is 75MB of texture that the compositor has to
+       * upload before anything appears, and the card answers two animation
+       * frames after the last picture lands. On the real machine that was not
+       * enough: three runs in five came out with ONE tile drawn and eight
+       * blank papers, saved and (had it been on air) posted
+       * (実測 2026-09-22・OBS 32.2.2・写真 約 160KB × 9).
+       *
+       * Drawn at twice the size it is shown, the work is about a sixteenth of
+       * that and the picture is the same: the card is photographed at its own
+       * pixel size, so anything past 2x is thrown away by the downscale. The
+       * cap keeps a small frame from being blown up.
+       */
+      var tileTarget = function (el, srcW) {
+        var shown = 0;
+        try { shown = Math.round(el.getBoundingClientRect().width); } catch (e) {}
+        // Before layout has run: three columns, by construction (.sheet-grid).
+        if (!shown) shown = Math.round((document.documentElement.clientWidth || 1280) / 3);
+        return Math.max(16, Math.min(srcW, shown * 2));
+      };
       for (var i = 0; i < imgs.length; i++) {
-        (function (url) {
+        (function (ref) {
           var c = document.createElement("canvas");
           c.className = "subject";
           c.width = box ? Math.round(box.w) : 16;
           c.height = box ? Math.round(box.h) : 9;
           var im = new Image();
           im.onload = function () {
-            var b = clampBox(box, im.naturalWidth, im.naturalHeight);
+            // Each frame carries the canvas it was measured against, so nine
+            // frames of different widths crop correctly (§4.3).
+            var b = clampBox(scaleBox(mine.box || box, mine.canvas, im.naturalWidth),
+                             im.naturalWidth, im.naturalHeight);
             if (b.w > 0 && b.h > 0) {
-              c.width = Math.round(b.w);
-              c.height = Math.round(b.h);
+              var cw = tileTarget(c, Math.round(b.w));
+              c.width = cw;
+              c.height = Math.max(1, Math.round(cw * b.h / b.w));
               c.getContext("2d").drawImage(im, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height);
+              drew++;
             }
             settled();
           };
           im.onerror = settled;
-          im.src = decodeURIComponent(url);
+          var mine = {};
+          // A missing frame leaves its cell empty rather than taking the whole
+          // sheet down, which is what an unreadable file did before it.
+          photoGetWith(decodeURIComponent(ref)).then(function (got) {
+            if (!got.url) { settled(); return; }
+            mine = got;
+            im.src = got.url;
+          });
           grid.appendChild(printOf(c));
         })(imgs[i]);
       }
@@ -3084,29 +3600,53 @@
       // card fills its source, so its size is known, but a paper painted over
       // a stale card is a paper painted for the wrong photograph.
       var waiting = 2;
-      var paper = function () { if (--waiting === 0) paintSkin(cEl, "paper"); };
+      var drawn = false;
+      var paper = function () {
+        if (--waiting !== 0) return;
+        paintSkin(cEl, "paper");
+        // Never for a card with no picture on it: the overlay reads the answer
+        // as permission to photograph, and an empty card photographed is the
+        // previous viewer's photograph in this viewer's file.
+        if (drawn) cardAck(q.get("req"), "one", isPhotoKey(src));
+      };
 
+      var mine = {};
       var paint = function () {
-        var b = clampBox(box, cImg.naturalWidth, cImg.naturalHeight);
+        var b = clampBox(scaleBox(mine.box || box, mine.canvas, cImg.naturalWidth),
+                         cImg.naturalWidth, cImg.naturalHeight);
         if (b.w > 0 && b.h > 0) {
           cShot.width = Math.round(b.w);
           cShot.height = Math.round(b.h);
           // Reading these pixels back is refused for a file:// page, but drawing
           // them is not (measured) — and drawing is all this needs.
           cShot.getContext("2d").drawImage(cImg, b.x, b.y, b.w, b.h, 0, 0, cShot.width, cShot.height);
+          drawn = true;
         }
         paper();
       };
 
-      if (src && cImg.getAttribute("src") !== src) {
-        cImg.onload = paint;
-        cImg.onerror = paper;
-        cImg.src = src;
-      } else if (cImg.complete) {
-        paint();
-      } else {
-        paper();
-      }
+      /* The picture, whichever shape it came in.
+       *
+       * A key is read out of the store; a data URL and a file:// address come
+       * back unchanged (08-photo-store.js). A key that resolves to nothing
+       * stops here: no drawing, and therefore no answer, so the overlay's
+       * deadline passes and it skips the save and the send. Anything else
+       * would photograph the card as it stands.
+       */
+      photoGetWith(src).then(function (got) {
+        mine = got;
+        var url = got.url;
+        if (isPhotoKey(src) && !url) return;
+        if (url && cImg.getAttribute("src") !== url) {
+          cImg.onload = paint;
+          cImg.onerror = paper;
+          cImg.src = url;
+        } else if (url && cImg.complete) {
+          paint();
+        } else {
+          paper();
+        }
+      });
       applyCardTheme(q, paper);
     };
 
@@ -3173,6 +3713,8 @@
       "log.livestart": "配信が始まりました。ボタンが効きます",
       "log.livestop": "配信が終わりました。ボタンは効きません",
       "log.closed.notlive": "配信していないので撮れません。OBS で配信を始めてください",
+      "log.closed.livelost": "OBS が配信中かどうかを確かめられません。確かめ直しています",
+      "log.closed.livegone": "OBS が配信中かどうかを確かめられませんでした。配信を始めるか、OBS に繋ぎ直してください",
       "log.closed.nosource": "撮影するシーンを選んでいないので撮れません。設定ページで決めてください",
       "log.closed.notscene": "「{n}」という名前のシーンが OBS にありません。設定ページで選び直してください",
       "log.closed.nogate": "ボタンが効くシーンをまだ決めていないので撮れません。設定ページで決めてください",
@@ -3193,12 +3735,16 @@
       "log.cardmade": "枠つきで保存するためのソース「{n}」を OBS に作りました。画面の外に置いてあるので配信にも写真にも出ません。消さないでください（消しても次の保存で作り直します）",
       "log.sheetsaved": "コンタクトシートを書き出しました: {p}",
       "log.sheetfail": "コンタクトシートを書き出せませんでした: {m}（配信画面には出ています）",
+      "log.sheetoffair": "このパーティには配信前に撮った写真が混ざっているので、コンタクトシートは Discord へ送りません（保存はします）",
       "discord.sheet": "SHUTTER PARTY のコンタクトシート",
       "log.discord.full": "Discord に送る写真が {n} 件たまっているので、この写真は送りません（保存は続きます）",
       "log.discord.skip": "Discord に送りません（{k} #{n}）: {why}",
       "log.discord.toobig": "画像が大きすぎるので Discord に送りません（#{n}・{mb} MB）",
       "log.discord.sent": "Discord に {n} 枚送りました",
       "log.discord.unsure": "Discord に届いたか分かりません（{n} 枚）。二重に出ないよう、送り直しません",
+      "log.discord.slow": "Discord が {s} 秒たっても答えませんでした（{n} 枚）。二重に出ないよう、送り直しません",
+      "log.discord.migrate": "Discord への送信は止めてあります。設定ページで webhook を入れ直すと送ります",
+      "log.discord.nohook": "Discord に送る設定ですが、webhook が届いていないので送りません。設定ページで webhook を貼り直して「OBS に反映」を押してください",
       "log.discord.bad": "Discord が送信を受け付けませんでした（{m}）。設定ページで webhook を確かめてください。フォーラムやメディアのチャンネルの webhook は使えません",
       "log.discord.gone": "Discord の webhook が使えません（{m}）。消されたか URL が違います。設定ページで入れ直すまで送りません",
       "log.discord.gaveup": "Discord の回数制限が続いたので、{n} 枚を送らずに捨てました（{m}）",
@@ -3206,7 +3752,14 @@
       "log.discord.fail": "Discord に送れませんでした（{m}）",
       "log.keeper": "このオーバーレイが保存と Discord への送信を受け持ちます（同じ PC の他のオーバーレイは画面に出すだけです）",
       "log.keeper.nolock": "このブラウザでは受け持つオーバーレイを決められないので、縦型ではないオーバーレイが保存と Discord への送信をします。同じソースを複製していると二重になります",
+      "log.keeper.handed": "保存と Discord への送信は、通常の（縦型ではない）オーバーレイに引き継ぎました",
       "log.cardfail": "枠つきの保存ができませんでした: {m}（写真そのものは撮れています）",
+      "log.cardslow": "カードが「描き終わった」と言わなかったので、この1枚の保存と送信を見送りました（そのまま撮ると前の写真が写ります）",
+      "log.cardtoobig": "この写真はカードに渡すには大きすぎたので、保存と送信を見送りました",
+      "log.photostore.off": "この環境ではブラウザの保存領域が使えないので、写真を別の渡し方でカードへ送ります（コンタクトシートのファイルは作られません。配信画面には出ます）",
+      "log.photostore.lost": "写真をブラウザの保存領域に置けなかったので、この1枚は配信画面にだけ出しました（保存と送信は見送りです）",
+      "log.photostore.jammed": "ブラウザの保存領域から写真を消せない状態が続いているので（{n} 件）、これ以上は置かずに配信画面だけに出します",
+      "log.photostore.swept": "前回までに残っていた写真を {n} 件片づけました",
       "log.shot": "{kb} KB の画像を受け取りました",
       "log.shotstale": "撮影中に対象のシーンが変わったので、この1枚は使いません",
       "log.needpw": "パスワードが必要です",
@@ -3253,6 +3806,8 @@
       "log.livestart": "stream started — the button works",
       "log.livestop": "stream stopped — the button does not",
       "log.closed.notlive": "not shooting: OBS is not streaming",
+      "log.closed.livelost": "not shooting: OBS did not say whether it is streaming — asking again",
+      "log.closed.livegone": "not shooting: OBS never said whether it is streaming. Start the stream, or reconnect to OBS",
       "log.closed.nosource": "not shooting: no capture scene has been chosen yet",
       "log.closed.notscene": "not shooting: OBS has no scene called “{n}”",
       "log.closed.nogate": "not shooting: the scenes the button works in have not been chosen yet",
@@ -3276,12 +3831,16 @@
       "log.cardmade": "added the source “{n}” to OBS for framed saving. It sits outside the canvas, so it appears neither on the broadcast nor in the photo. Leave it there — it is rebuilt on the next photo if removed",
       "log.sheetsaved": "wrote the contact sheet: {p}",
       "log.sheetfail": "could not write the contact sheet: {m} (it did go out on the channel)",
+      "log.sheetoffair": "this party holds photos taken before the stream was live, so the contact sheet is not sent to Discord (it is still saved)",
       "discord.sheet": "SHUTTER PARTY contact sheet",
       "log.discord.full": "{n} photos are already waiting for Discord; this one is not sent (saving goes on)",
       "log.discord.skip": "not sent to Discord ({k} #{n}): {why}",
       "log.discord.toobig": "image too large for Discord, not sent (#{n}, {mb} MB)",
       "log.discord.sent": "sent {n} to Discord",
       "log.discord.unsure": "could not tell whether Discord received {n}; not sending again, so nothing is posted twice",
+      "log.discord.slow": "Discord did not answer within {s}s ({n} to send). Not sent again, so nothing goes out twice",
+      "log.discord.migrate": "sending to Discord is held stopped. Put the webhook in again on the setup page to send",
+      "log.discord.nohook": "Discord sending is on, but no webhook has arrived, so nothing is sent. Paste the webhook again on the setup page and press Write to OBS",
       "log.discord.bad": "Discord did not accept the post ({m}). Check the webhook on the setup page. Webhooks of forum or media channels cannot be used",
       "log.discord.gone": "the Discord webhook cannot be used ({m}): deleted, or the URL is wrong. Nothing is sent until it is entered again on the setup page",
       "log.discord.gaveup": "Discord kept rate-limiting; {n} dropped without sending ({m})",
@@ -3289,7 +3848,14 @@
       "log.discord.fail": "could not send to Discord ({m})",
       "log.keeper": "this overlay does the saving and the Discord posts (other overlays on this PC only show the photos)",
       "log.keeper.nolock": "this browser cannot pick a single overlay, so the non-vertical one saves and posts to Discord. A duplicated source will do both twice",
+      "log.keeper.handed": "the saving and the Discord posts have passed to the regular (non-vertical) overlay",
       "log.cardfail": "could not save the framed copy: {m} (the photo itself was taken)",
+      "log.cardslow": "the card never said it had drawn, so this photo was neither saved nor sent — photographing it anyway would have captured the previous one",
+      "log.cardtoobig": "this photo was too large to hand to the card, so it was neither saved nor sent",
+      "log.photostore.off": "this browser cannot use its own storage here, so photos reach the card another way — no contact sheet file is written (it still appears on the broadcast)",
+      "log.photostore.lost": "this photo could not be put into the browser storage, so it went to the broadcast only — not saved, not sent",
+      "log.photostore.jammed": "photos cannot be deleted from the browser storage ({n} of them), so no more are put there — they go to the broadcast only",
+      "log.photostore.swept": "cleared {n} photo(s) left over from an earlier run",
       "log.failed": "could not connect. Check that OBS is running, the WebSocket server is enabled, and the port matches",
       "log.authfail": "authentication failed — check the password",
       "log.reqfail": "request failed: {m}",
@@ -3344,6 +3910,8 @@
       "log.livestart": "直播已开始 — 按钮生效",
       "log.livestop": "直播已结束 — 按钮不生效",
       "log.closed.notlive": "现在没有直播，不能拍摄。请在 OBS 开始直播",
+      "log.closed.livelost": "不能拍摄：OBS 没有回答是否正在直播，正在重新询问",
+      "log.closed.livegone": "不能拍摄：OBS 始终没有回答是否正在直播。请开始直播，或重新连接 OBS",
       "log.closed.nosource": "还没有选择要拍摄的场景，所以不能拍摄。请在设置页面选择",
       "log.closed.notscene": "OBS 中没有名为“{n}”的场景。请在设置页面重新选择",
       "log.closed.nogate": "还没有选择按钮生效的场景，所以不能拍摄。请在设置页面选择",
@@ -3364,12 +3932,16 @@
       "log.cardmade": "已在 OBS 中创建用于带框保存的源“{n}”。它放在画面外，所以不会出现在直播或照片中。请不要删除（删除后会在下次保存时重新创建）",
       "log.sheetsaved": "已导出联系表：{p}",
       "log.sheetfail": "无法导出联系表：{m}（直播画面中已经显示）",
+      "log.sheetoffair": "这场派对包含开播前拍摄的照片，因此合辑不会发送到 Discord（仍会保存）",
       "discord.sheet": "SHUTTER PARTY 联系表",
       "log.discord.full": "已有 {n} 张照片等待发送到 Discord，本张不发送（保存照常进行）",
       "log.discord.skip": "未发送到 Discord（{k} #{n}）：{why}",
       "log.discord.toobig": "图片过大，未发送到 Discord（#{n}，{mb} MB）",
       "log.discord.sent": "已向 Discord 发送 {n} 张",
       "log.discord.unsure": "无法确认 Discord 是否收到 {n} 张；为避免重复，不再重发",
+      "log.discord.slow": "Discord 在 {s} 秒内没有回应（{n} 张）。为避免重复，不再重发",
+      "log.discord.migrate": "发送到 Discord 已停止。在设置页面重新输入 webhook 后才会发送",
+      "log.discord.nohook": "已设置发送到 Discord，但没有收到 webhook，所以不会发送。请在设置页面重新粘贴 webhook，然后点「写入 OBS」",
       "log.discord.bad": "Discord 未接受此次发送（{m}）。请在设置页面检查 webhook。论坛或媒体频道的 webhook 无法使用",
       "log.discord.gone": "Discord webhook 无法使用（{m}）：已被删除或 URL 有误。在设置页面重新填写前不会发送",
       "log.discord.gaveup": "Discord 持续限流，已放弃发送 {n} 张（{m}）",
@@ -3377,7 +3949,14 @@
       "log.discord.fail": "无法发送到 Discord（{m}）",
       "log.keeper": "此叠加层负责保存和发送到 Discord（本机其他叠加层只显示照片）",
       "log.keeper.nolock": "此浏览器无法选定唯一的叠加层，将由非竖屏叠加层负责保存和发送到 Discord。复制的来源会重复执行",
+      "log.keeper.handed": "保存和发送到 Discord 已交给普通（非竖屏）叠加层",
       "log.cardfail": "无法保存带框版本：{m}（照片本身已经拍到）",
+      "log.cardslow": "卡片没有报告已经绘制完成，因此这张照片未保存也未发送（否则会拍到上一张照片）",
+      "log.cardtoobig": "这张照片太大，无法交给卡片，因此未保存也未发送",
+      "log.photostore.off": "此环境无法使用浏览器存储，照片会以另一种方式交给卡片（不会生成合辑文件，但仍会出现在直播画面上）",
+      "log.photostore.lost": "无法将照片放入浏览器存储，因此这一张只显示在直播画面上（未保存、未发送）",
+      "log.photostore.jammed": "无法从浏览器存储中删除照片（{n} 张），因此不再放入，只显示在直播画面上",
+      "log.photostore.swept": "已清理上次遗留的 {n} 张照片",
       "log.shot": "收到了 {kb} KB 的图像",
       "log.shotstale": "拍摄期间目标场景发生了变化，这一张已丢弃",
       "log.needpw": "请输入密码",
@@ -3430,6 +4009,8 @@
       "log.livestart": "la transmisión ha empezado — el botón funciona",
       "log.livestop": "la transmisión ha terminado — el botón no funciona",
       "log.closed.notlive": "no se fotografía porque no estás en directo. Inicia la transmisión en OBS",
+      "log.closed.livelost": "no se fotografía: OBS no ha dicho si está transmitiendo; se vuelve a preguntar",
+      "log.closed.livegone": "no se fotografía: OBS nunca dijo si está transmitiendo. Inicia la transmisión o vuelve a conectar con OBS",
       "log.closed.nosource": "no se fotografía porque aún no se eligió una escena de captura. Elígela en la página de configuración",
       "log.closed.notscene": "OBS no tiene ninguna escena llamada “{n}”. Vuelve a elegirla en la página de configuración",
       "log.closed.nogate": "no se fotografía porque aún no se eligieron las escenas donde funciona el botón. Elígelas en la página de configuración",
@@ -3450,12 +4031,16 @@
       "log.cardmade": "se añadió en OBS la fuente “{n}” para guardar con marco. Está fuera del lienzo, así que no aparece ni en la transmisión ni en la foto. Déjala ahí; si se borra, se reconstruye en la próxima foto",
       "log.sheetsaved": "hoja de contacto escrita: {p}",
       "log.sheetfail": "no se pudo escribir la hoja de contacto: {m} (sí salió en la transmisión)",
+      "log.sheetoffair": "esta fiesta incluye fotos tomadas antes de estar en directo, así que la hoja de contactos no se envía a Discord (sí se guarda)",
       "discord.sheet": "Hoja de contacto de SHUTTER PARTY",
       "log.discord.full": "ya hay {n} fotos esperando para Discord; esta no se envía (el guardado continúa)",
       "log.discord.skip": "no enviado a Discord ({k} #{n}): {why}",
       "log.discord.toobig": "imagen demasiado grande para Discord, no enviada (#{n}, {mb} MB)",
       "log.discord.sent": "{n} enviadas a Discord",
       "log.discord.unsure": "no se sabe si Discord recibió {n}; no se reenvía para no publicar dos veces",
+      "log.discord.slow": "Discord no respondió en {s} s ({n} fotos). No se reenvía, para que nada salga dos veces",
+      "log.discord.migrate": "el envío a Discord está detenido. Vuelve a escribir el webhook en la página de configuración para enviar",
+      "log.discord.nohook": "El envío a Discord está activado, pero no ha llegado ningún webhook, así que no se envía nada. Vuelve a pegar el webhook en la página de ajustes y pulsa Escribir en OBS",
       "log.discord.bad": "Discord no aceptó el envío ({m}). Revisa el webhook en la página de configuración. Los webhooks de canales de foro o multimedia no sirven",
       "log.discord.gone": "el webhook de Discord no se puede usar ({m}): se eliminó o la URL es incorrecta. No se envía nada hasta volver a introducirlo en la página de configuración",
       "log.discord.gaveup": "Discord siguió limitando; {n} descartadas sin enviar ({m})",
@@ -3463,7 +4048,14 @@
       "log.discord.fail": "no se pudo enviar a Discord ({m})",
       "log.keeper": "este overlay se encarga de guardar y publicar en Discord (los demás overlays de este PC solo muestran las fotos)",
       "log.keeper.nolock": "este navegador no puede elegir un único overlay; guarda y publica en Discord el que no es vertical. Una fuente duplicada lo hará dos veces",
+      "log.keeper.handed": "el guardado y los envíos a Discord han pasado a la superposición normal (no vertical)",
       "log.cardfail": "no se pudo guardar la copia con marco: {m} (la foto en sí se tomó)",
+      "log.cardslow": "la tarjeta no avisó de que había dibujado, así que esta foto no se guardó ni se envió: fotografiarla habría capturado la anterior",
+      "log.cardtoobig": "esta foto era demasiado grande para pasarla a la tarjeta, así que no se guardó ni se envió",
+      "log.photostore.off": "este navegador no puede usar su almacenamiento aquí, así que las fotos llegan a la tarjeta de otra forma: no se escribe el archivo de la hoja de contactos (sigue apareciendo en la emisión)",
+      "log.photostore.lost": "no se pudo guardar esta foto en el almacenamiento del navegador, así que solo salió en la emisión: ni guardada ni enviada",
+      "log.photostore.jammed": "no se pueden borrar fotos del almacenamiento del navegador ({n}), así que no se guardan más allí: solo salen en la emisión",
+      "log.photostore.swept": "se limpiaron {n} foto(s) que quedaron de una sesión anterior",
       "log.shot": "recibida una imagen de {kb} KB",
       "log.shotstale": "el objetivo cambió mientras se tomaba; esta captura se descartó",
       "log.needpw": "escribe la contraseña",
@@ -3516,6 +4108,8 @@
       "log.livestart": "a transmissão começou — o botão funciona",
       "log.livestop": "a transmissão terminou — o botão não funciona",
       "log.closed.notlive": "não fotografa porque você não está ao vivo. Comece a transmissão no OBS",
+      "log.closed.livelost": "não fotografa: o OBS não disse se está transmitindo; perguntando de novo",
+      "log.closed.livegone": "não fotografa: o OBS nunca disse se está transmitindo. Comece a transmissão ou reconecte ao OBS",
       "log.closed.nosource": "não fotografa porque nenhuma cena de captura foi escolhida. Escolha na página de configuração",
       "log.closed.notscene": "o OBS não tem uma cena chamada «{n}». Escolha de novo na página de configuração",
       "log.closed.nogate": "não fotografa porque as cenas em que o botão funciona ainda não foram escolhidas. Escolha na página de configuração",
@@ -3536,12 +4130,16 @@
       "log.cardmade": "a fonte «{n}» foi adicionada ao OBS para salvar com moldura. Ela fica fora da tela, então não aparece nem na live nem na foto. Deixe ali — se for apagada, é recriada na próxima foto",
       "log.sheetsaved": "folha de contato gravada: {p}",
       "log.sheetfail": "não foi possível gravar a folha de contato: {m} (ela apareceu na live)",
+      "log.sheetoffair": "esta festa inclui fotos tiradas antes da transmissão começar, então a folha de contato não é enviada ao Discord (mas é gravada)",
       "discord.sheet": "Folha de contato do SHUTTER PARTY",
       "log.discord.full": "já há {n} fotos aguardando o Discord; esta não será enviada (a gravação continua)",
       "log.discord.skip": "não enviada ao Discord ({k} #{n}): {why}",
       "log.discord.toobig": "imagem grande demais para o Discord, não enviada (#{n}, {mb} MB)",
       "log.discord.sent": "{n} enviadas ao Discord",
       "log.discord.unsure": "não foi possível saber se o Discord recebeu {n}; não será reenviado para não postar duas vezes",
+      "log.discord.slow": "O Discord não respondeu em {s} s ({n} fotos). Não é reenviado, para nada sair duas vezes",
+      "log.discord.migrate": "o envio ao Discord está parado. Digite o webhook de novo na página de configuração para enviar",
+      "log.discord.nohook": "O envio ao Discord está ligado, mas nenhum webhook chegou, então nada é enviado. Cole o webhook de novo na página de configuração e clique em Escrever no OBS",
       "log.discord.bad": "o Discord não aceitou o envio ({m}). Verifique o webhook na página de configuração. Webhooks de canais de fórum ou mídia não funcionam",
       "log.discord.gone": "o webhook do Discord não pode ser usado ({m}): foi excluído ou a URL está errada. Nada será enviado até ele ser inserido de novo na página de configuração",
       "log.discord.gaveup": "o Discord continuou limitando; {n} descartadas sem envio ({m})",
@@ -3549,7 +4147,14 @@
       "log.discord.fail": "não foi possível enviar ao Discord ({m})",
       "log.keeper": "esta sobreposição cuida da gravação e das postagens no Discord (as outras deste PC só mostram as fotos)",
       "log.keeper.nolock": "este navegador não consegue escolher uma única sobreposição; a que não é vertical grava e posta no Discord. Uma fonte duplicada fará tudo duas vezes",
+      "log.keeper.handed": "o salvamento e os envios ao Discord passaram para a sobreposição normal (não vertical)",
       "log.cardfail": "não foi possível salvar a cópia com moldura: {m} (a foto em si foi tirada)",
+      "log.cardslow": "o cartão não avisou que havia desenhado, então esta foto não foi salva nem enviada: fotografá-la teria capturado a anterior",
+      "log.cardtoobig": "esta foto era grande demais para passar ao cartão, então não foi salva nem enviada",
+      "log.photostore.off": "este navegador não pode usar o armazenamento aqui, então as fotos chegam ao cartão de outra forma — o arquivo da folha de contato não é gravado (ela continua aparecendo na transmissão)",
+      "log.photostore.lost": "não foi possível colocar esta foto no armazenamento do navegador, então ela saiu só na transmissão — nem salva, nem enviada",
+      "log.photostore.jammed": "não é possível apagar fotos do armazenamento do navegador ({n}), então nenhuma outra é colocada lá — elas vão só para a transmissão",
+      "log.photostore.swept": "{n} foto(s) de uma execução anterior foram removidas",
       "log.shot": "imagem de {kb} KB recebida",
       "log.shotstale": "o alvo mudou enquanto a foto era tirada; este quadro foi descartado",
       "log.needpw": "digite a senha",
@@ -3602,6 +4207,8 @@
       "log.livestart": "Stream gestartet — der Button funktioniert",
       "log.livestop": "Stream beendet — der Button funktioniert nicht",
       "log.closed.notlive": "es wird nicht fotografiert, weil du nicht streamst. Starte den Stream in OBS",
+      "log.closed.livelost": "es wird nicht fotografiert: OBS hat nicht gesagt, ob es streamt – wird erneut gefragt",
+      "log.closed.livegone": "es wird nicht fotografiert: OBS hat nie gesagt, ob es streamt. Starte den Stream oder verbinde dich neu mit OBS",
       "log.closed.nosource": "es wird nicht fotografiert, weil noch keine Aufnahmeszene gewählt ist. Wähle sie auf der Einrichtungsseite",
       "log.closed.notscene": "OBS hat keine Szene namens „{n}“. Wähle sie auf der Einrichtungsseite neu",
       "log.closed.nogate": "es wird nicht fotografiert, weil noch keine Szenen gewählt sind, in denen der Button wirkt. Wähle sie auf der Einrichtungsseite",
@@ -3622,12 +4229,16 @@
       "log.cardmade": "die Quelle „{n}“ wurde in OBS für das Speichern mit Rahmen angelegt. Sie liegt außerhalb des Bildes und erscheint daher weder im Stream noch im Foto. Lass sie dort; wenn sie gelöscht wird, entsteht sie beim nächsten Foto neu",
       "log.sheetsaved": "Kontaktbogen geschrieben: {p}",
       "log.sheetfail": "Kontaktbogen konnte nicht geschrieben werden: {m} (im Stream war er zu sehen)",
+      "log.sheetoffair": "diese Party enthält Fotos von vor dem Stream, daher wird der Kontaktbogen nicht an Discord gesendet (gespeichert wird er weiterhin)",
       "discord.sheet": "SHUTTER PARTY Kontaktbogen",
       "log.discord.full": "{n} Fotos warten bereits auf Discord; dieses wird nicht gesendet (Speichern läuft weiter)",
       "log.discord.skip": "nicht an Discord gesendet ({k} #{n}): {why}",
       "log.discord.toobig": "Bild zu groß für Discord, nicht gesendet (#{n}, {mb} MB)",
       "log.discord.sent": "{n} an Discord gesendet",
       "log.discord.unsure": "unklar, ob Discord {n} erhalten hat; wird nicht erneut gesendet, damit nichts doppelt erscheint",
+      "log.discord.slow": "Discord hat in {s} s nicht geantwortet ({n} Bilder). Wird nicht erneut gesendet, damit nichts doppelt erscheint",
+      "log.discord.migrate": "Das Senden an Discord ist gestoppt. Trage den Webhook auf der Einrichtungsseite noch einmal ein, um zu senden",
+      "log.discord.nohook": "Senden an Discord ist an, aber es ist kein Webhook angekommen, also wird nichts gesendet. Füge den Webhook auf der Einstellungsseite erneut ein und drück Auf OBS schreiben",
       "log.discord.bad": "Discord hat den Beitrag nicht angenommen ({m}). Prüfe den Webhook auf der Einrichtungsseite. Webhooks von Forum- oder Medienkanälen funktionieren nicht",
       "log.discord.gone": "der Discord-Webhook ist nicht nutzbar ({m}): gelöscht oder falsche URL. Bis zur erneuten Eingabe auf der Einrichtungsseite wird nichts gesendet",
       "log.discord.gaveup": "Discord hat weiter gedrosselt; {n} ungesendet verworfen ({m})",
@@ -3635,7 +4246,14 @@
       "log.discord.fail": "Senden an Discord fehlgeschlagen ({m})",
       "log.keeper": "dieses Overlay speichert und postet an Discord (andere Overlays auf diesem PC zeigen die Fotos nur an)",
       "log.keeper.nolock": "dieser Browser kann kein einzelnes Overlay festlegen; das nicht vertikale speichert und postet an Discord. Eine duplizierte Quelle tut beides doppelt",
+      "log.keeper.handed": "Speichern und Discord-Posts hat das normale (nicht vertikale) Overlay übernommen",
       "log.cardfail": "Kopie mit Rahmen konnte nicht gespeichert werden: {m} (das Foto selbst wurde aufgenommen)",
+      "log.cardslow": "die Karte hat nicht gemeldet, dass sie gezeichnet hat — dieses Foto wurde weder gespeichert noch gesendet, sonst wäre das vorherige aufgenommen worden",
+      "log.cardtoobig": "dieses Foto war zu groß für die Karte und wurde weder gespeichert noch gesendet",
+      "log.photostore.off": "dieser Browser kann seinen Speicher hier nicht nutzen, daher gelangen Fotos anders zur Karte — es wird keine Kontaktbogen-Datei geschrieben (im Stream erscheint er weiterhin)",
+      "log.photostore.lost": "dieses Foto ließ sich nicht im Browserspeicher ablegen und ging nur in den Stream — nicht gespeichert, nicht gesendet",
+      "log.photostore.jammed": "Fotos lassen sich nicht aus dem Browserspeicher löschen ({n} Stück), daher kommen keine weiteren hinein — sie gehen nur in den Stream",
+      "log.photostore.swept": "{n} Foto(s) aus einem früheren Lauf aufgeräumt",
       "log.shot": "Bild mit {kb} KB empfangen",
       "log.shotstale": "das Ziel hat sich während der Aufnahme geändert; dieses Bild wurde verworfen",
       "log.needpw": "gib das Passwort ein",
@@ -3688,6 +4306,8 @@
       "log.livestart": "le direct a commencé — le bouton fonctionne",
       "log.livestop": "le direct est terminé — le bouton ne fonctionne pas",
       "log.closed.notlive": "pas de photo : tu n’es pas en direct. Lance le stream dans OBS",
+      "log.closed.livelost": "pas de photo : OBS n’a pas dit s’il diffuse — nouvelle demande en cours",
+      "log.closed.livegone": "pas de photo : OBS n’a jamais dit s’il diffuse. Lance le direct ou reconnecte-toi à OBS",
       "log.closed.nosource": "pas de photo : aucune scène de capture n’a encore été choisie. Choisis-la sur la page de configuration",
       "log.closed.notscene": "OBS n’a pas de scène nommée « {n} ». Choisis-la de nouveau sur la page de configuration",
       "log.closed.nogate": "pas de photo : les scènes où le bouton fonctionne n’ont pas encore été choisies. Choisis-les sur la page de configuration",
@@ -3708,12 +4328,16 @@
       "log.cardmade": "la source « {n} » a été ajoutée dans OBS pour enregistrer avec cadre. Elle est hors du canevas, donc elle n’apparaît ni au stream ni sur la photo. Laisse-la là ; si elle est supprimée, elle sera recréée à la prochaine photo",
       "log.sheetsaved": "planche-contact écrite : {p}",
       "log.sheetfail": "planche-contact impossible à écrire : {m} (elle est bien sortie au stream)",
+      "log.sheetoffair": "cette fête contient des photos prises avant le direct : la planche-contact n'est pas envoyée à Discord (elle est tout de même enregistrée)",
       "discord.sheet": "Planche-contact SHUTTER PARTY",
       "log.discord.full": "{n} photos attendent déjà Discord ; celle-ci n'est pas envoyée (l'enregistrement continue)",
       "log.discord.skip": "non envoyée à Discord ({k} #{n}) : {why}",
       "log.discord.toobig": "image trop lourde pour Discord, non envoyée (#{n}, {mb} Mo)",
       "log.discord.sent": "{n} envoyée(s) à Discord",
       "log.discord.unsure": "impossible de savoir si Discord a reçu {n} ; pas de renvoi, pour ne rien publier deux fois",
+      "log.discord.slow": "Discord n’a pas répondu en {s} s ({n} photos). Pas de nouvel envoi, pour que rien ne sorte deux fois",
+      "log.discord.migrate": "l’envoi vers Discord est arrêté. Saisis à nouveau le webhook sur la page de configuration pour envoyer",
+      "log.discord.nohook": "L'envoi vers Discord est activé, mais aucun webhook n'est arrivé, donc rien n'est envoyé. Recolle le webhook dans la page de réglages et appuie sur Écrire dans OBS",
       "log.discord.bad": "Discord a refusé l'envoi ({m}). Vérifiez le webhook sur la page de configuration. Les webhooks des salons forum ou médias ne fonctionnent pas",
       "log.discord.gone": "le webhook Discord est inutilisable ({m}) : supprimé ou URL erronée. Rien n'est envoyé tant qu'il n'est pas saisi à nouveau sur la page de configuration",
       "log.discord.gaveup": "Discord a continué de limiter ; {n} abandonnée(s) sans envoi ({m})",
@@ -3721,7 +4345,14 @@
       "log.discord.fail": "envoi à Discord impossible ({m})",
       "log.keeper": "cet overlay se charge de l'enregistrement et des envois sur Discord (les autres overlays de ce PC affichent seulement les photos)",
       "log.keeper.nolock": "ce navigateur ne peut pas désigner un seul overlay ; l'overlay non vertical enregistre et publie sur Discord. Une source dupliquée le fera deux fois",
+      "log.keeper.handed": "l'enregistrement et les envois vers Discord sont passés à la surcouche normale (non verticale)",
       "log.cardfail": "copie avec cadre impossible à enregistrer : {m} (la photo elle-même a été prise)",
+      "log.cardslow": "la carte n'a pas signalé qu'elle avait dessiné : cette photo n'a été ni enregistrée ni envoyée, car la photographier aurait capturé la précédente",
+      "log.cardtoobig": "cette photo était trop grande pour être passée à la carte : ni enregistrée ni envoyée",
+      "log.photostore.off": "ce navigateur ne peut pas utiliser son stockage ici : les photos parviennent à la carte autrement — aucun fichier de planche-contact n'est écrit (elle apparaît toujours à l'antenne)",
+      "log.photostore.lost": "impossible de placer cette photo dans le stockage du navigateur : elle n'est allée qu'à l'antenne — ni enregistrée ni envoyée",
+      "log.photostore.jammed": "des photos ne peuvent pas être supprimées du stockage du navigateur ({n}) : plus aucune n'y est déposée, elles ne vont qu'à l'antenne",
+      "log.photostore.swept": "{n} photo(s) restée(s) d'une session précédente ont été effacées",
       "log.shot": "image de {kb} Ko reçue",
       "log.shotstale": "la cible a changé pendant la prise ; cette image a été écartée",
       "log.needpw": "saisis le mot de passe",
@@ -3774,6 +4405,8 @@
       "log.livestart": "трансляция началась — кнопка работает",
       "log.livestop": "трансляция завершена — кнопка не работает",
       "log.closed.notlive": "съёмка невозможна: вы не в эфире. Запустите трансляцию в OBS",
+      "log.closed.livelost": "съёмка невозможна: OBS не ответил, идёт ли трансляция — запрашиваем снова",
+      "log.closed.livegone": "съёмка невозможна: OBS так и не ответил, идёт ли трансляция. Запустите трансляцию или переподключитесь к OBS",
       "log.closed.nosource": "съёмка невозможна: сцена для съёмки ещё не выбрана. Выберите её на странице настроек",
       "log.closed.notscene": "в OBS нет сцены «{n}». Выберите её заново на странице настроек",
       "log.closed.nogate": "съёмка невозможна: сцены, где работает кнопка, ещё не выбраны. Выберите их на странице настроек",
@@ -3794,12 +4427,16 @@
       "log.cardmade": "в OBS создан источник «{n}» для сохранения с рамкой. Он находится за пределами холста, поэтому не появляется ни в эфире, ни на фото. Не удаляйте его; если удалить, он будет создан заново при следующем фото",
       "log.sheetsaved": "контактный лист записан: {p}",
       "log.sheetfail": "контактный лист записать не удалось: {m} (в эфир он вышел)",
+      "log.sheetoffair": "в этой вечеринке есть фотографии, снятые до начала трансляции, поэтому контрольный лист не отправляется в Discord (он всё равно сохраняется)",
       "discord.sheet": "Контактный лист SHUTTER PARTY",
       "log.discord.full": "в очереди на Discord уже {n} снимков; этот не отправляется (сохранение продолжается)",
       "log.discord.skip": "не отправлено в Discord ({k} #{n}): {why}",
       "log.discord.toobig": "изображение слишком большое для Discord, не отправлено (#{n}, {mb} МБ)",
       "log.discord.sent": "отправлено в Discord: {n}",
       "log.discord.unsure": "неизвестно, получил ли Discord {n}; повторно не отправляем, чтобы не было дублей",
+      "log.discord.slow": "Discord не ответил за {s} с ({n} фото). Повторно не отправляем, чтобы ничего не ушло дважды",
+      "log.discord.migrate": "отправка в Discord остановлена. Введите webhook на странице настройки ещё раз, чтобы отправлять",
+      "log.discord.nohook": "Отправка в Discord включена, но webhook не пришёл, поэтому ничего не отправляется. Вставьте webhook заново на странице настроек и нажмите «Записать в OBS»",
       "log.discord.bad": "Discord не принял отправку ({m}). Проверьте webhook на странице настройки. Webhook каналов-форумов и медиаканалов не подходят",
       "log.discord.gone": "webhook Discord недоступен ({m}): удалён или неверный URL. Ничего не отправляется, пока его не введут заново на странице настройки",
       "log.discord.gaveup": "Discord продолжал ограничивать; {n} отброшено без отправки ({m})",
@@ -3807,7 +4444,14 @@
       "log.discord.fail": "не удалось отправить в Discord ({m})",
       "log.keeper": "этот оверлей сохраняет снимки и отправляет их в Discord (другие оверлеи на этом ПК только показывают снимки)",
       "log.keeper.nolock": "этот браузер не может выбрать один оверлей; сохраняет и отправляет в Discord невертикальный. Дублированный источник сделает всё дважды",
+      "log.keeper.handed": "сохранение и отправка в Discord перешли к обычному (не вертикальному) оверлею",
       "log.cardfail": "копию с рамкой сохранить не удалось: {m} (само фото снято)",
+      "log.cardslow": "карточка не сообщила, что отрисовала, поэтому это фото не сохранено и не отправлено — иначе был бы снят предыдущий кадр",
+      "log.cardtoobig": "это фото слишком велико, чтобы передать его карточке, — не сохранено и не отправлено",
+      "log.photostore.off": "в этой среде хранилище браузера недоступно, поэтому фото попадают в карточку иначе — файл контрольного листа не создаётся (на трансляции он по-прежнему появляется)",
+      "log.photostore.lost": "это фото не удалось положить в хранилище браузера, поэтому оно вышло только в эфир — не сохранено и не отправлено",
+      "log.photostore.jammed": "фотографии не удаляются из хранилища браузера ({n}), поэтому новые туда не кладутся — они идут только в эфир",
+      "log.photostore.swept": "удалено {n} фото, оставшихся от прошлого запуска",
       "log.shot": "получено изображение {kb} КБ",
       "log.shotstale": "цель изменилась во время съёмки; этот кадр отброшен",
       "log.needpw": "введите пароль",
@@ -3860,6 +4504,8 @@
       "log.livestart": "방송이 시작되었습니다 — 버튼이 작동합니다",
       "log.livestop": "방송이 종료되었습니다 — 버튼이 작동하지 않습니다",
       "log.closed.notlive": "방송 중이 아니라 촬영할 수 없습니다. OBS 에서 방송을 시작해 주세요",
+      "log.closed.livelost": "촬영할 수 없습니다: OBS 가 방송 중인지 답하지 않아 다시 확인하고 있습니다",
+      "log.closed.livegone": "촬영할 수 없습니다: OBS 가 방송 중인지 끝내 답하지 않았습니다. 방송을 시작하거나 OBS 에 다시 연결해 주세요",
       "log.closed.nosource": "촬영할 장면을 아직 고르지 않아 촬영할 수 없습니다. 설정 페이지에서 골라 주세요",
       "log.closed.notscene": "OBS 에 “{n}”이라는 장면이 없습니다. 설정 페이지에서 다시 골라 주세요",
       "log.closed.nogate": "버튼이 작동할 장면을 아직 고르지 않아 촬영할 수 없습니다. 설정 페이지에서 골라 주세요",
@@ -3880,12 +4526,16 @@
       "log.cardmade": "테두리 포함 저장을 위해 OBS 에 “{n}” 소스를 만들었습니다. 화면 밖에 있으므로 방송이나 사진에는 나오지 않습니다. 지우지 말아 주세요(지워도 다음 저장 때 다시 만듭니다)",
       "log.sheetsaved": "콘택트 시트를 내보냈습니다: {p}",
       "log.sheetfail": "콘택트 시트를 내보내지 못했습니다: {m}(방송 화면에는 나갔습니다)",
+      "log.sheetoffair": "이 파티에는 방송 전에 찍은 사진이 섞여 있어 콘택트시트를 Discord로 보내지 않습니다(저장은 합니다)",
       "discord.sheet": "SHUTTER PARTY 콘택트 시트",
       "log.discord.full": "Discord로 보낼 사진이 이미 {n}장 대기 중이라 이 사진은 보내지 않습니다(저장은 계속됩니다)",
       "log.discord.skip": "Discord로 보내지 않음({k} #{n}): {why}",
       "log.discord.toobig": "이미지가 너무 커서 Discord로 보내지 않습니다(#{n}, {mb} MB)",
       "log.discord.sent": "Discord로 {n}장 보냈습니다",
       "log.discord.unsure": "Discord가 {n}장을 받았는지 알 수 없습니다. 중복 게시를 막기 위해 다시 보내지 않습니다",
+      "log.discord.slow": "Discord 가 {s} 초 안에 답하지 않았습니다（{n} 장）. 중복으로 올라가지 않도록 다시 보내지 않습니다",
+      "log.discord.migrate": "Discord 로 보내기가 멈춰 있습니다. 설정 페이지에서 webhook 을 다시 입력하면 보냅니다",
+      "log.discord.nohook": "Discord 로 보내기가 켜져 있지만 webhook 이 도착하지 않아 보내지 않습니다. 설정 페이지에서 webhook 을 다시 붙여 넣고 「OBS 에 반영」을 누르세요",
       "log.discord.bad": "Discord가 전송을 받아들이지 않았습니다({m}). 설정 페이지에서 webhook을 확인하세요. 포럼·미디어 채널의 webhook은 사용할 수 없습니다",
       "log.discord.gone": "Discord webhook을 사용할 수 없습니다({m}). 삭제되었거나 URL이 틀립니다. 설정 페이지에서 다시 입력할 때까지 보내지 않습니다",
       "log.discord.gaveup": "Discord의 속도 제한이 계속되어 {n}장을 보내지 않고 버렸습니다({m})",
@@ -3893,7 +4543,14 @@
       "log.discord.fail": "Discord로 보내지 못했습니다({m})",
       "log.keeper": "이 오버레이가 저장과 Discord 전송을 맡습니다(이 PC의 다른 오버레이는 사진을 화면에 보여 주기만 합니다)",
       "log.keeper.nolock": "이 브라우저에서는 맡을 오버레이를 정할 수 없어 세로형이 아닌 오버레이가 저장과 Discord 전송을 합니다. 복제한 소스는 두 번 실행됩니다",
+      "log.keeper.handed": "저장과 Discord 전송은 일반 (세로형이 아닌) 오버레이가 이어받았습니다",
       "log.cardfail": "테두리 포함 저장을 하지 못했습니다: {m}(사진 자체는 촬영되었습니다)",
+      "log.cardslow": "카드가 그리기를 마쳤다고 알리지 않아 이 사진은 저장도 전송도 하지 않았습니다 — 그대로 찍으면 이전 사진이 찍힙니다",
+      "log.cardtoobig": "이 사진은 카드에 넘기기에 너무 커서 저장과 전송을 건너뛰었습니다",
+      "log.photostore.off": "이 환경에서는 브라우저 저장소를 쓸 수 없어 사진을 다른 방법으로 카드에 넘깁니다(콘택트시트 파일은 만들지 않습니다. 방송 화면에는 나옵니다)",
+      "log.photostore.lost": "사진을 브라우저 저장소에 넣지 못해 이 한 장은 방송 화면에만 띄웠습니다(저장과 전송은 건너뜀)",
+      "log.photostore.jammed": "브라우저 저장소에서 사진을 지우지 못하는 상태가 이어져({n}장) 더 이상 넣지 않고 방송 화면에만 띄웁니다",
+      "log.photostore.swept": "이전 실행에서 남은 사진 {n}장을 정리했습니다",
       "log.shot": "{kb} KB 이미지를 받았습니다",
       "log.shotstale": "촬영 중에 대상 씬이 바뀌어 이 한 장은 사용하지 않습니다",
       "log.needpw": "비밀번호를 입력해 주세요",
@@ -3946,6 +4603,8 @@
       "log.livestart": "la diretta è iniziata — il pulsante funziona",
       "log.livestop": "la diretta è finita — il pulsante non funziona",
       "log.closed.notlive": "niente scatto: non sei in diretta. Avvia la trasmissione in OBS",
+      "log.closed.livelost": "niente scatto: OBS non ha detto se sta trasmettendo — si richiede di nuovo",
+      "log.closed.livegone": "niente scatto: OBS non ha mai detto se sta trasmettendo. Avvia la diretta o riconnettiti a OBS",
       "log.closed.nosource": "niente scatto: non è stata ancora scelta una scena di cattura. Sceglila nella pagina di configurazione",
       "log.closed.notscene": "OBS non ha una scena chiamata “{n}”. Sceglila di nuovo nella pagina di configurazione",
       "log.closed.nogate": "niente scatto: le scene in cui il pulsante funziona non sono ancora state scelte. Sceglile nella pagina di configurazione",
@@ -3966,12 +4625,16 @@
       "log.cardmade": "aggiunta in OBS la fonte “{n}” per il salvataggio con cornice. Sta fuori dal canvas, quindi non appare né in diretta né nella foto. Lasciala lì; se viene rimossa, sarà ricreata al prossimo scatto",
       "log.sheetsaved": "provino a contatto scritto: {p}",
       "log.sheetfail": "impossibile scrivere il provino a contatto: {m} (è comunque uscito in diretta)",
+      "log.sheetoffair": "questa festa contiene foto scattate prima della diretta, quindi il provino non viene inviato a Discord (viene comunque salvato)",
       "discord.sheet": "Provino a contatto SHUTTER PARTY",
       "log.discord.full": "ci sono già {n} foto in attesa per Discord; questa non viene inviata (il salvataggio continua)",
       "log.discord.skip": "non inviata a Discord ({k} #{n}): {why}",
       "log.discord.toobig": "immagine troppo grande per Discord, non inviata (#{n}, {mb} MB)",
       "log.discord.sent": "{n} inviate a Discord",
       "log.discord.unsure": "non si sa se Discord abbia ricevuto {n}; non viene reinviata per non pubblicare due volte",
+      "log.discord.slow": "Discord non ha risposto entro {s} s ({n} foto). Non viene rinviato, così nulla esce due volte",
+      "log.discord.migrate": "l’invio a Discord è fermo. Reinserisci il webhook nella pagina di configurazione per inviare",
+      "log.discord.nohook": "L'invio a Discord è attivo, ma non è arrivato nessun webhook, quindi non si invia nulla. Incolla di nuovo il webhook nella pagina delle impostazioni e premi Scrivi su OBS",
       "log.discord.bad": "Discord non ha accettato l'invio ({m}). Controlla il webhook nella pagina di configurazione. I webhook dei canali forum o media non funzionano",
       "log.discord.gone": "il webhook di Discord non è utilizzabile ({m}): eliminato o URL errato. Non si invia nulla finché non viene reinserito nella pagina di configurazione",
       "log.discord.gaveup": "Discord ha continuato a limitare; {n} scartate senza invio ({m})",
@@ -3979,7 +4642,14 @@
       "log.discord.fail": "invio a Discord non riuscito ({m})",
       "log.keeper": "questo overlay si occupa del salvataggio e degli invii a Discord (gli altri overlay di questo PC mostrano solo le foto)",
       "log.keeper.nolock": "questo browser non può scegliere un unico overlay; salva e invia a Discord quello non verticale. Una sorgente duplicata lo farà due volte",
+      "log.keeper.handed": "il salvataggio e gli invii a Discord sono passati all'overlay normale (non verticale)",
       "log.cardfail": "impossibile salvare la copia con cornice: {m} (la foto è stata scattata)",
+      "log.cardslow": "la scheda non ha segnalato di aver disegnato, quindi questa foto non è stata salvata né inviata: fotografarla avrebbe catturato la precedente",
+      "log.cardtoobig": "questa foto era troppo grande per passarla alla scheda: non salvata né inviata",
+      "log.photostore.off": "qui il browser non può usare la propria memoria, quindi le foto arrivano alla scheda in altro modo — il file del provino non viene scritto (in diretta compare comunque)",
+      "log.photostore.lost": "non è stato possibile mettere questa foto nella memoria del browser: è andata solo in diretta — non salvata, non inviata",
+      "log.photostore.jammed": "non si riescono a eliminare foto dalla memoria del browser ({n}), quindi non ne vengono più messe: vanno solo in diretta",
+      "log.photostore.swept": "ripulite {n} foto rimaste da una sessione precedente",
       "log.shot": "ricevuta un'immagine da {kb} KB",
       "log.shotstale": "il bersaglio è cambiato durante lo scatto; questo fotogramma è stato scartato",
       "log.needpw": "inserisci la password",
@@ -4032,6 +4702,8 @@
       "log.livestart": "transmisja się rozpoczęła — przycisk działa",
       "log.livestop": "transmisja się zakończyła — przycisk nie działa",
       "log.closed.notlive": "zdjęcie niemożliwe: nie nadajesz. Uruchom transmisję w OBS",
+      "log.closed.livelost": "zdjęcie niemożliwe: OBS nie odpowiedział, czy nadaje — pytamy ponownie",
+      "log.closed.livegone": "zdjęcie niemożliwe: OBS nigdy nie odpowiedział, czy nadaje. Uruchom transmisję lub połącz się ponownie z OBS",
       "log.closed.nosource": "zdjęcie niemożliwe: nie wybrano jeszcze sceny do zdjęć. Wybierz ją na stronie konfiguracji",
       "log.closed.notscene": "OBS nie ma sceny o nazwie „{n}”. Wybierz ją ponownie na stronie konfiguracji",
       "log.closed.nogate": "zdjęcie niemożliwe: nie wybrano jeszcze scen, w których działa przycisk. Wybierz je na stronie konfiguracji",
@@ -4052,12 +4724,16 @@
       "log.cardmade": "dodano w OBS źródło „{n}” do zapisu w ramce. Leży poza ekranem, więc nie pojawia się ani na streamie, ani na zdjęciu. Zostaw je tam; jeśli zostanie usunięte, powstanie ponownie przy następnym zdjęciu",
       "log.sheetsaved": "zapisano stykówkę: {p}",
       "log.sheetfail": "nie udało się zapisać stykówki: {m} (pojawiła się na streamie)",
+      "log.sheetoffair": "ta impreza zawiera zdjęcia zrobione przed rozpoczęciem transmisji, więc stykówka nie jest wysyłana na Discord (nadal jest zapisywana)",
       "discord.sheet": "Stykówka SHUTTER PARTY",
       "log.discord.full": "na Discord czeka już {n} zdjęć; to nie zostanie wysłane (zapisywanie trwa dalej)",
       "log.discord.skip": "nie wysłano na Discord ({k} #{n}): {why}",
       "log.discord.toobig": "obraz za duży dla Discorda, nie wysłano (#{n}, {mb} MB)",
       "log.discord.sent": "wysłano na Discord: {n}",
       "log.discord.unsure": "nie wiadomo, czy Discord odebrał {n}; nie wysyłamy ponownie, żeby nic nie pojawiło się dwa razy",
+      "log.discord.slow": "Discord nie odpowiedział w {s} s ({n} zdjęć). Nie wysyłamy ponownie, żeby nic nie poszło dwa razy",
+      "log.discord.migrate": "wysyłanie na Discorda jest zatrzymane. Wpisz webhook ponownie na stronie ustawień, aby wysyłać",
+      "log.discord.nohook": "Wysyłanie na Discord jest włączone, ale nie dotarł żaden webhook, więc nic nie jest wysyłane. Wklej webhook ponownie na stronie ustawień i naciśnij Zapisz do OBS",
       "log.discord.bad": "Discord nie przyjął wysyłki ({m}). Sprawdź webhook na stronie ustawień. Webhooki kanałów forum i multimediów nie działają",
       "log.discord.gone": "webhook Discorda jest nieużyteczny ({m}): usunięty albo błędny URL. Nic nie zostanie wysłane, dopóki nie wpiszesz go ponownie na stronie ustawień",
       "log.discord.gaveup": "Discord nadal ograniczał; {n} odrzucono bez wysyłki ({m})",
@@ -4065,7 +4741,14 @@
       "log.discord.fail": "nie udało się wysłać na Discord ({m})",
       "log.keeper": "ta nakładka zapisuje zdjęcia i wysyła je na Discord (inne nakładki na tym komputerze tylko je pokazują)",
       "log.keeper.nolock": "ta przeglądarka nie potrafi wybrać jednej nakładki; zapisuje i wysyła na Discord nakładka niepionowa. Zduplikowane źródło zrobi to dwa razy",
+      "log.keeper.handed": "zapisywanie i wysyłanie na Discord przejęła zwykła (nie pionowa) nakładka",
       "log.cardfail": "nie udało się zapisać kopii w ramce: {m} (samo zdjęcie zostało zrobione)",
+      "log.cardslow": "karta nie zgłosiła, że narysowała, więc tego zdjęcia nie zapisano ani nie wysłano — inaczej zostałoby uchwycone poprzednie",
+      "log.cardtoobig": "to zdjęcie było za duże, by przekazać je karcie — nie zapisano i nie wysłano",
+      "log.photostore.off": "w tym środowisku przeglądarka nie może użyć swojej pamięci, więc zdjęcia trafiają do karty inaczej — plik stykówki nie powstaje (na transmisji nadal się pojawia)",
+      "log.photostore.lost": "nie udało się umieścić tego zdjęcia w pamięci przeglądarki, więc poszło tylko na transmisję — bez zapisu i wysyłki",
+      "log.photostore.jammed": "nie udaje się usuwać zdjęć z pamięci przeglądarki ({n}), więc kolejne nie są tam umieszczane — trafiają tylko na transmisję",
+      "log.photostore.swept": "uprzątnięto {n} zdjęcie(a) pozostałe z wcześniejszego uruchomienia",
       "log.shot": "odebrano obraz {kb} KB",
       "log.shotstale": "cel zmienił się podczas robienia zdjęcia; ta klatka została odrzucona",
       "log.needpw": "wpisz hasło",
@@ -4118,6 +4801,8 @@
       "log.livestart": "yayın başladı — düğme çalışıyor",
       "log.livestop": "yayın bitti — düğme çalışmıyor",
       "log.closed.notlive": "çekim yok: yayında değilsiniz. OBS'de yayını başlatın",
+      "log.closed.livelost": "çekim yok: OBS yayında olup olmadığını söylemedi — yeniden soruluyor",
+      "log.closed.livegone": "çekim yok: OBS yayında olup olmadığını hiç söylemedi. Yayını başlatın ya da OBS'ye yeniden bağlanın",
       "log.closed.nosource": "çekim yok: çekim sahnesi henüz seçilmedi. Kurulum sayfasında seçin",
       "log.closed.notscene": "OBS'de “{n}” adlı bir sahne yok. Kurulum sayfasında yeniden seçin",
       "log.closed.nogate": "çekim yok: düğmenin çalışacağı sahneler henüz seçilmedi. Kurulum sayfasında seçin",
@@ -4138,12 +4823,16 @@
       "log.cardmade": "çerçeveli kaydetme için OBS'ye “{n}” kaynağı eklendi. Tuvalin dışında durur, bu yüzden yayında ya da fotoğrafta görünmez. Orada bırakın; silinirse sonraki fotoğrafta yeniden oluşturulur",
       "log.sheetsaved": "kontakt sayfası yazıldı: {p}",
       "log.sheetfail": "kontakt sayfası yazılamadı: {m} (yayına çıktı)",
+      "log.sheetoffair": "bu partide yayın başlamadan önce çekilen fotoğraflar var, bu yüzden kontakt föy Discord'a gönderilmiyor (yine de kaydediliyor)",
       "discord.sheet": "SHUTTER PARTY kontakt sayfası",
       "log.discord.full": "Discord'a gitmeyi bekleyen {n} fotoğraf var; bu gönderilmiyor (kaydetme sürüyor)",
       "log.discord.skip": "Discord'a gönderilmedi ({k} #{n}): {why}",
       "log.discord.toobig": "görüntü Discord için çok büyük, gönderilmedi (#{n}, {mb} MB)",
       "log.discord.sent": "Discord'a {n} gönderildi",
       "log.discord.unsure": "Discord'un {n} tanesini alıp almadığı bilinmiyor; iki kez paylaşılmasın diye yeniden gönderilmiyor",
+      "log.discord.slow": "Discord {s} saniyede yanıt vermedi ({n} fotoğraf). Hiçbir şey iki kez çıkmasın diye yeniden gönderilmiyor",
+      "log.discord.migrate": "Discord'a gönderim durduruldu. Göndermek için kurulum sayfasında webhook'u yeniden girin",
+      "log.discord.nohook": "Discord'a gönderme açık, ama webhook gelmedi, bu yüzden hiçbir şey gönderilmiyor. Ayar sayfasında webhook'u yeniden yapıştırıp OBS'ye yaz'a basın",
       "log.discord.bad": "Discord gönderiyi kabul etmedi ({m}). Kurulum sayfasında webhook'u kontrol edin. Forum veya medya kanallarının webhook'ları kullanılamaz",
       "log.discord.gone": "Discord webhook'u kullanılamıyor ({m}): silinmiş ya da URL yanlış. Kurulum sayfasında yeniden girilene kadar gönderilmiyor",
       "log.discord.gaveup": "Discord sınırlamayı sürdürdü; {n} gönderilmeden atıldı ({m})",
@@ -4151,7 +4840,14 @@
       "log.discord.fail": "Discord'a gönderilemedi ({m})",
       "log.keeper": "kaydetme ve Discord gönderimini bu katman üstlenir (bu bilgisayardaki diğer katmanlar yalnızca fotoğrafları gösterir)",
       "log.keeper.nolock": "bu tarayıcı tek bir katman seçemiyor; kaydetmeyi ve Discord'a göndermeyi dikey olmayan katman yapar. Çoğaltılmış bir kaynak ikisini de iki kez yapar",
+      "log.keeper.handed": "kaydetme ve Discord'a gönderme normal (dikey olmayan) katmana geçti",
       "log.cardfail": "çerçeveli kopya kaydedilemedi: {m} (fotoğrafın kendisi çekildi)",
+      "log.cardslow": "kart çizimi bitirdiğini bildirmediği için bu fotoğraf ne kaydedildi ne gönderildi — yine de çekilseydi bir önceki fotoğraf yakalanırdı",
+      "log.cardtoobig": "bu fotoğraf karta verilemeyecek kadar büyüktü; kaydedilmedi ve gönderilmedi",
+      "log.photostore.off": "bu ortamda tarayıcı kendi deposunu kullanamıyor, bu yüzden fotoğraflar karta başka yoldan ulaşıyor — kontakt föy dosyası yazılmıyor (yayında yine görünüyor)",
+      "log.photostore.lost": "bu fotoğraf tarayıcı deposuna konulamadı, yalnızca yayına çıktı — kaydedilmedi, gönderilmedi",
+      "log.photostore.jammed": "tarayıcı deposundan fotoğraflar silinemiyor ({n} adet), bu yüzden yenileri oraya konmuyor — yalnızca yayına çıkıyorlar",
+      "log.photostore.swept": "önceki çalışmadan kalan {n} fotoğraf temizlendi",
       "log.shot": "{kb} KB'lık görüntü alındı",
       "log.shotstale": "çekim sırasında hedef değişti; bu kare atıldı",
       "log.needpw": "parolayı girin",
@@ -5111,8 +5807,8 @@
     saveDir: "", saveFrom: "0", saveParty: "1", saveSize: "std",
     stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
     gateSet: "", testUntil: "", theme: "liquid", pack: "",
-    packSlots: "", discordWebhook: "", discordHook: "", discordSheet: "0",
-    discordPaid: "0"
+    packSlots: "", discordWebhook: "", discordHook: "", discordSet: "",
+    discordSheet: "0", discordPaid: "0"
   };
   /* @end config-defaults */
 
@@ -5361,10 +6057,19 @@
   window.addEventListener("hashchange", function () {
     var sent = fromHash();
     if (!sent) return;
-    /* The three Discord settings too: they decide whether anything leaves
-     * this machine, and "stop sending" that waits for the next reload is not
-     * a stop (docs/discord-plan.md §4.1, Codex 15巡目). */
-    ["gateSet", "scenes", "testUntil", "discordHook", "discordSheet", "discordPaid"].forEach(function (k) {
+    /* The Discord settings too: they decide whether anything leaves this
+     * machine, and "stop sending" that waits for the next reload is not a stop
+     * (docs/discord-plan.md §4.1, Codex 15巡目).
+     *
+     * discordSet is here for the other direction — it is the broadcaster
+     * answering "yes, still send" to the migration notice (§4.6 ③), and the
+     * only thing they are told to do is put the webhook in again on the setup
+     * page. That reaches a running overlay as a fragment and nothing else, so
+     * left out of this list the answer would need OBS to reload the source,
+     * which nobody told them to do. Caught by check:discord「更新しただけでは
+     * 送りはじめない」on 2026-09-22, where the same press sent nothing and
+     * said nothing. */
+    ["gateSet", "scenes", "testUntil", "discordHook", "discordSet", "discordSheet", "discordPaid"].forEach(function (k) {
       if (typeof sent[k] === "string") cfg[k] = sent[k];
     });
     saveCfg(cfg);
@@ -5373,7 +6078,10 @@
     // Say the new answer even when it repeats the old one: this is the moment
     // the broadcaster is waiting to see confirmed.
     closedWhy = null;
-    sceneOpen();
+    // gateWatch rather than sceneOpen: it says the same thing in the log, and
+    // it also counts a closure, so a card job that was waiting when the
+    // broadcaster narrowed the gate is not let through afterwards (§4.4).
+    gateWatch();
     // ...and tell the EBS, which is the half that decides. Saying it only in
     // the log leaves the buttons shut on an answer that has already changed:
     // nothing else reports until the overlay happens to notice something else
@@ -5910,6 +6618,33 @@
      closed: a gate that opens itself while it is not looking is the accident
      it exists to prevent. */
   var streaming = false;
+  /* Whether anything has actually said so for THIS connection.
+   *
+   * `streaming` starts false and false is also what "off air" looks like, so
+   * the two are indistinguishable from inside — and they are not the same
+   * thing to say out loud. "OBS is not streaming, start it" sends a
+   * broadcaster who IS live to look at the one thing that is already right.
+   *
+   * It matters more than the wording. StreamStateChanged carries every CHANGE
+   * after the connection, never the state at it, so the asking is the only
+   * road to "already live when this page opened" — and a single refused answer
+   * used to hold the gate shut for the whole broadcast, with the log saying
+   * the broadcaster was not streaming (F14). */
+  var streamKnown = false;
+  var streamProbeTimer = null;
+  var streamProbeWait = 0;
+  var streamProbeTries = 0;
+  /* How many times to ask before leaving it alone.
+   *
+   * The ladder is the scene probe's — 1, 2, 4, 8, 16, 30 seconds — so six
+   * tries is about a minute of asking. There are only two reasons an answer
+   * does not come: OBS is busy, which is over in seconds, or this
+   * obs-websocket does not have the request, which a minute does not change.
+   * Asking it every thirty seconds for the length of a broadcast buys nothing
+   * from either. Stopping is not deciding the answer: the gate stays shut, the
+   * log says what to do, and either StreamStateChanged (the broadcaster goes
+   * live) or a reconnection starts the asking over. */
+  var STREAM_PROBE_TRIES = 6;
 
   var sceneProbeTimer = null;
   var sceneProbeWait = 0;
@@ -5985,7 +6720,63 @@
   function noteClosed(why) {
     if (why === closedWhy) return;
     closedWhy = why;
+    /* One reason is reported and not said.
+     *
+     * "Still asking whether OBS is streaming" is true for a few milliseconds
+     * of every ordinary connection, and a warning that appears every time the
+     * page connects is one a broadcaster learns to scroll past. It gets said
+     * when the asking has actually FAILED — livelost, and then livegone — and
+     * those are the states somebody has to do something about (F14). */
+    if (why === "livecheck") return;
     if (why) log(t("log.closed." + why), "warn");
+  }
+
+  /* ---- the gate closing, counted ----
+   *
+   * `sceneProof` is not this. That one counts how many times the TARGET was
+   * proved to be a scene, and it moves on re-proof and on a new connection —
+   * it does not move when the broadcaster stops streaming, switches to a scene
+   * the button is not allowed in, or lets the test window run out. Measured
+   * 2026-09-14: after all four of those, sceneProof still read 7 while
+   * sceneOpen() read false.
+   *
+   * That difference did not matter while a photograph was taken and written in
+   * one breath. It matters now: the card is a queue, the frame is read back,
+   * the card answers, and only then is the file asked for — a second or more,
+   * and the broadcaster can have gone off air inside it.
+   *
+   * Checking sceneOpen() again at that moment catches a gate that is still
+   * shut. This counter catches the other case: shut and opened again while the
+   * job was waiting. A job carries the number it started with; if the gate has
+   * closed since, the number has moved, and the job is not let through on
+   * somebody else's opening (§4.4).
+   */
+  var gateEpoch = 0;
+
+  /* How many times the state has been told something newer.
+   *
+   * Two facts about OBS arrive by two roads: asked for (GetStreamStatus,
+   * GetCurrentProgramScene) and announced (StreamStateChanged,
+   * CurrentProgramSceneChanged). The asked-for road is slower and can overtake
+   * nothing — but its ANSWER can arrive after an announcement, and an answer
+   * written into the state at that point puts back what the announcement just
+   * corrected.
+   *
+   * The shape that costs something: the page asks "are you streaming?", the
+   * broadcaster stops, the event says so, and then the answer lands saying
+   * yes. The gate opens on a stream that ended, and the next press is
+   * photographed on a machine nobody is watching.
+   *
+   * Every answer carries the generation it was asked in; anything the state
+   * learned since moves it, and a late answer is dropped rather than applied.
+   * Not the same as gateEpoch, which counts the gate CLOSING so that a waiting
+   * job is not let through on somebody else's opening — this one is about
+   * which of two descriptions of the present is the newer. */
+  var stateGen = 0;
+
+  /** Note a closure, if the gate is shut right now. Cheap; may be called often. */
+  function gateWatch() {
+    if (!sceneOpen()) gateEpoch++;
   }
 
   function sceneOpen() {
@@ -5997,7 +6788,19 @@
     // nothing here has to remember to close it — and a stale config cannot hold
     // the shutter open, because the deadline is in the past by then.
     var testing = Number(cfg.testUntil || 0) > Date.now();
-    if (!streaming && !testing) { noteClosed("notlive"); return false; }
+    if (!streaming && !testing) {
+      /* Shut either way, and three different things to say about it. Only the
+       * first one means "start the stream": the other two mean OBS has not
+       * answered the question, which is the broadcaster's machine failing at
+       * something they cannot see (F14). Unknown still counts as not
+       * streaming — a gate that opens itself while it is not looking is the
+       * accident it exists to prevent — but it must not be reported as a fact
+       * about the broadcast. */
+      noteClosed(streamKnown ? "notlive"
+        : streamProbeTries > STREAM_PROBE_TRIES ? "livegone"
+        : streamProbeTries ? "livelost" : "livecheck");
+      return false;
+    }
     if (testing) noteClosed("");
 
     // Nothing is photographed until the broadcaster has answered the question.
@@ -6037,7 +6840,7 @@
     testEndTimer = setTimeout(function () {
       testEndTimer = null;
       if (Number(cfg.testUntil || 0) > Date.now()) { watchTestWindow(); return; }
-      sceneOpen();                 // puts the reason in the log, link or no link
+      gateWatch();                 // puts the reason in the log, link or no link
       reportOverlayState();        // ...and tells the half that decides
     }, Math.min(left + 50, 0x7fffffff));
   }
@@ -6046,6 +6849,86 @@
     clearTimeout(sceneProbeTimer);
     sceneProbeTimer = null;
     sceneProbeWait = 0;
+  }
+
+  /** Stop asking, and put the ladder back to the bottom for the next failure. */
+  function cancelStreamProbe() {
+    clearTimeout(streamProbeTimer);
+    streamProbeTimer = null;
+    streamProbeWait = 0;
+    streamProbeTries = 0;
+  }
+
+  /**
+   * Ask again whether OBS is streaming, after an answer that was not one.
+   *
+   * The same shape as scheduleSceneProbe and for the same reason — nothing
+   * else would ask — with one difference: this one stops. The scene on air is
+   * asked about a fact that changes by itself and announces every change; a
+   * GetStreamStatus that has been refused six times in a minute is an
+   * obs-websocket that does not have it, and asking for the rest of the
+   * broadcast buys nothing.
+   * Stopping is not deciding the answer: the gate stays shut, and being TOLD
+   * (StreamStateChanged) or reconnecting starts the ladder over.
+   */
+  function scheduleStreamProbe() {
+    clearTimeout(streamProbeTimer);
+    streamProbeTimer = null;
+    streamProbeTries++;
+    if (streamProbeTries <= STREAM_PROBE_TRIES) {
+      streamProbeWait = Math.min(streamProbeWait ? streamProbeWait * 2 : 1000, 30000);
+      streamProbeTimer = setTimeout(function () {
+        streamProbeTimer = null;
+        if (identified) watchStreamState();
+      }, streamProbeWait);
+    }
+    // Said once when the asking starts failing, and once when it stops: those
+    // are the two moments the answer to "why is the shutter shut" changes.
+    // gateWatch() first, because that is what reaches the log whether or not
+    // the EBS link is up — the same pairing as the test window's end.
+    if (streamProbeTries === 1 || streamProbeTries === STREAM_PROBE_TRIES + 1) {
+      gateWatch();
+      reportOverlayState();
+    }
+  }
+
+  /**
+   * Ask whether OBS is streaming.
+   *
+   * Asked once per connection and then kept up to date by StreamStateChanged
+   * — which carries every change after this moment and nothing about this
+   * moment, so a broadcaster who was already live when the page connected is
+   * only ever described by this answer. A refusal, a timeout or an answer
+   * without the field therefore shuts the gate for as long as the broadcast
+   * lasts unless it is asked again (F14), and nothing else asks.
+   *
+   * A photograph coming out proves nothing here: OBS composites the capture
+   * scene whether or not anybody is watching, which is the whole reason this
+   * question exists.
+   */
+  function watchStreamState() {
+    var gen = stateGen;
+    return request("GetStreamStatus").then(function (d) {
+      // Superseded while it was in flight: an event has described the present
+      // since this was asked, and applying this now puts back what the event
+      // corrected (F13).
+      if (gen !== stateGen) return;
+      // An answer without the field is not an answer. Read as false it would
+      // be indistinguishable from "off air" — and the page would believe it
+      // and stop asking.
+      if (!d || typeof d.outputActive !== "boolean") return scheduleStreamProbe();
+      cancelStreamProbe();
+      streamKnown = true;
+      streaming = d.outputActive;
+      // gateWatch() before the report and even when the answer changed
+      // nothing: it is what reaches the log whether or not the EBS link is up,
+      // and "not streaming" is a different line from "cannot tell".
+      gateWatch();
+      reportOverlayState();
+    }).catch(function () {
+      // Refused, or ten seconds with no reply. Both leave the state unknown.
+      scheduleStreamProbe();
+    });
   }
 
   /**
@@ -6065,7 +6948,11 @@
   }
 
   function watchProgramScene() {
+    var gen = stateGen;
     return request("GetCurrentProgramScene").then(function (d) {
+      // Superseded while it was in flight: an event has said which scene is on
+      // air since this was asked, and that is the newer of the two.
+      if (gen !== stateGen) return;
       var name = d.currentProgramSceneName || d.sceneName || "";
       // An answer without a name is no answer: keep the gate shut and ask again.
       if (!name) return scheduleSceneProbe();
@@ -6102,16 +6989,43 @@
     var ev = m.d.eventData || {};
     if (type === "CurrentProgramSceneChanged") {
       var next = ev.sceneName || "";
+      /* Counted whether or not it changes anything here.
+       *
+       * The tempting place for this is inside the `if`, and that is where it
+       * was first written: an event that agrees with what the page already
+       * believes changes nothing, so why note it. Because of what it says
+       * about the ANSWER still in flight — the page starts out believing "not
+       * streaming, scene unknown", so an event saying "stopped" AGREES with it
+       * while telling it something a question asked before the stop cannot
+       * know. Left inside the `if`, the late answer landed afterwards and
+       * opened the gate on a broadcast that had ended. Caught by
+       * check:discord「イベントより遅れて届いた答えが、状態を巻き戻さない」
+       * on 2026-09-22, which is also the shape §7 names.
+       */
+      stateGen++;
       if (next !== programScene) {
         programScene = next;
+        gateWatch();              // a scene the button is not allowed in closes it
         reportOverlayState();     // the EBS decides; this only reports
       }
     } else if (type === "StreamStateChanged") {
       var on = !!ev.outputActive;
+      stateGen++;                 // ...for the same reason as the scene above
+      /* Told, so it no longer has to be asked. This is also the road back from
+       * a GetStreamStatus that failed until the page stopped asking: a
+       * broadcaster who starts streaming is announced for free, and the ladder
+       * is put back to the bottom for whatever fails next (F14). */
+      streamKnown = true;
+      cancelStreamProbe();
       if (on !== streaming) {
         streaming = on;
+        gateWatch();              // going off air closes it
         log(t(on ? "log.livestart" : "log.livestop"), on ? "ok" : "warn");
         reportOverlayState();
+      } else {
+        // It agreed — but shut is shut, and a job that was waiting must not be
+        // let through on the next opening either.
+        gateWatch();
       }
     } else if (SCENE_LIST_EVENTS.indexOf(type) !== -1) {
       if (sceneEventTouchesTarget(type, ev)) reproveSceneTarget();
@@ -6131,18 +7045,20 @@
     programScene = "";
     srcIsScene = false;
     sceneProof++;                  // nothing the last connection proved counts
+    stateGen++;                    // and no answer from the last one is about this
     cancelSceneProbe();
     streaming = false;             // ...and so is whether OBS is on air
+    streamKnown = false;           // ...and nothing has said otherwise yet
+    cancelStreamProbe();           // the last connection's ladder is not this one's
+    gateWatch();                   // and a job from the last connection is not this one's
     status("ok", t("st.ok"));
     probeCapture();                // prove it before anyone spends a press
     watchProgramScene();           // and know whether this scene is allowed
-    // Asked once here; StreamStateChanged carries every change after this.
-    // A failure leaves it false, which is the safe way round: not knowing
-    // whether anyone is watching is not a reason to photograph.
-    request("GetStreamStatus").then(function (d) {
-      streaming = !!(d && d.outputActive);
-      reportOverlayState();
-    }).catch(function () { /* older obs-websocket: stays off */ });
+    // Asked here; StreamStateChanged carries every change after this, but
+    // nothing carries the state AT this moment, so the asking is retried on
+    // its own ladder rather than left at false (F14). Not knowing stays shut
+    // either way: it is not a reason to photograph.
+    watchStreamState();
     reportOverlayState();
     ackOnIdentified();            // the public key, and any receipt waiting (56-ack-out.js)
   }
@@ -6150,6 +7066,7 @@
   function obsOnDisconnect() {
     cancelCaptureProbe();
     cancelSceneProbe();
+    cancelStreamProbe();           // nothing to ask on a socket that is gone
     reportOverlayState();          // the EBS must stop accepting presses
   }
   /* ================= what this page leaves in OBS =================
@@ -6293,6 +7210,8 @@
      flag is the only thing that tells the two apart, and duplicated sources
      still double up there — said once in the log. */
   var KEEPER_LOCK = "sp-keeper";
+  // Held, shared, by every landscape overlay for its life (claimKeeper).
+  var LAND_LOCK = "sp-land";
   var isKeeper = false;
   var keeperAsked = false;
 
@@ -6305,18 +7224,99 @@
     if (!locks) {
       isKeeper = !hashFlag("vertical");
       log(t("log.keeper.nolock"), "warn");
+      discordAnnounce();
       return;
     }
+    if (hashFlag("vertical")) { askKeeper(locks, false); return; }
+    /* THE LANDSCAPE OVERLAY IS THE KEEPER WHEN THERE IS ONE (本人の決定 2026-09-24).
+     *
+     * Whoever asked first used to win, so the role flipped between the two on
+     * every write that reloaded both. The vertical source is the one that gets
+     * hidden — it is made switched off in the landscape scene — and a hidden
+     * browser source is told so by OBS (obs-browser: WasHidden), which lets
+     * Chromium slow its timers. The landscape one is on the canvas that is on
+     * air, so the saving and the posting belong there.
+     *
+     * Every landscape page holds LAND_LOCK, shared, for its life: that is how
+     * any page can tell a landscape overlay is alive. Held first, then the
+     * question: if the keeper's lock is held and this page is the only
+     * landscape one alive, the holder is a vertical page and this takes it
+     * over. Between landscape pages the queue decides, as it always did.
+     *
+     * "The holder is vertical" is read from the lock itself where it can be:
+     * each held lock names the page holding it (clientId), so a keeper whose
+     * page holds no LAND_LOCK is a vertical one. Counting landscape pages was
+     * not enough — two landscape pages loading together (a duplicated source)
+     * both counted two and both queued behind a vertical keeper, which never
+     * asks again once it holds. Without clientId the count is all there is. */
     try {
-      locks.request(KEEPER_LOCK, function () {
-        isKeeper = true;
-        log(t("log.keeper"), "ok");
+      locks.request(LAND_LOCK, { mode: "shared" }, function () {
+        locks.query().then(function (q) {
+          var held = q.held || [];
+          var lands = held.filter(function (l) { return l.name === LAND_LOCK; });
+          var keeper = held.filter(function (l) { return l.name === KEEPER_LOCK; })[0];
+          var named = keeper && keeper.clientId &&
+            lands.every(function (l) { return l.clientId; });
+          askKeeper(locks, !keeper ? false
+            : named ? !lands.some(function (l) { return l.clientId === keeper.clientId; })
+            : lands.length <= 1);
+        }, function () { askKeeper(locks, false); });
         return new Promise(function () {});        // held until the page goes
-      }).catch(function () {
-        isKeeper = !hashFlag("vertical");
+      }).catch(function () { askKeeper(locks, false); });
+    } catch (e) {
+      askKeeper(locks, false);
+    }
+  }
+
+  /**
+   * Ask for the keeper's lock — taking it over when `steal`.
+   *
+   * A vertical page that is handed the lock while a landscape page is alive
+   * and waiting for it gives it straight back and queues again, so the order
+   * of the queue cannot leave the vertical one keeping for a landscape one
+   * that is right there. It waits a moment first: two vertical pages (a
+   * duplicated source) would otherwise hand it back and forth as fast as the
+   * browser allows until the landscape page's own request is seen.
+   *
+   * Taken over is AbortError on the request (Web Locks: steal). The page
+   * stops keeping, says so if it was, and queues again — without stealing, so
+   * two landscape pages cannot take it from each other for ever.
+   */
+  function askKeeper(locks, steal) {
+    var vertical = hashFlag("vertical");
+    try {
+      locks.request(KEEPER_LOCK, steal ? { steal: true } : {}, function () {
+        var check = vertical ? locks.query() : Promise.resolve(null);
+        return check.then(function (q) {
+          if (q && (q.held || []).some(function (l) { return l.name === LAND_LOCK; }) &&
+              (q.pending || []).some(function (l) { return l.name === KEEPER_LOCK; })) {
+            setTimeout(function () { askKeeper(locks, false); }, 500);
+            return;                                  // released: the landscape page is next
+          }
+          isKeeper = true;
+          log(t("log.keeper"), "ok");
+          discordAnnounce();
+          return new Promise(function () {});      // held until the page goes
+        }, function () {
+          isKeeper = true;
+          log(t("log.keeper"), "ok");
+          discordAnnounce();
+          return new Promise(function () {});
+        });
+      }).catch(function (e) {
+        if (e && e.name === "AbortError") {
+          var was = isKeeper;
+          isKeeper = false;
+          if (was) log(t("log.keeper.handed"), "ok");
+          askKeeper(locks, false);
+          return;
+        }
+        isKeeper = !vertical;
+        discordAnnounce();
       });
     } catch (e) {
-      isKeeper = !hashFlag("vertical");
+      isKeeper = !vertical;
+      discordAnnounce();
     }
   }
 
@@ -6413,7 +7413,7 @@
      * of it. obs-websocket wraps the render and the GPU readback in
      * obs_enter_graphics(): the stream stops for the whole of one, and asking
      * twice in a row is what stops a broadcast, which is the reason the window
-     * exists at all (CLAUDE.md「撮影リクエストは 150ms の窓で集約してから 1 回
+     * exists at all (CLAUDE.md「撮影リクエストは 150ms の区切りで集約してから 1 回
      * だけ撮る」). The comment two screens down already said "this must never
      * turn into a burst"; nothing made it true (Codex 2026-09-15 round 7).
      *
@@ -6495,11 +7495,19 @@
     // Only the keeper touches the disk and the card (58-one-keeper.js). The
     // others photograph for their own screen, whose sheet is drawn from the
     // data: URLs that path hands back.
-    if (!cfg.saveDir || saveGaveUp || !isKeeper) { captureToScreen(source, people, paid, !!ignition); return; }
-    var send = sendThisShot(paid);
-    if (keepThisShot(paid) || needScratch(!!ignition) || send) {
-      captureToDisk(source, people, paid, !!ignition, send);
-    } else captureToScreen(source, people, paid, !!ignition);
+    // The fork used to ask three questions — is this one kept, does the sheet
+    // need it on disk anyway, is it being sent — because each of them could
+    // make a FILE necessary. None of them can now: the frame is handed over as
+    // a key (08-photo-store.js), so the only thing left to decide is whether a
+    // CARD has to be drawn, and that is asked inside.
+    //
+    // The keeper takes every one of its frames the same way, and that is
+    // deliberate. Routing some of them through the screen path would mean a
+    // party whose list holds 960-wide pictures next to full-resolution ones,
+    // and the subject's box is measured in canvas pixels — the sheet would
+    // crop the two differently (§2, §4.3). One page, one kind of material.
+    if (!isKeeper) { captureToScreen(source, people, paid, !!ignition); return; }
+    captureForKeeper(source, people, paid, !!ignition, sendThisShot(paid));
   }
 
   /**
@@ -6567,19 +7575,6 @@
     return true;
   }
 
-  /**
-   * Does a frame need to reach disk whatever the setting says?
-   *
-   * Only the ones the contact sheet will ask for by address: the frame that lit
-   * the party, and the frames taken while it was open. These go to scratch
-   * names — one fixed name for the ignition, and per-party numbering that
-   * openParty() resets — so the folder stops growing at the size of the biggest
-   * party rather than accumulating (see partySeq).
-   */
-  function needScratch(lit) {
-    return !!(lit || party);
-  }
-
   /* The size a kept photograph is written at.
    *
    * `std` is what shipped: 1280 wide, which is the card's own width, so the
@@ -6603,12 +7598,60 @@
     return SAVE_SIZES[cfg.saveSize] || SAVE_SIZES.std;
   }
 
-  /** Where a finished frame goes besides the screen. */
-  function fileShot(url, lit, paid) {
-    if (lit) { ignitionShot = url; ignitionPaid = !!paid; return; }
+  /* Frames taken while nobody was watching.
+   *
+   * A party can begin inside the test window and end on air: the broadcaster
+   * opens the window, tries the button, and starts streaming while the party
+   * is still running. Those first frames are photographs of a machine whose
+   * owner believed nobody was watching, and the contact sheet reaches back
+   * across the whole party to pick its nine.
+   *
+   * On the broadcast that is fine — the sheet is drawn from what happened, and
+   * the stream is the broadcaster's own. LEAVING for Discord is the thing that
+   * is not: §4.1 says a photograph taken off air does not leave, and a sheet is
+   * the one output that can carry an off-air frame past that rule.
+   *
+   * Kept by reference rather than by index: the sheet picks nine out of the
+   * party's list, and what comes back is the references, not where they were.
+   */
+  var offAirShots = {};
+
+  /**
+   * Where a finished frame goes besides the screen.
+   *
+   * What goes in the list has to be alive at the CLOSE — the sheet reaches
+   * back across the whole party — so the party is a reader of every frame it
+   * holds, and gives them all back in partyKeysDone().
+   */
+  function fileShot(ref, lit, paid) {
+    if (lit) {
+      // The ignition frame waits alone for a party that may not come: a
+      // countdown can be interrupted. Whatever was waiting is let go first.
+      if (ignitionShot) photoDrop(ignitionShot);
+      ignitionShot = photoHold(ref);
+      ignitionPaid = !!paid;
+      return;
+    }
     if (!party) return;
     if (paid) party.paidAt.push(party.shots.length);
-    party.shots.push(url);
+    party.shots.push(photoHold(ref));
+  }
+
+  /** Mark this frame as one that may not leave: it was taken off air. */
+  function noteOffAir(ref) { if (ref) offAirShots[ref] = true; }
+
+  /**
+   * The party is finished with its frames.
+   *
+   * Called once the closing sheet's job is done (92-bar-and-party.js). The
+   * sheet ON SCREEN took its own readers when it was drawn, synchronously, so
+   * this cannot pull a picture out from under it.
+   */
+  function partyKeysDone(done) {
+    ((done && done.shots) || []).forEach(function (ref) {
+      delete offAirShots[ref];
+      photoDrop(ref);
+    });
   }
 
   function onCaptureFailed(e) {
@@ -6705,26 +7748,35 @@
      The bare frame goes to one fixed temporary name that is overwritten every
      time, so the folder collects framed photos rather than two of everything. */
   var CARD_SOURCE = "SHUTTERPARTY frame (do not delete)";
-  // Scratch names, used in turn. A single fixed name would need a cache-buster
-  // on the URL, and a query string on a file:// path is not something to rely
-  // on; cycling means the next photo is always at an address the page has not
-  // just read.
-  //
-  // Twelve of them rather than two, because the contact sheet reads NINE of
-  // these at once when the party ends. With two names it drew the same two
-  // pictures nine times — the earlier ones had been overwritten long before the
-  // sheet went looking for them. Twelve keeps the nine alive with room to spare,
-  // and it stops a photo still flying across the stream from being overwritten
-  // underneath itself.
-  var CARD_TEMP = "0123456789ab".split("").map(function (c) {
-    return "_shutterparty-frame-" + c + ".jpg";
-  });
-  var CARD_DRAW_MS = 400;      // measured: 250ms was enough for a redraw
-  // Only a source that has just been CREATED needs this long: it has a page to
-  // load. One that was merely moved to another scene does not — it kept running
-  // while it was off air and needed only a frame to be picked up again
-  // (measured: 50ms was already enough, 0ms was not).
-  var CARD_FIRST_MS = 1600;
+  /* The ceiling on the card's URL, and only the fallback can reach it.
+   *
+   * Chromium refuses a URL longer than this between processes, and OBS does
+   * not report the refusal — it simply never starts the page, leaving the card
+   * showing the previous photograph. Measured at exactly this boundary:
+   * 2,097,152 characters through, 2,097,153 not (§5.1g). */
+  var MAX_CARD_URL = 2097152;
+  /* How long to wait for the card to say it has drawn.
+   *
+   * NOT how long to wait before photographing it — that was the old shape, and
+   * it was a guess wearing a number. The card answers now (10-card-mode.js),
+   * and these are only the points at which an answer that has not arrived is
+   * taken as one that never will. A deadline that passes means the save and
+   * the send are SKIPPED: photographing an unanswered card would photograph
+   * whatever it still had up, which is the accident of 2026-08-25.
+   *
+   * Two of them because a source that has just been created has a page to
+   * load, and one that was already up does not. Measured on this machine, the
+   * answers came back in 61-76ms either way (§5.1k) — these are the ceiling,
+   * not the expectation, and they are generous on purpose. */
+  var CARD_ACK_MS = 5000;
+  var CARD_ACK_FIRST_MS = 15000;
+  /* How far past the corner the card is parked.
+   *
+   * Past the canvas by its own size and then some: the width that matters is
+   * the card's, and the card is resized between a single photograph and a
+   * sheet, so the gap has to hold the larger of them. Nothing depends on the
+   * exact number — the position is checked afterwards either way. */
+  var CARD_PARK_GAP = 200;
   var CARD_W = 1280;
   var CARD_PAD = 0.019;        // the same padding the stylesheet uses
   // The caption band under the photo, a fixed depth. It carries the name of
@@ -6733,6 +7785,31 @@
   // the source taller; the stylesheet fills it, since .ccap takes what is left
   // after the picture.
   var CARD_CAP = 210;
+  /**
+   * Is the rectangle OBS says it will draw wholly outside the canvas?
+   *
+   * The width and height OBS reports are the source's own; the crop, the scale
+   * and the alignment decide where they land, exactly as they do for the
+   * subject's box (subjectRect). Unknown or unreadable answers are NOT treated
+   * as safe: a card that cannot be proved outside is one that might be inside,
+   * and the cost of being wrong is a browser source in the middle of somebody's
+   * broadcast.
+   */
+  function offCanvas(tf, canvas) {
+    if (!tf || !canvas) return false;
+    if (tf.rotation) return false;                     // could be anywhere
+    if (tf.boundsType && tf.boundsType !== "OBS_BOUNDS_NONE") return false;
+    var w = Math.abs((tf.sourceWidth - (tf.cropLeft || 0) - (tf.cropRight || 0)) * tf.scaleX);
+    var h = Math.abs((tf.sourceHeight - (tf.cropTop || 0) - (tf.cropBottom || 0)) * tf.scaleY);
+    if (!(w > 0 && h > 0)) return false;
+    var a = tf.alignment || 0;
+    var offX = (a & 1) ? 0 : ((a & 2) ? w : w / 2);
+    var offY = (a & 4) ? 0 : ((a & 8) ? h : h / 2);
+    var x = tf.scaleX < 0 ? tf.positionX + offX - w : tf.positionX - offX;
+    var y = tf.scaleY < 0 ? tf.positionY + offY - h : tf.positionY - offY;
+    return x >= canvas.w || y >= canvas.h || x + w <= 0 || y + h <= 0;
+  }
+
   /** How tall the card must be to hold a subject of this shape. */
   function cardHeightFor(ratio) {
     var pad = CARD_W * CARD_PAD;
@@ -6745,10 +7822,6 @@
   var cardFresh = false;       // just created: the page itself is still loading
   var cardScene = "";          // which scene it is currently parked in
   var cardSwept = false;       // the one-off look for cards left in other scenes
-  var shotSeq = 0;
-  // Numbered per party rather than cycling, so the sheet still finds what it
-  // remembers. Reset when a party opens (see openParty).
-  var partySeq = 0;
 
   /* Framing is not a choice any more.
     *
@@ -6860,11 +7933,43 @@
             });
         })
         .then(function (at) {
-          return request("SetSceneItemTransform", {
-            sceneName: at.host,
-            sceneItemId: at.id,
-            sceneItemTransform: { positionX: 4000, positionY: 4000 }
-          }).then(function () { return at; });
+          /* Out of the picture, and CHECKED to be out of it.
+           *
+           * (4000, 4000) was a number that happened to be past the corner of
+           * the canvases anybody was using. A 4096-square canvas puts the card
+           * back inside the frame, and a card inside the frame is on the
+           * broadcast and in every photograph — the one thing this source must
+           * never be (docs/plan.md Phase 6). The canvas is known (GetVideoSettings),
+           * so the corner can be worked out rather than guessed at.
+           *
+           * Asked back afterwards rather than assumed: a request that OBS
+           * accepts is not the same as an item that moved — a scene item can
+           * carry bounds, a scale or an alignment from an earlier life that
+           * turns the position into something else. What is compared is the
+           * rectangle OBS says it will draw, against the canvas (§4.6 F3).
+           */
+          return videoSize().then(function (cv) {
+            var canvas = cv || { w: 1920, h: 1080 };
+            var park = { x: canvas.w + CARD_PARK_GAP, y: canvas.h + CARD_PARK_GAP };
+            return request("SetSceneItemTransform", {
+              sceneName: at.host,
+              sceneItemId: at.id,
+              // Alignment and scale as well as position: parking depends on
+              // all three, and only the position was ever set — an item that
+              // had been dragged and stretched kept the stretch.
+              sceneItemTransform: {
+                positionX: park.x, positionY: park.y,
+                alignment: 5, scaleX: 1, scaleY: 1, rotation: 0,
+                boundsType: "OBS_BOUNDS_NONE"
+              }
+            }).then(function () {
+              return request("GetSceneItemTransform", { sceneName: at.host, sceneItemId: at.id });
+            }).then(function (r) {
+              var tf = r && r.sceneItemTransform;
+              if (!offCanvas(tf, canvas)) throw new Error("the card would be inside the canvas");
+              return at;
+            });
+          });
         });
     }).then(function (at) {
       if (!at) return null;
@@ -6908,23 +8013,72 @@
    * Sized from the known box before anything loads, so a print does not resize
    * underneath the animation carrying it.
    */
-  function subjectCanvas(url) {
+  function subjectCanvas(ref, wanted) {
     var c = document.createElement("canvas");
     // Named, because the paper under it is a canvas too (shell.html .skin).
     c.className = "subject";
-    var guess = subjectBox || { w: 16, h: 9 };
+    var mine = photoMetaOf(ref);
+    var guess = (mine && mine.box) || subjectBox || { w: 16, h: 9 };
     c.width = Math.round(guess.w);
     c.height = Math.round(guess.h);
     var src = new Image();
-    src.onload = function () {
-      var b = clampBox(subjectBox, src.naturalWidth, src.naturalHeight);
-      if (!(b.w > 0 && b.h > 0)) return;
-      c.width = Math.round(b.w);
-      c.height = Math.round(b.h);
-      c.getContext("2d").drawImage(src, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height);
-    };
-    src.src = url;
+    /* A reader, taken now rather than when the picture arrives.
+     *
+     * Reading it out of the store takes a turn, and in that turn the frame can
+     * lose its last other reader and be deleted. Held here, given back when
+     * the pixels are in this canvas and the string is no longer needed. */
+    photoHold(ref);
+    photoGet(ref).then(function (url) {
+      /* Still wanted?
+       *
+       * Reading a frame out of the store takes a turn, and decoding it takes
+       * another; a party can be lit in between, and then this picture belongs
+       * to a sequence that is no longer on screen (§4.3). The caller says so
+       * through `wanted`, checked at both of those points — once before the
+       * picture is asked for, once before it is drawn.
+       *
+       * The reference is given back either way. A cancelled reader is still a
+       * reader that finished, and the frame it was holding is only deleted
+       * when the last one lets go — the card's own job holds its own.
+       */
+      if (!url || (wanted && !wanted())) { photoDrop(ref); return; }
+      src.onload = function () {
+        if (wanted && !wanted()) { photoDrop(ref); return; }
+        /* The box belongs to the canvas it was measured on, and the picture
+         * may be any width — the wall's 960 or the keeper's full frame. Scaled
+         * rather than clamped: clamping a 1920-canvas box onto a 960-wide
+         * picture keeps the offset and cuts the size, which crops the wrong
+         * half (§4.3, measured 2026-09-20).
+         *
+         * Per frame, from what was stored with it, falling back to the shared
+         * box for anything that arrived without one (the demo's SVG, a frame
+         * from before an update). */
+        var box = scaleBox((mine && mine.box) || subjectBox,
+                           (mine && mine.canvas) || canvasSize, src.naturalWidth);
+        var b = clampBox(box, src.naturalWidth, src.naturalHeight);
+        photoDrop(ref);
+        if (!(b.w > 0 && b.h > 0)) return;
+        c.width = Math.round(b.w);
+        c.height = Math.round(b.h);
+        c.getContext("2d").drawImage(src, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height);
+      };
+      src.onerror = function () { photoDrop(ref); };
+      src.src = url;
+    });
     return c;
+  }
+
+  /**
+   * The same box, in the decoded picture's own pixels.
+   *
+   * Nothing to do when the picture is the size of the canvas it was measured
+   * on, which is the ordinary case; everything to do when it is not.
+   */
+  function scaleBox(box, canvas, width) {
+    if (!box || !canvas || !canvas.w || !width) return box;
+    var k = width / canvas.w;
+    if (!(k > 0) || Math.abs(k - 1) < 0.001) return box;
+    return { x: box.x * k, y: box.y * k, w: box.w * k, h: box.h * k };
   }
 
   var canvasSize = null;
@@ -6991,10 +8145,31 @@
           var w = Math.abs((tf.sourceWidth - tf.cropLeft - tf.cropRight) * tf.scaleX);
           var h = Math.abs((tf.sourceHeight - tf.cropTop - tf.cropBottom) * tf.scaleY);
           if (!(w > 0 && h > 0)) return null;
-          // alignment says which point of the item positionX/Y refers to.
+          /* alignment says which point of the item positionX/Y refers to — and
+           * a NEGATIVE scale mirrors the item about that point.
+           *
+           * The width above is an absolute value, which is right for the size
+           * and wrong for the side: a source flipped horizontally and anchored
+           * at its left edge is drawn to the LEFT of that edge. Taking the
+           * positive width and subtracting the anchor offset put the box on
+           * the opposite side of the position, and the photograph was cropped
+           * to a rectangle the subject was never in.
+           *
+           * **[実測 2026-09-14]** canvas 1920×1080, a 600×400 source at
+           * (900,600), top-left aligned, scaleX -1: the box should start at
+           * x 298 (with the 2px margin) and this returned 898. Centre-anchored
+           * flips agreed, which is why it went unnoticed — mirroring about the
+           * middle lands in the same place.
+           *
+           * offX is the distance from the item's left edge to its anchor.
+           * Unflipped the box starts one offX left of the position; flipped it
+           * ENDS there, so it starts a width earlier.
+           */
           var a = tf.alignment || 0;
-          var x = tf.positionX - ((a & 1) ? 0 : ((a & 2) ? w : w / 2));
-          var y = tf.positionY - ((a & 4) ? 0 : ((a & 8) ? h : h / 2));
+          var offX = (a & 1) ? 0 : ((a & 2) ? w : w / 2);
+          var offY = (a & 4) ? 0 : ((a & 8) ? h : h / 2);
+          var x = tf.scaleX < 0 ? tf.positionX + offX - w : tf.positionX - offX;
+          var y = tf.scaleY < 0 ? tf.positionY + offY - h : tf.positionY - offY;
           if (x < x0) x0 = x;
           if (y < y0) y0 = y;
           if (x + w > x1) x1 = x + w;
@@ -7091,9 +8266,99 @@
    * runs either way. */
   var cardChain = Promise.resolve();
 
+  /* One name per handover, so an answer cannot be mistaken for another's.
+   *
+   * The card is rebuilt for every photograph in this environment (measured
+   * 2026-09-21: an OBS URL update discards the page even when only the
+   * fragment differs), so a stale answer from the previous page is exactly the
+   * thing that could arrive late and be read as this one's. */
+  var cardReqSeq = 0;
+  function newCardReq() { return "r" + (Date.now() % 1000000) + "-" + (++cardReqSeq); }
+
+  /**
+   * Wait for the card to say it has drawn THIS handover, or give up.
+   *
+   * Polled rather than pushed: the two documents share storage, not events,
+   * and a storage event does not cross into a page that was just created.
+   * Twenty-five milliseconds against answers measured at 61-76ms.
+   */
+  function waitCardAck(req, ms, viaStore) {
+    var t0 = Date.now();
+    return new Promise(function (resolve) {
+      var done = false;
+      var finish = function (ok) {
+        if (done) return;
+        done = true;
+        clearInterval(timer);
+        clearTimeout(deadline);
+        resolve({ ok: ok, ms: Date.now() - t0 });
+      };
+      // Held independently of the read, so a store that never answers still
+      // runs out of time (the probe's own P1, fixed the same way).
+      var deadline = setTimeout(function () { finish(false); }, ms);
+      var timer = setInterval(function () {
+        photoAckRead(viaStore).then(function (a) {
+          if (a && String(a.req) === String(req)) finish(true);
+        });
+      }, 25);
+    });
+  }
+
+  /* ---- leaving the card empty ----
+   *
+   * Only ever matters in the fallback, and that is the whole reason the
+   * fallback is narrow. A card holding a key holds twenty characters; a card
+   * holding a picture holds the picture, and OBS writes its URL into the scene
+   * collection, where it survives the session (measured 2026-09-22: 237 KB of
+   * real JPEG, still there after a restart).
+   *
+   * So: when a picture went into the URL, put the card back to empty once the
+   * work stops. Not after every photograph — the card is rebuilt each time, and
+   * blanking per frame would double that — and never outside the queue, which
+   * was measured the hard way: called directly it slipped between "write the
+   * URL" and "photograph it", and a card with the frame still blank was saved.
+   */
+  var BLANK_AFTER_MS = 3000;
+  var blankTimer = null;
+  var cardBusy = 0;
+  var cardHoldsPicture = false;
+
+  function blankCardNow() {
+    if (!cardReady || !cardHoldsPicture) return Promise.resolve();
+    cardHoldsPicture = false;
+    return request("SetInputSettings", {
+      inputName: CARD_SOURCE, overlay: true,
+      inputSettings: { is_local_file: false, url: cardUrl("") }
+    }).then(function () {
+      cardFresh = true;          // it starts again from a fresh page
+    }).catch(function () { /* it will be overwritten by the next photograph */ });
+  }
+
+  // A last try on the way out, for the ordinary close: OBS shutting down, or a
+  // scene collection being switched. Not the main path — a request sent as the
+  // page goes away is not guaranteed to leave the socket, and a crash does not
+  // come through here at all.
+  try {
+    addEventListener("pagehide", function () { blankCardNow(); });
+  } catch (e) { /* not every surface has a window */ }
+
+  function scheduleBlank() {
+    if (!cardHoldsPicture) return;
+    clearTimeout(blankTimer);
+    blankTimer = setTimeout(function () {
+      if (cardBusy) return;                    // more work arrived
+      cardChain = cardChain.then(blankCardNow, blankCardNow).catch(function () {});
+    }, BLANK_AFTER_MS);
+  }
+
   function onCard(fn) {
+    cardBusy++;
+    clearTimeout(blankTimer);
     var run = cardChain.then(fn, fn);
-    cardChain = run.catch(function () {});
+    cardChain = run.catch(function () {}).then(function () {
+      if (cardBusy > 0) cardBusy--;
+      if (!cardBusy) scheduleBlank();
+    });
     return run;
   }
 
@@ -7204,24 +8469,53 @@
    * a party ends, the nine on the sheet have to still be on disk.
    */
   function saveSheet(done) {
-    if (!cfg.saveDir || saveGaveUp || !isKeeper) return Promise.resolve();
-    // Only what OBS wrote can be redrawn from an address. Without a folder the
-    // shots are data: URLs, and those never reach here. A party can still hold
-    // both: this page became the keeper part-way through (the one that was
-    // saving closed), so what it photographed before that went to its screen
-    // only. The sheet is then drawn from the ones on disk — the sheet of the
-    // part it kept, rather than none (58-one-keeper.js). The tally still counts
-    // the whole party.
-    var onDisk = [], diskPaid = [];
+    if (!isKeeper) return Promise.resolve();
+    // The fallback does not make a sheet FILE (§4.6, 本人の決定 2026-09-22).
+    // Nine pictures in one URL is the one thing that does not fit: measured at
+    // 4,467,335 characters against a ceiling of 2,097,152, so it would have to
+    // be shrunk, and shrinking nine frames of possibly different sizes is the
+    // whole per-frame-box problem this plan was trying to stop carrying. The
+    // sheet still goes out on the broadcast — that one is drawn from memory
+    // (92-bar-and-party.js) and never touches the card. Said once at startup,
+    // not once per party (log.photostore.off).
+    if (photoMode !== "store") return Promise.resolve();
+    // Only frames this page took as a keeper can be in the file. A party can
+    // hold others: this page became the keeper part-way through (the one that
+    // was saving closed), so what it photographed before that went to its own
+    // screen at 960 wide. Mixing those in would crop them against a box
+    // measured on the full canvas (§4.3). The sheet is then the part it kept,
+    // rather than none (58-one-keeper.js); the tally still counts the whole
+    // party.
+    var mine = [], minePaid = [];
     (done.shots || []).forEach(function (u, i) {
-      if (String(u).slice(0, 5) !== "file:") return;
-      if ((done.paidAt || []).indexOf(i) !== -1) diskPaid.push(onDisk.length);
-      onDisk.push(u);
+      if (!isPhotoKey(u)) return;
+      if ((done.paidAt || []).indexOf(i) !== -1) minePaid.push(mine.length);
+      mine.push(u);
     });
-    var picks = pickSheet(onDisk, diskPaid, 9);
+    var picks = pickSheet(mine, minePaid, 9);
     if (!picks.length) return Promise.resolve();
-    // Asked now, at the close, while the party's own yes is the current one.
-    var send = mayPost(sceneProof) ? discordReserve("sheet") : null;
+    var keep = !!cfg.saveDir && !saveGaveUp;
+    // Asked now, at the close, while the party's own yes is the current one —
+    // and asked again below, just before the sheet is written (§4.4).
+    var permit = permitNow();
+    /* A sheet does not leave if any of its nine was taken off air (F12).
+     *
+     * The other half of the plan's two answers — picking a second, sendable
+     * nine — is not taken: the sheet on the broadcast, the file and the post
+     * are one picture today, and a different nine for the post would have to
+     * carry its own paid positions, its own count and its own height, three
+     * more places for them to disagree (§4.3). The whole post is skipped
+     * instead, and the FILE is still written: keeping is a local act, and the
+     * broadcaster was there for all of it.
+     */
+    var offAir = picks.some(function (ref) { return offAirShots[ref]; });
+    var send = (!offAir && mayPost(sceneProof)) ? discordReserve("sheet") : null;
+    if (offAir) log(t("log.sheetoffair"), "warn");
+    // A folder is no longer what makes a sheet possible, so a broadcaster who
+    // only sends gets one too (§4.4 ①). With neither, there is nothing to draw
+    // it for.
+    if (!keep && !send) { discordDrop(send); return Promise.resolve(); }
+    var req = newCardReq();
 
     return onCard(function () {
       return ensureCard().then(function (ok) {
@@ -7241,29 +8535,49 @@
             cardMeasured = true;
             cardFresh = true;
             var hash = "sheet=1" +
+              "&req=" + req +
               "&accent=" + encodeURIComponent(cfg.accent || "safelight") +
               themeHash() +
               "&when=" + encodeURIComponent(savedStamp()) +
               "&tally=" + encodeURIComponent(sheetTally(done.shots.length, done.people)) +
               (box ? "&crop=" + [box.x, box.y, box.w, box.h].join(",") : "") +
               "&imgs=" + picks.map(encodeURIComponent).join("|");
-            return request("SetInputSettings", {
-              inputName: CARD_SOURCE,
-              inputSettings: { is_local_file: false, url: cardUrl(hash) },
-              overlay: true
+            return photoAckClear(true).then(function () {
+              return request("SetInputSettings", {
+                inputName: CARD_SOURCE,
+                inputSettings: { is_local_file: false, url: cardUrl(hash) },
+                overlay: true
+              });
             });
           }).then(function () {
-            // Nine pictures to decode rather than one, and the page has just
-            // been reloaded by the resize.
-            return new Promise(function (r) { setTimeout(r, CARD_FIRST_MS); });
-          }).then(function () {
+            // Nine pictures to read out of the store and decode rather than
+            // one, and the page has just been rebuilt by the resize.
+            return waitCardAck(req, CARD_ACK_FIRST_MS, true);
+          }).then(function (a) {
             cardFresh = false;
-            var out = joinPath(cfg.saveDir, "shutterparty-sheet-" + fileStamp() + ".jpg");
-            return request("SaveSourceScreenshot", {
-              sourceName: CARD_SOURCE, imageFormat: "jpg", imageFilePath: out,
-              imageCompressionQuality: 92
-            }).then(function () {
-              log(t("log.sheetsaved", { p: out }), "ok");
+            if (!a.ok) {
+              // Nothing to photograph. The card is holding either the previous
+              // sheet or a blank page, and both of those are worse than no file.
+              log(t("log.sheetfail", { m: t("log.cardslow") }), "warn");
+              return;
+            }
+            var kept = Promise.resolve();
+            // Nine frames, one permission: the sheet belongs to the party that
+            // closed, and it is written only if that party's yes still stands.
+            // Whether a sheet whose frames were taken under different answers
+            // should be split is §8 [要検討]; today they share one.
+            if (keep && !permitStands(permit)) {
+              log(t("log.shotstale"), "warn");
+              keep = false;
+            }
+            if (keep) {
+              var out = joinPath(cfg.saveDir, "shutterparty-sheet-" + fileStamp() + ".jpg");
+              kept = request("SaveSourceScreenshot", {
+                sourceName: CARD_SOURCE, imageFormat: "jpg", imageFilePath: out,
+                imageCompressionQuality: 92
+              }).then(function () { log(t("log.sheetsaved", { p: out }), "ok"); });
+            }
+            return kept.then(function () {
               if (send) return discordGrab(send, { w: undefined, q: 92 });
             });
           });
@@ -7275,18 +8589,53 @@
     });
   }
 
+  /**
+   * The permission this photograph was taken on, kept so it can be asked again.
+   *
+   * WHY IT HAS TO BE ASKED AGAIN. The old path wrote the file in the same
+   * breath as the capture: the yes checked at the shutter was still the yes a
+   * moment later. The card is a queue now — the frame is read back out of the
+   * store, the card is rebuilt, it decodes and draws and answers — and a
+   * second or more can pass before anything is written. The broadcaster can
+   * stop streaming inside that, or switch to a scene the button is not allowed
+   * in, or let the test window run out.
+   *
+   * Four things, and all four are needed (§4.4). `proof` alone does not move
+   * when the broadcaster goes off air; `sceneOpen()` alone is true again after
+   * a stop and a start, so a job that waited through both would be let through
+   * on somebody else's opening; `identified` catches a connection that went
+   * away and came back.
+   *
+   * What this CANNOT do is take back a request already sent. OBS writes the
+   * file, and nothing here can delete one. The line is drawn at issuing a new
+   * one.
+   */
+  function permitNow() {
+    return { proof: sceneProof, gate: gateEpoch };
+  }
+
+  function permitStands(p) {
+    return !!p && p.proof === sceneProof && p.gate === gateEpoch &&
+      identified && srcIsScene && sceneOpen();
+  }
+
   /** Draw the photo into the card, then have OBS capture the card. */
-  function saveFramed(tempUrl, people, paid, keep, send) {
+  function saveFramed(ref, people, paid, keep, send, permit) {
+    // A reader of its own, taken before the job joins the queue: by the time
+    // it runs, the wall may have finished with this frame and let it go.
+    photoHold(ref);
     return onCard(function () {
-      return framedRun(tempUrl, people, paid, keep, send)
+      return framedRun(ref, people, paid, keep, send, permit)
         // Whatever the job did, a place it did not hand to the queue is
         // given back here, once (62-discord.js: discordDrop).
         .then(function () { if (send && !send.blob) discordDrop(send); });
-    });
+    }).then(function () { photoDrop(ref); }, function () { photoDrop(ref); });
   }
 
-  function framedRun(tempUrl, people, paid, keep, send) {
+  function framedRun(ref, people, paid, keep, send, permit) {
     var box = null;
+    var req = newCardReq();
+    var viaStore = isPhotoKey(ref);
     return ensureCard().then(function (ok) {
       if (!ok) return "stop";                 // ensureCard has already said why
       // The subject's shape decides the card's, so both are settled before the
@@ -7301,7 +8650,8 @@
       // the same theme and the same pack (themeHash; docs/theme-pack-plan.md
       // §5). Left off, the wall would be patterned and the folder plain.
       var hash =
-        "img=" + encodeURIComponent(tempUrl) +
+        "req=" + req +
+        "&img=" + encodeURIComponent(ref) +
         "&accent=" + encodeURIComponent(cfg.accent || "safelight") +
         themeHash() +
         "&when=" + encodeURIComponent(savedStamp()) +
@@ -7310,21 +8660,55 @@
         (!paid && people > 1 ? "&people=" + people : "") +
         (box ? "&crop=" + [box.x, box.y, box.w, box.h].join(",") : "");
 
-      return request("SetInputSettings", {
-        inputName: CARD_SOURCE,
-        inputSettings: { is_local_file: false, url: cardUrl(hash) },
-        overlay: true
+      /* In the fallback the picture itself is in there, and a URL that is too
+       * long is not refused — OBS simply never starts the page, and the card
+       * keeps whatever it had. Then it gets photographed. Measured ceiling:
+       * 2,097,152 characters pass, 2,097,153 does not (§5.1g). A single frame
+       * fits with room to spare at ordinary canvas sizes and does not at 4K,
+       * so this is a real gate rather than a formality. */
+      if (cardUrl(hash).length > MAX_CARD_URL) {
+        log(t("log.cardtoobig"), "warn");
+        return "stop";
+      }
+      if (!viaStore) cardHoldsPicture = true;
+      return photoAckClear(viaStore).then(function () {
+        return request("SetInputSettings", {
+          inputName: CARD_SOURCE,
+          // cardUrl() again rather than the value measured above, and not
+          // because it is free: tools/contract-check.mjs reads this line and
+          // requires the address written to the card to come from that
+          // function and nowhere else, so that no other string can ever be put
+          // into a browser source (it is what keeps secrets out of one).
+          inputSettings: { is_local_file: false, url: cardUrl(hash) },
+          overlay: true
+        });
       }).then(function () {
-        // The card has to decode the picture and lay out before there is
-        // anything worth capturing. This wait is off the critical path: the
-        // photo is already on screen by now. A source created moments ago is
-        // still loading the page itself, which takes considerably longer than
-        // redrawing one that is already up.
-        var wait = cardFresh ? CARD_FIRST_MS : CARD_DRAW_MS;
+        // The card has to fetch the picture, decode it and lay out before
+        // there is anything worth capturing, and it says so when it has. This
+        // is off the critical path: the photograph is already on screen.
+        var ms = cardFresh ? CARD_ACK_FIRST_MS : CARD_ACK_MS;
         cardFresh = false;
-        return new Promise(function (r) { setTimeout(r, wait); });
-      }).then(function () {
+        return waitCardAck(req, ms, viaStore);
+      }).then(function (a) {
+        if (!a.ok) {
+          // The card did not answer, so what it is holding is unknown. Saving
+          // or sending it here is how the wrong photograph reaches a viewer.
+          log(t("log.cardslow"), "warn");
+          return;
+        }
         var sz = saveSize();
+        /* The yes, asked again — this is the last moment it can be (§4.4).
+         *
+         * Everything above took time: the queue, the store, the card's own
+         * page. Sending has its own last word further down (mayPost, at the
+         * moment of posting), and the two are not the same question: a local
+         * file may be written inside a test window that a post may not leave
+         * through.
+         */
+        if (keep && !permitStands(permit)) {
+          log(t("log.shotstale"), "warn");
+          keep = false;
+        }
         // Draw, wait, keep, send — one job, so nothing repaints the card in
         // between (§3). A keep that fails sends nothing: the catch below.
         var kept = Promise.resolve();
@@ -7337,6 +8721,8 @@
         }
         return kept.then(function () { if (send) return discordGrab(send, sz); });
       });
+    }).then(function (stopped) {
+      if (stopped === "stop") { discordDrop(send); }
     }).catch(function (e) {
       // The photo itself was taken and shown; only the framed copy is missing.
       cardReady = false;        // it may have been deleted mid-stream
@@ -7344,172 +8730,112 @@
     });
   }
 
-  function captureToDisk(source, people, paid, lit, send) {
-    // The same last word as captureToScreen: the target is still a scene, the
-    // scene on air is still one the broadcaster allowed, and this is still a
-    // connection. A press can be in flight while the broadcaster steps away,
-    // and this path writes a file that outlives the moment.
+  /**
+   * Photograph the capture scene for the keeper: to the wall, to the party,
+   * and — if this one is kept or sent — to the card.
+   *
+   * WHAT USED TO BE HERE wrote the frame into the broadcaster's folder under a
+   * scratch name and handed the card its address. The frame is handed over as
+   * a key now (08-photo-store.js). Nothing downstream of the handover changed:
+   * the wall, the party's list and the card have always taken a string and
+   * asked somebody else what it means.
+   */
+  function captureForKeeper(source, people, paid, lit, send) {
+    // The target is still a scene, the scene on air is still one the
+    // broadcaster allowed, and this is still a connection. A press can be in
+    // flight while the broadcaster steps away, and this path is the one that
+    // writes files.
     if (!identified || !srcIsScene || !sceneOpen()) { discordDrop(send); settlePaidShot(paid); return; }
     var proof = sceneProof;      // the yes this shot was allowed on
+    var permit = permitNow();    // ...carried whole, for the card's own last look
     // Started alongside the capture rather than awaited: the photo goes on
-    // screen the moment the file lands, and this is only a few local requests.
-    // Until the first one answers the box is null and the whole frame is used,
-    // which is what happened before any of this existed.
+    // screen the moment the frame lands, and this is only a few local
+    // requests. Until the first one answers the box is null and the whole
+    // frame is used, which is what happened before any of this existed.
     refreshSubject();
-    // Where the bare frame goes.
-    //
-    // Outside a party the twelve names cycle: a photograph is on screen for a
-    // few seconds and then only the framed copy matters, so twelve is more than
-    // enough to keep one from being overwritten underneath itself.
-    //
-    // Inside a party it is not. The sheet reaches back across the whole party
-    // and picks nine spread through it — which is to say it asks for the EARLY
-    // ones, and a party runs twenty seconds at one capture per 150ms window.
-    // Twelve names are used up in under two seconds, so by the time the sheet
-    // went looking, the addresses it held pointed at photographs taken later.
-    // Duplicates, and shots of a moment that was not the one being remembered.
-    //
-    // So a party numbers its own, and nothing it took is overwritten until the
-    // next party starts. The count resets there, which is what keeps this from
-    // growing without end: the folder holds as many as the largest party, not
-    // as many as the broadcast.
-    //
-    // The frame that lit the party needs the same protection and does not get
-    // it from the line above, because it is taken BEFORE the party opens: the
-    // winner's name is on screen for 3s and the countdown for another 3s
-    // (LASTHIT_MS + COUNTDOWN_MS), and presses keep landing through all six.
-    // Twelve cycling names at one capture per 150ms window are used up in 1.8
-    // seconds, so the address openParty() hands to the sheet as its lead frame
-    // (§4.3) was pointing at a later photograph long before the party started.
-    // A name of its own, and one is enough: the next ignition cannot happen
-    // until the cooldown has run, which is some forty seconds after this one.
-    /* Scratch or keeper.
+    /* Whether a FILE is written, which is now only ever the framed card.
      *
-     * With framing on the bare frame is always scratch — the card is what the
-     * broadcaster keeps — so the only question is which scratch name. Without
-     * framing this file IS the keeper, and when the setting says not to keep
-     * this one it has to go to a scratch name instead of simply not being
-     * written: the contact sheet reads these back by address, and a party frame
-     * that never landed cannot be in it.
+     * Three things have to be true, and they used to be spread across the
+     * fork, the scratch decision and the folder check at the top of this
+     * function. A folder is still needed to write into, saving may have been
+     * given up on after repeated failures, and the broadcaster's own floor
+     * still decides which photographs are worth keeping. */
+    var keep = keepThisShot(paid) && !!cfg.saveDir && !saveGaveUp;
+    /* The full canvas, not the wall's 960.
      *
-     * Outside a party a photograph nobody keeps never reaches here at all — the
-     * fork above sends it to captureToScreen, which writes nothing. */
-    var keep = keepThisShot(paid);
-    var scratch = joinPath(cfg.saveDir, lit
-      ? "_shutterparty-ignition.jpg"
-      : party
-        ? "_shutterparty-party-" + (partySeq++) + ".jpg"
-        : CARD_TEMP[(shotSeq++) % CARD_TEMP.length]);
-    // Always scratch now. The bare frame is never the keeper — the card is —
-    // so this file exists to be re-photographed and then overwritten, and it
-    // keeps its full width because the card and the sheet both draw FROM it.
-    // Shrinking here would shrink twice.
-    var path = scratch;
-    sceneShot("SaveSourceScreenshot", {
-      sourceName: source, imageFormat: "jpg", imageFilePath: path,
-      imageCompressionQuality: 90
-    }).then(function () {
-      // The same last word as captureToScreen: a file written on a yes that
-      // has since been withdrawn is neither shown nor kept. The debt is still
-      // settled — the purchase happened — and the scratch name it went to is
-      // overwritten by the next press, which is all this page can do about a
-      // file (it cannot delete one, docs/plan.md Phase 6). Before the saving
-      // tally, too: an answer to a withdrawn question says nothing about
-      // whether saving works now.
+     * The card and the sheet both draw FROM this, so a frame shrunk here would
+     * be shrunk twice. It is also why the keeper does not use the screen path
+     * for its cheap frames: the two widths in one party would need two boxes
+     * (§4.3). */
+    sceneShot("GetSourceScreenshot", {
+      sourceName: source, imageFormat: "jpg", imageCompressionQuality: 90
+    }).then(function (r) {
+      // A frame taken on a yes that has since been withdrawn is neither shown
+      // nor kept. The debt is still settled — the purchase happened.
       if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid); return; }
-      if (saveFails) log(t("log.saveok"), "ok");
-      saveFails = 0;
+      var pic = String(r && r.imageData || "");
+      if (!pic) throw new Error("empty imageData");
       setCaptureOk(true);
-      watchJank("saved x" + people);
-      // The screen shows the bare frame; the border belongs to the file, not to
-      // the photo flying across the stream (that one already has its own).
-      //
-      // Freshened, and this is not a nicety.
-      //
-      // The scratch names cycle through twelve, and OBS overwrites the file
-      // underneath an address the page has already loaded. The browser answers
-      // the second load from its cache, which is the picture that was at that
-      // address BEFORE — a photograph taken minutes or hours earlier, of
-      // whatever the broadcaster was doing then. Reloading the source makes it
-      // certain rather than likely: the counter starts at zero again, so the
-      // first press after a reload asks for the address most likely to be held.
-      // 実測 2026-08-25: photographs from an off-air test window appeared on
-      // the stream, on the first press after going live.
-      //
-      // A different address every time is the whole fix. The query is ignored
-      // when the file is opened and counted when the cache is consulted, and it
-      // goes on after fileUrl() rather than inside it — that function escapes
-      // "?" on purpose, because a folder may be named with one.
-      var shown = fileUrl(path) + "?v=" + freshId();
-      showPhoto(shown, people, paid);
-      settlePaidShot(paid);        // on the wall, so the drain can see it
-      // Nothing past the settle may reach the catch below. It would settle the
-      // same debt a second time — the count has a floor of zero, so that is
-      // simply paid off early, silently — and then take a second photograph
-      // for a save that did not fail. Caught here and said, instead; the shape
-      // of the catch itself is what tools/overlay-invariants.mjs pins.
-      try {
-        fileShot(shown, lit, paid);
-        // The card is the keeper — the only file that outlives this one — so
-        // it is made for a photograph the broadcaster asked to keep, and not
-        // otherwise.
-        // ...or one they send. A print that is only sent has its card drawn
-        // and photographed, and nothing of it is written (§3).
-        if (keep || send) saveFramed(shown, people, paid, keep, send);
-        else discordDrop(send);
-      } catch (e) {
-        discordDrop(send);
-        log(t("log.reqfail", { m: e.message }), "warn");
-      }
-    }).catch(function (e) {
-      // Counted against saving only while the yes still stands: a save that
-      // failed because the target was re-proved meanwhile (the name went away
-      // under it) says nothing about the folder, and three such would give
-      // saving up for the rest of the stream.
-      if (proof === sceneProof) {
-        saveFails++;
-        // The path is the thing most likely to be wrong, so say which one failed.
-        log(t("log.savefail", { m: e.message }) + " [" + path + "]", "bad");
-        if (saveFails >= SAVE_QUIET_AFTER) {
-          saveGaveUp = true;
-          log(t("log.savegaveup"), "warn");
+      watchJank("kept x" + people);
+      logShot(t("log.shot", { kb: Math.round(pic.length / 1024) }));
+      /* The box and the canvas it was measured against travel WITH the frame.
+       *
+       * Not read at the end from a shared variable: a broadcaster who changes
+       * canvas size mid-party would have the earlier frames cropped against
+       * the later canvas (§4.3). */
+      return photoPut(pic, { box: subjectBox, canvas: canvasSize }).then(function (key) {
+        if (photoMode === "store" && !key) {
+          /* The store was working when this page started and would not take
+           * this frame — a full disk, a quota, a profile under pressure.
+           *
+           * This one photograph goes to the screen and no further. The mode is
+           * NOT switched here: switching mid-run is what puts two kinds of
+           * material in one party, and the sheet is the thing that then gets
+           * it wrong (§4.6, 本人の決定). The viewer still gets their
+           * photograph on the broadcast; what they do not get is a file.
+           */
+          showPhoto(pic, people, paid);
+          settlePaidShot(paid);
+          discordDrop(send);
+          log(t("log.photostore.lost"), "warn");
+          return;
         }
-      }
-      // The show goes on: a second capture, but only while saving is broken.
-      // The debt travels with the photograph and is settled there — settling it
-      // here as well would count one purchase twice and let the party end while
-      // the fallback capture was still running. The yes travels with it too:
-      // the fallback refuses a press whose yes was withdrawn while the save
-      // was failing, rather than taking it on a renewed one.
-      // No card comes of the fallback, so nothing is sent from it.
+        var ref = photoHold(key || pic);
+        // Whether this one may ever leave, decided here rather than at the
+        // close: at the close the stream is on, and the question is what was
+        // true when the shutter went off (§4.1).
+        if (!streaming) noteOffAir(ref);
+        showPhoto(ref, people, paid);
+        settlePaidShot(paid);        // on the wall, so the drain can see it
+        // Nothing past the settle may reach the catch below. It would settle
+        // the same debt a second time — the count has a floor of zero, so that
+        // is simply paid off early, silently. Caught here and said instead.
+        try {
+          fileShot(ref, lit, paid);
+          // The card is the only file that outlives this frame, so it is drawn
+          // for a photograph the broadcaster asked to keep — or one they send,
+          // which no longer needs a folder at all (§4.4 ①).
+          if (keep || send) saveFramed(ref, people, paid, keep, send, permit);
+          else discordDrop(send);
+        } catch (e) {
+          discordDrop(send);
+          log(t("log.reqfail", { m: e.message }), "warn");
+        }
+        // This function's own reader. The wall, the party and the card each
+        // took one of their own above; if none of them did, the frame is
+        // deleted here, which is the whole life of a photograph nobody kept.
+        photoDrop(ref);
+      });
+    }).catch(function (e) {
+      // A failure on a withdrawn yes says nothing about the name now.
+      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid); return; }
+      settlePaidShot(paid);
       discordDrop(send);
-      captureToScreen(source, people, paid, lit, proof);
+      onCaptureFailed(e);
     });
   }
 
-  /**
-   * A value no address has carried before, in this page or a previous one.
-   *
-   * The clock alone repeats across a reload only if two shots land in the same
-   * millisecond; the counter alone repeats on every reload, which is exactly
-   * when the scratch names are reused. Together they cannot collide.
-   */
-  var freshSeq = 0;
-  function freshId() {
-    freshSeq += 1;
-    return String(Date.now()) + "-" + freshSeq;
-  }
 
-  /** A path OBS understands, turned into one the page can load. */
-  function fileUrl(p) {
-    var slashed = String(p).replace(/\\/g, "/");
-    // encodeURI leaves # and ? alone because they delimit a URL — but they are
-    // ordinary characters in a Windows folder name, and left as they are the
-    // browser would ask for everything before the # and find nothing there.
-    var safe = encodeURI(slashed).replace(/#/g, "%23").replace(/\?/g, "%3F");
-    if (slashed.slice(0, 2) === "//") return "file:" + safe;                 // \\server\share
-    return "file:///" + safe.replace(/^\/+/, "");
-  }
 
   function joinPath(dir, name) {
     // A path pasted from Explorer's "Copy as path" arrives quoted, and a config
@@ -7697,6 +9023,24 @@
   var DISCORD_FILE_MAX = 8 * 1024 * 1024;          // one image; Discord takes 20 MiB
   var DISCORD_BATCH = 10;                          // this product's cap per post
   var DISCORD_TRIES = 4;                           // the first post + three more on 429
+  /* How long one attempt may take, the headers and the body together.
+   *
+   * fetch has no deadline of its own, and neither half of an answer is
+   * guaranteed to arrive: the headers can hang, and so can the body after a
+   * Response has been handed over. Either one leaves discordPosting true for
+   * the rest of the broadcast — the queue is served one post at a time — with
+   * the thirty places and the bytes still held, and no timer anywhere to end
+   * it (F15).
+   *
+   * A minute, because the thing being waited for is an upload: ten paid prints
+   * can be several megabytes going out beside the broadcast's own video, and
+   * cutting off a post that was going to land costs a photograph. Past a
+   * minute the broadcast has moved on — a party and its contact sheet are over
+   * in about thirty seconds — and holding the queue costs the NEXT party's
+   * posts as well. A rate limit's wait is a different thing and is not
+   * measured here (discordNextAt, and the 429 retries each get their own
+   * minute). */
+  var DISCORD_POST_MS = 60000;
   var DISCORD_RE = /^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/([^\/?#\s]+)$/;
 
   var discordHeld = 0;          // reserved: waiting for a card, queued, or posting
@@ -7726,10 +9070,86 @@
   function discordTarget() {
     if (DEMO || BAR_ONLY || !isKeeper) return null;
     var id = discordHookId(cfg.discordWebhook);
-    if (!id || id !== cfg.discordHook) return null;
+    if (!id || id !== cfg.discordHook) {
+      /* Not sent, and that is right — an empty ID is the box emptied. But a
+       * broadcaster who asked for photographs and is getting none was told
+       * nothing here, and on 2026-09-23 that silence cost a live test: the
+       * setup page had lost the ID, not the broadcaster their mind. Once,
+       * and only to somebody it is costing something. */
+      if (cfg.discordSheet === "1" || cfg.discordPaid === "1") {
+        discordOnce("nohook", t("log.discord.nohook"));
+      }
+      return null;
+    }
     if (discordStopped[id]) return null;
-    if (!cfg.saveDir) return null;               // cards exist only with a folder
+    /* THE UPDATE MUST NOT START SENDING BY ITSELF (§4.6 ③).
+     *
+     * Sending used to need a save folder, so a broadcaster who filled in a
+     * webhook and then turned saving off was left with a setup that sent
+     * nothing — and that is a state people are in right now, with the webhook
+     * still stored. The folder requirement is gone in this version; without
+     * this, the moment their OBS loads the new overlay, photographs start
+     * arriving on a server they last thought about weeks ago.
+     *
+     * So the webhook alone is not permission any more: the broadcaster says
+     * so on the setup page, under the wording as it is now, and that answer
+     * rides in the config the same way the scene gate's does (gateSet). An
+     * older config does not carry it, and until it does, nothing is sent —
+     * not by opening the setup page, not by closing the notice, not by
+     * restarting OBS. */
+    if (String(cfg.discordSet || "") !== "1") {
+      // Said only to somebody it is costing something: with both kinds off,
+      // nothing was going to be sent anyway.
+      if (cfg.discordSheet === "1" || cfg.discordPaid === "1") {
+        discordOnce("migrate", t("log.discord.migrate"));
+      }
+      return null;
+    }
+    /* A SAVE FOLDER USED TO BE REQUIRED HERE, and the comment said why: cards
+     * exist only with a folder. The card was drawn from a file the overlay had
+     * just written into it, so a broadcaster who kept nothing had no card and
+     * nothing to send.
+     *
+     * The frame reaches the card in memory now (08-photo-store.js), so that
+     * reason is gone and the requirement with it — the broadcaster who wants
+     * their server to have the photograph without their own disk filling up is
+     * exactly who this was costing (docs/no-scratch-plan.md §4.4 ①, 本人の決定
+     * 2026-09-20). Nothing else changes: what is sent is still a photograph of
+     * the card, and a photograph nobody keeps still leaves no file. */
     return { url: cfg.discordWebhook, id: id };
+  }
+
+  /**
+   * One word for the log line after the secrets settle, so that "why did
+   * nothing reach Discord" can be read off the first lines of a session
+   * instead of worked out from the code (2026-09-23).
+   *
+   *   off      neither kind is asked for
+   *   nohook   asked for, but no webhook here that the settings name
+   *   held     a webhook, and no answer to the current rules (§4.6 ③)
+   *   on       will send — from this page if it is the keeper
+   *   -        this page never sends (the sample, the bar, or not the keeper)
+   */
+  function discordState() {
+    if (DEMO || BAR_ONLY || !isKeeper) return "-";
+    if (cfg.discordSheet !== "1" && cfg.discordPaid !== "1") return "off";
+    var id = discordHookId(cfg.discordWebhook);
+    if (!id || id !== cfg.discordHook) return "nohook";
+    if (String(cfg.discordSet || "") !== "1") return "held";
+    return "on";
+  }
+
+  /**
+   * The line above, and the warning if there is one — said when this page
+   * becomes the keeper, which is when the answer means anything (58-one-keeper.js)
+   * and which arrives after the secrets have settled. Said then rather than at
+   * the first photograph: that may be a paid one, and by then the buyer's
+   * print has already gone nowhere.
+   */
+  function discordAnnounce() {
+    if (DEMO || BAR_ONLY || !isKeeper) return;
+    log("discord " + discordState());
+    discordTarget();
   }
 
   function discordWants(kind) {
@@ -7953,12 +9373,35 @@
         fd.append("files[" + i + "]", s.blob, payload.attachments[i].filename);
       });
 
+      /* The attempt, and the deadline over both halves of it.
+       *
+       * What happens when the deadline passes is what happens to any post
+       * whose answer was lost: it is NOT sent again. Discord has no
+       * idempotency key, the post may well have landed, and the same
+       * photograph twice is worse than a missing one (§4.2). A stopped
+       * request is not evidence that nothing was posted.
+       *
+       * The request is aborted so the connection and the bytes go, and `over`
+       * makes the two halves and the timer settle this exactly once — a late
+       * answer arriving after the deadline finds the work already accounted
+       * for and says nothing, rather than logging a second line or releasing a
+       * place that the pump has already given back (F15).
+       */
+      var ctl = null;
+      try { ctl = new AbortController(); } catch (e) { ctl = null; }
+      var init = { method: "POST", body: fd };
       // No headers of our own, so the browser sends it as a simple request
-      // and asks nothing first (§5).
-      return window.fetch(now.url + "?wait=true", { method: "POST", body: fd })
+      // and asks nothing first (§5). A signal is not a header.
+      if (ctl) init.signal = ctl.signal;
+      var job = { over: false, timer: null };
+      var answered = window.fetch(now.url + "?wait=true", init)
         .then(function (res) {
+          if (job.over) return;                  // the deadline answered already
           discordNote(res);
           return res.json().catch(function () { return null; }).then(function (body) {
+            if (job.over) return;                // ...the body was the slow half
+            clearTimeout(job.timer);
+            job.over = true;
             if (res.ok && body && body.id) {
               // Not logShot(): its five-second hush would swallow the one
               // line that says a post landed, and posts are few (batched).
@@ -7993,10 +9436,25 @@
             log(t("log.discord.fail", { m: discordWhy(res, body) }), "warn");
           });
         }, function () {
+          if (job.over) return;                  // our own abort, or a late error
+          clearTimeout(job.timer);
+          job.over = true;
           // No answer. It may have been posted, and there is no way to ask,
           // so it is not sent again.
           log(t("log.discord.unsure", { n: live.length }), "warn");
         });
+      var deadline = new Promise(function (resolve) {
+        job.timer = setTimeout(function () {
+          job.timer = null;
+          if (job.over) return resolve();
+          job.over = true;
+          if (ctl) { try { ctl.abort(); } catch (e) {} }
+          log(t("log.discord.slow", { n: live.length, s: Math.round(DISCORD_POST_MS / 1000) }), "warn");
+          resolve();
+        }, DISCORD_POST_MS);
+      });
+      // Whichever finishes the attempt: the answer, or the minute.
+      return Promise.race([answered, deadline]);
     });
   }
 
@@ -9794,7 +11252,22 @@
 
   function seqDelay(fn, ms) { seqTimers.push(setTimeout(fn, ms)); }
 
+  /* Which sequence the screen is showing.
+   *
+   * The contact sheet on the broadcast is not drawn in one go any more: each
+   * of its nine frames is read out of the store and decoded, and that takes
+   * turns of the event loop. A party can be lit in the middle of it — the bar
+   * can be full again while the sheet is still hanging — and then the pictures
+   * still arriving belong to a sequence that has been taken off the screen.
+   *
+   * Bumped wherever a sequence is abandoned, and read by everything that
+   * finishes late (§4.3). Not the same thing as the card's work: the file and
+   * the Discord post are a separate job with a reference of their own, and a
+   * sheet that vanished from the broadcast is still a sheet worth saving. */
+  var sheetGen = 0;
+
   function clearSequence() {
+    sheetGen++;                       // anything still arriving is for the last one
     for (var i = 0; i < seqTimers.length; i++) clearTimeout(seqTimers[i]);
     seqTimers.length = 0;
     clearTimeout(pendingSheetTimer);
@@ -10399,7 +11872,6 @@
     updatePhaseState("party");
     // From zero again: the last party's frames are what this one overwrites, so
     // the folder stops growing at the size of the biggest one.
-    partySeq = 0;
     // The frame whose press lit the party leads the sheet (§4.3). It was
     // captured moments ago, while the name was still on screen.
     if (ignitionShot) {
@@ -10455,12 +11927,16 @@
   function showSheet(done) {
     elSheetGrid.textContent = "";
     var picks = pickSheet(done.shots, done.paidAt || [], 9);
+    // This sheet's own generation, taken before the first frame is asked for.
+    var gen = sheetGen;
+    var mine = function () { return gen === sheetGen; };
     for (var i = 0; i < picks.length; i++) {
-      elSheetGrid.appendChild(printOf(subjectCanvas(picks[i])));
+      elSheetGrid.appendChild(printOf(subjectCanvas(picks[i], mine)));
     }
     // A party where nothing was captured has nothing to print. Showing an empty
-    // frame would only tell the channel that something went wrong.
-    if (!picks.length) return;
+    // frame would only tell the channel that something went wrong. Its frames
+    // are still let go — there may be some, just not nine worth printing.
+    if (!picks.length) { partyKeysDone(done); return; }
     // The papers and the tray, now that the grid has its nine and its height.
     paintSheet(elSheetGrid, elSheetTray);
 
@@ -10477,8 +11953,13 @@
     elSheet.classList.add("on");
     seqDelay(function () { elSheet.classList.remove("on"); }, TIMELINE.sheetMs);
     // Off the critical path: the sheet is already on the channel, and this only
-    // decides whether a copy of it also lands in the folder.
-    saveSheet(done);
+    // decides whether a copy of it also lands in the folder or in Discord.
+    //
+    // The party's frames are let go when that job is over, whichever way it
+    // went. The nine on screen took their own readers above, synchronously, so
+    // they are not pulled out from under the animation.
+    var letGo = function () { partyKeysDone(done); };
+    saveSheet(done).then(letGo, letGo);
   }
 
   /* ================= EBS link =================
@@ -11025,6 +12506,14 @@
     " ch=" + (cfg.ch || "(none)") +
     " save=" + (cfg.saveDir || "(off)") +
     " config=" + (pushed ? "from URL" : "from storage"));
+
+  /* Settle how frames will be handed to the card, once, before any arrive.
+   *
+   * The bar takes no photographs, so it neither probes nor sweeps: it shares
+   * this profile with the overlay, and a page with no frames of its own has no
+   * business tidying another page's (08-photo-store.js).
+   */
+  if (!BAR_ONLY) photoReady();
 
   applyPreset(cfg.preset);
   applyAccent(cfg.accent);
