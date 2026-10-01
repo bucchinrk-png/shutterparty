@@ -4,7 +4,7 @@
 A Twitch extension; the two files here are the half that runs on your own PC.
 
 - **Download:** [latest release](https://github.com/bucchinrk-png/shutterparty/releases/latest)
-- **Setup guide** (requirements, the six steps, updating, your data): [shutterparty.app/start](https://shutterparty.app/start)
+- **Setup guide** (requirements, the eight steps, updating, your data): [shutterparty.app/start](https://shutterparty.app/start)
 - 日本語の導入手順: [shutterparty.app/start/ja](https://shutterparty.app/start/ja)
 
 | | |

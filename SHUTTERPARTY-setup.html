@@ -298,6 +298,12 @@
   .step { padding: 20px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 11px; }
   .step:first-child { border-top: 0; padding-top: 4px; }
   .step > h2 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: .01em; }
+  /* The number of this step in the whole setup, the same number on the Twitch
+     Config panel and the guide page (src/shared/steps.json). Beside the words,
+     never in them: the panel quotes the heading words as they are. */
+  .stepNo { color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+  .step > h2 .stepNo { margin-right: .7em; vertical-align: 1px; }
+  #dockStep { font-size: 11px; }
 
   .note { margin: 0; color: var(--dim); font-size: 13px; line-height: 1.6; max-width: 78ch; }
   .note.warn { color: var(--warn); border-left: 2px solid var(--warn); padding-left: 10px; }
@@ -317,7 +323,8 @@
     max-width: 78ch;
   }
   .howto > p { margin: 0; color: var(--warn); }
-  .howto > ol { margin: 6px 0 0; padding-left: 1.6em; color: var(--ink); }
+  /* a, b, c: the parts of one step. Numbers belong to the whole setup. */
+  .howto > ol { margin: 6px 0 0; padding-left: 1.6em; color: var(--ink); list-style-type: lower-alpha; }
   .howto > ol > li + li { margin-top: 3px; }
   .howto > .howtoFoot { margin-top: 8px; color: var(--dim); }
   /* Not a failure: where something comes from, before it is there. */
@@ -552,6 +559,40 @@
   }
   .opts { display: flex; gap: 7px; flex-wrap: wrap; }
   .opts button { font-family: var(--mono); font-size: 12.5px; font-weight: 500; padding: 7px 13px; }
+
+  /* The canvas in small, for choosing where the 3-2-1 stands. 16:9 because
+     that is the shape the choice is made against; the vertical canvas keeps
+     the same five places, inside its safe band (the sample shows it). The pile
+     is drawn where the photographs really lie — along the bottom edge from the
+     chosen corner (85-display.js layoutStack) — and the chosen point carries
+     the number and the party's colour. */
+  .cdMap {
+    position: relative; width: min(100%, 272px); aspect-ratio: 16 / 9;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: rgba(255, 255, 255, .03);
+  }
+  .cdMap .cdPile { position: absolute; bottom: 7%; left: 4%; display: flex; gap: 2px; pointer-events: none; }
+  .cdMap[data-pile="br"] .cdPile { left: auto; right: 4%; flex-direction: row-reverse; }
+  .cdMap .cdPile b { display: block; width: 22px; height: 15px; background: #fbfaf6; opacity: .55; border-radius: 1px; }
+  .cdMap button {
+    position: absolute; width: 26px; height: 26px; padding: 0; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--mono); font-size: 12px; font-weight: 700; line-height: 1;
+    background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .28); color: transparent;
+  }
+  /* Nine points on a three-by-three grid. The bottom row sits above the
+     pile, not beside it: the pile runs sideways from the corner. */
+  .cdMap button[data-cdplace="tl"] { left: 12%; top: 20%; }
+  .cdMap button[data-cdplace="tc"] { left: 50%; top: 20%; }
+  .cdMap button[data-cdplace="tr"] { left: 88%; top: 20%; }
+  .cdMap button[data-cdplace="ml"] { left: 12%; top: 42%; }
+  .cdMap button[data-cdplace="center"] { left: 50%; top: 42%; }
+  .cdMap button[data-cdplace="mr"] { left: 88%; top: 42%; }
+  .cdMap button[data-cdplace="bl"] { left: 12%; top: 64%; }
+  .cdMap button[data-cdplace="bc"] { left: 50%; top: 64%; }
+  .cdMap button[data-cdplace="br"] { left: 88%; top: 64%; }
+  .cdMap button[aria-pressed="true"] { border: 2px solid rgb(var(--pre-rgb)); background: rgba(var(--pre-rgb), .18); color: rgb(var(--pre-rgb)); }
+  .cdMap button:focus-visible { outline: 2px solid rgb(var(--pre-rgb)); outline-offset: 2px; }
   .opts button[aria-pressed="true"] { background: rgb(var(--acc-rgb)); border-color: transparent; color: #fff; }
   /* swatches show both colours of a preset, because the pair is the point */
   .opts button.sw { display: inline-flex; align-items: center; gap: 4px; padding: 8px 11px; }
@@ -766,6 +807,7 @@
         <div class="dockRow">
           <span class="dockDot"></span>
           <span class="dockText">
+            <span class="stepNo" id="dockStep" data-step="8"></span>
             <span id="dockState"></span>
             <span id="dockLast"></span>
           </span>
@@ -786,14 +828,14 @@
            and the appearance settings in between. -->
       <section class="tabpane" id="paneObs" role="tabpanel" aria-labelledby="tabObs">
         <section class="step">
-          <h2 id="sObs"></h2>
+          <h2 id="sObs" data-step="3"></h2>
           <p class="note" id="nObs"></p>
           <!-- What to do in OBS, shown only once a connection has failed and
                chosen by why (47-the-rail.js renderObsHelp). Above the fold,
                because the steps point down at it. -->
           <div class="howto" id="obsHelp" role="status" hidden>
             <p id="obsHelpHead"></p>
-            <ol id="obsHelpSteps"></ol>
+            <ol id="obsHelpSteps" type="a"></ol>
             <p class="howtoFoot" id="obsHelpFoot" hidden></p>
           </div>
           <!-- Folded, because for almost everyone the answer is already in the
@@ -820,14 +862,17 @@
              browser source was a way to overwrite something else. Both are
              made here now, and a name that is already taken asks first. -->
         <section class="step" id="stepBuild" hidden>
-          <h2 id="sBuild"></h2>
+          <h2 id="sBuild" data-step="4"></h2>
           <p class="note" id="nBuild"></p>
           <!-- Above the button, because it is what the button will do. -->
-          <div class="field dest">
+          <div class="field dest" id="dest">
             <label for="newSrcScene" id="lHostScene"></label>
             <select id="newSrcScene"></select>
             <p class="note" id="hHostScene"></p>
           </div>
+          <!-- Shown instead of the picker and the build button while there is
+               nowhere to put the overlay (60-building-the-pieces.js). -->
+          <p class="note warn" id="noHost" hidden></p>
           <div class="btns">
             <button class="primary big" id="btnBuild"></button>
             <button class="mini" id="btnRefresh"></button>
@@ -860,7 +905,7 @@
              up in a picture, so reading them as one setting is how a scene
              gets allowed that was never meant to be. -->
         <section class="step" id="stepGate" hidden>
-          <h2 id="sGate"></h2>
+          <h2 id="sGate" data-step="5"></h2>
           <p class="note" id="nGate"></p>
           <label class="check"><input id="gateAll" type="checkbox"> <span id="lGateAll"></span></label>
           <!-- Hidden, not disabled, while every scene is allowed: a greyed
@@ -890,7 +935,7 @@
       <!-- ================= Twitch ================= -->
       <section class="tabpane" id="paneExt" role="tabpanel" aria-labelledby="tabExt" hidden>
         <section class="step">
-          <h2 id="sExt"></h2>
+          <h2 id="sExt" data-step="7"></h2>
           <p class="note" id="nExt"></p>
           <div class="row">
             <div class="field wide">
@@ -922,7 +967,7 @@
                Twitch's side, so this page can only say them. -->
           <div class="howto plain" id="extHelp" hidden>
             <p id="extHelpHead"></p>
-            <ol id="extHelpSteps"></ol>
+            <ol id="extHelpSteps" type="a"></ol>
           </div>
           <div class="btns">
             <button id="btnEbs"></button>
@@ -1029,6 +1074,31 @@
                 <button type="button" data-place="bl" aria-pressed="true">&#9723;&#8601;</button>
                 <button type="button" data-place="br">&#8600;&#9723;</button>
               </div>
+            </div>
+            <!-- Where the 3-2-1 before a bought photograph stands
+                 (docs/countdown-plan.md §1.5). Chosen on a small picture of
+                 the canvas rather than from a row of words: the question is
+                 "where on my screen", and the picture carries the pile of
+                 photographs where it really is, so a corner that shares it
+                 is seen, not described. Which amounts count down is not asked
+                 here — that is the Twitch panel's, and the note says so. -->
+            <div class="grp">
+              <label id="lCdPlace"></label>
+              <div class="cdMap" id="cdMap" data-pile="bl" role="group">
+                <i class="cdPile"><b></b><b></b><b></b></i>
+                <button type="button" data-cdplace="tl"></button>
+                <button type="button" data-cdplace="tc"></button>
+                <button type="button" data-cdplace="tr"></button>
+                <button type="button" data-cdplace="ml"></button>
+                <button type="button" data-cdplace="center" aria-pressed="true"></button>
+                <button type="button" data-cdplace="mr"></button>
+                <button type="button" data-cdplace="bl"></button>
+                <button type="button" data-cdplace="bc"></button>
+                <button type="button" data-cdplace="br"></button>
+              </div>
+              <p class="note" id="nCdSame" hidden></p>
+              <div class="btns"><button type="button" class="mini" id="btnCdAgain"></button></div>
+              <p class="note" id="nCdAmounts"></p>
             </div>
             <div class="grp">
               <label id="lScale"></label>
@@ -1257,6 +1327,7 @@
     ja: {
       "ttl": "シャッターパーティー｜設定",
       "lede": "ここで決めた設定を、OBS のブラウザソースに直接書き込みます。配信画面に設定は出ません。パスワードはこの PC の外に出ません。",
+      "step.n": "ステップ {n}",
       "s.obs": "OBS につなぐ",
       "n.obs": "OBS の「ツール → WebSocket サーバー設定」で表示される値です。サーバーを有効にしてから、「接続情報を表示」でパスワードをコピーしてください。",
       "host": "ホスト",
@@ -1272,23 +1343,23 @@
       "st.authfail": "パスワードが違います",
       "st.needpw": "パスワードを入れてください",
       "conn.more": "接続の詳細（ホスト・ポート・パスワード）",
-      "help.srv.h": "OBS の WebSocket サーバーがオフになっているかもしれません。OBS で次の順に確かめてください。",
+      "help.srv.h": "OBS の WebSocket サーバーがオフになっているかもしれません。ステップ 2 を OBS で、次の順に確かめてください。",
       "help.srv.1": "OBS を起動する",
       "help.srv.2": "メニューの「ツール」→「WebSocket サーバー設定」を開く",
       "help.srv.3": "「WebSocketサーバーを有効にする」にチェックを入れる。「サーバーポート」を 4455 から変えているなら、下の「接続の詳細」のポートも同じ数字にする",
       "help.srv.4": "「OK」で閉じる。このページが 30 秒以内に自動でつなぎます（待たずに「接続」を押しても構いません）",
       "help.srv.n": "「ツール」に「WebSocket サーバー設定」が無いときは、OBS が 28 より前の版です。OBS を最新にしてください。Streamlabs Desktop にはこの設定が無く、使えません。",
-      "help.pw.h": "OBS のパスワードを、このページに貼り付けてください。",
+      "help.pw.h": "OBS のパスワードを、このページに貼り付けてください。ステップ 2 を OBS で、次の順に確かめてください。",
       "help.pw.1": "OBS の「ツール」→「WebSocket サーバー設定」で「接続情報を表示」を押す",
       "help.pw.2": "「サーバーパスワード」の横の「コピー」を押す",
       "help.pw.3": "下の「パスワード」欄に貼り付けて「接続」を押す",
-      "next.connect": "次: OBS につなぐ",
-      "next.build": "次: 撮影用シーンとオーバーレイを作る",
-      "next.gate": "次: ボタンが効くシーンを決める",
-      "next.pair": "次: 連携コードを貼る",
-      "next.push": "次: OBS に反映する",
-      "next.test": "配信なしで試してみる",
-      "help.ext.h": "連携コードは Twitch 側で出します。",
+      "next.connect": "次: ステップ 3 — OBS につなぐ",
+      "next.build": "次: ステップ 4 — 撮影用シーンとオーバーレイを作る",
+      "next.gate": "次: ステップ 5 — ボタンが効くシーンを決める",
+      "next.pair": "次: ステップ 6・7 — Twitch で連携コードをコピーして、ここに貼る",
+      "next.push": "次: ステップ 8 — OBS に反映する",
+      "next.test": "次: ステップ 8 — 配信なしで試してみる",
+      "help.ext.h": "連携コードはステップ 6 で Twitch 側で出します。",
       "help.ext.1": "Twitch のクリエイターダッシュボードで「拡張機能」を開き、SHUTTERPARTY を探して入れる",
       "help.ext.2": "入れた SHUTTERPARTY を有効にする（動画の上に出るコンポーネントがおすすめ）",
       "help.ext.3": "SHUTTERPARTY の「設定」を開き、「連携コード」の「コピー」を押す",
@@ -1308,7 +1379,7 @@
       "test": "30分だけ配信なしで撮れるようにする",
       "test.stop": "いま終わりにする",
       "log.testend": "配信なしで撮れる時間を終わりにしました",
-      "n.test": "演出を確かめるためのものです。押した時点から 30 分で自動的に戻ります。",
+      "n.test": "ステップ 8 の最後に、「OBS に反映」のあとで押します。演出を確かめるためのもので、押した時点から 30 分で自動的に戻ります。",
       "test.left": "あと {n} 分は配信していなくても撮れます",
       "gate": "ボタンが効くシーン",
       "gate.add": "シーンを追加…",
@@ -1337,7 +1408,7 @@
       "log.sceneok": "シーン「{n}」にこのオーバーレイは入っていません",
       "log.wasSource": "前の設定「{n}」はソースなので選べなくなりました。ソースを直接撮ると、OBS で隠した部分が写真に残ります。撮影用のシーンを選び直してください",
       "s.ext": "Twitch 拡張機能につなぐ",
-      "n.ext": "Twitch の「クリエイターダッシュボード → 拡張機能 → SHUTTERPARTY → 設定」に出ている連携コードを、そのまま貼ってください。",
+      "n.ext": "ステップ 6 でコピーした連携コードを、そのまま貼ってください。コードは Twitch の「クリエイターダッシュボード → 拡張機能 → SHUTTERPARTY → 設定」に出ています。",
       "pair": "連携コード",
       "h.pair": "サーバーのアドレス、チャンネル ID、接続用のキーが 1 つの文字列にまとまっています。他人に見せないでください。",
       "pair.reads": "サーバー {s} / チャンネル {c}",
@@ -1359,6 +1430,19 @@
       "preset": "演出プリセット",
       "accent": "コンセプトカラー",
       "place": "写真の位置",
+      "cdPlace": "カウントダウンの位置",
+      "cdPlace.center": "真ん中",
+      "cdPlace.tl": "左上",
+      "cdPlace.tr": "右上",
+      "cdPlace.bl": "左下",
+      "cdPlace.br": "右下",
+      "cdPlace.tc": "上",
+      "cdPlace.bc": "下",
+      "cdPlace.ml": "左",
+      "cdPlace.mr": "右",
+      "cdAgain": "もう一度見る",
+      "n.cdSame": "写真と同じ隅です。数字は写真の山の上に置きます（写真の並びは変わりません）。",
+      "n.cdAmounts": "撮る前にカウントダウンをするかどうかは、額ごとに Twitch の拡張の設定で決めます。ここで決めるのは、画面のどこに出すかだけです。",
       "scale": "演出の大きさ",
       "n.clock": "写真に入る時刻は、この PC の時計です。ずれていると、すべての写真がずれた時刻で残ります。",
       "s.sample": "プレビュー",
@@ -1473,6 +1557,10 @@
       "log.created": "「{s}」に「{n}」を作って設定を書き込みました",
       "log.createfail": "作れませんでした: {m}（同じ名前のソースがあると作れません）",
       "log.needscene": "作る先のシーンを選んでください",
+      "log.scenesloading": "OBS がまだシーンを読み込んでいません。少し待ってから読み直します",
+      "build.loading": "OBS がシーンを読み込み中です。終わると、ここにオーバーレイを置くシーンの欄が出ます。しばらく出なければ「{r}」を押してください",
+      "build.nohost": "オーバーレイを置くシーンがありません。OBS で配信に使うシーンを作ってから「{r}」を押してください",
+      "next.reload": "次: ステップ 4 — シーンを読み直す",
       "log.needtarget": "書き込む先のブラウザソースを選んでください",
       "log.arranged": "「{o}」を「{s}」の一番上にしました",
       "log.frozen": "「{c}」はどの配信シーンにも入っていません。中にブラウザソースがあると、OBS は映していないシーンを描画しないので、写真では映像が止まったままになります。必要なら配信シーンの中に入れてください",
@@ -1546,6 +1634,7 @@
     en: {
       "ttl": "SHUTTERPARTY — setup",
       "lede": "What you set here is written straight into the OBS browser source. None of it appears on the broadcast. The password never leaves this PC.",
+      "step.n": "Step {n}",
       "s.obs": "Connect to OBS",
       "n.obs": "The values OBS shows under Tools → WebSocket Server Settings. Enable the server, then copy the password from Show Connect Info.",
       "host": "Host",
@@ -1561,23 +1650,23 @@
       "st.authfail": "wrong password",
       "st.needpw": "enter the password",
       "conn.more": "Connection details (host, port, password)",
-      "help.srv.h": "OBS's WebSocket server may be switched off. Check these in OBS, in order.",
+      "help.srv.h": "OBS's WebSocket server may be switched off. Go through Step 2 in OBS, in this order.",
       "help.srv.1": "Start OBS",
       "help.srv.2": "Open Tools → WebSocket Server Settings from the menu",
       "help.srv.3": "Tick Enable WebSocket server. If you changed Server Port from 4455, put the same number in Port under Connection details below",
       "help.srv.4": "Close it with OK. This page connects on its own within 30 seconds (or press Connect)",
       "help.srv.n": "No WebSocket Server Settings under Tools means OBS is older than version 28 — update OBS. Streamlabs Desktop does not have this setting and cannot be used.",
-      "help.pw.h": "Paste OBS's password into this page.",
+      "help.pw.h": "Paste OBS's password into this page. Go through Step 2 in OBS, in this order.",
       "help.pw.1": "In OBS, open Tools → WebSocket Server Settings and press Show Connect Info",
       "help.pw.2": "Press Copy next to Server Password",
       "help.pw.3": "Paste it into Password below and press Connect",
-      "next.connect": "Next: connect to OBS",
-      "next.build": "Next: create the capture scene and overlay",
-      "next.gate": "Next: choose when the button works",
-      "next.pair": "Next: paste the pairing code",
-      "next.push": "Next: write to OBS",
-      "next.test": "Try it without going live",
-      "help.ext.h": "The pairing code comes from Twitch.",
+      "next.connect": "Next: Step 3 — connect to OBS",
+      "next.build": "Next: Step 4 — create the capture scene and overlay",
+      "next.gate": "Next: Step 5 — choose when the button works",
+      "next.pair": "Next: Steps 6 and 7 — copy the pairing code on Twitch and paste it here",
+      "next.push": "Next: Step 8 — write to OBS",
+      "next.test": "Next: Step 8 — try it without going live",
+      "help.ext.h": "The pairing code comes from Twitch, in Step 6.",
       "help.ext.1": "In your Twitch Creator Dashboard, open Extensions, find SHUTTERPARTY and install it",
       "help.ext.2": "Activate it (as a Component, over the video, is recommended)",
       "help.ext.3": "Open SHUTTERPARTY's Configure and press Copy under Pairing code",
@@ -1597,7 +1686,7 @@
       "test": "Allow shooting off-air for 30 minutes",
       "test.stop": "End it now",
       "log.testend": "the off-air window is over",
-      "n.test": "For checking the effects. It reverts on its own 30 minutes after you press it.",
+      "n.test": "Press this last in Step 8, after Write to OBS. It is for checking the effects, and reverts on its own 30 minutes after you press it.",
       "test.left": "Shooting off-air for another {n} min",
       "gate": "Scenes the button works in",
       "gate.add": "Add a scene…",
@@ -1626,7 +1715,7 @@
       "log.sceneok": "the scene “{n}” does not contain this overlay",
       "log.wasSource": "the previous setting “{n}” was a source, and sources can no longer be chosen. Photographing one keeps whatever OBS covered over in the picture. Choose a capture scene instead",
       "s.ext": "Connect to the Twitch extension",
-      "n.ext": "Paste the pairing code shown under Creator Dashboard → Extensions → SHUTTERPARTY → Configure.",
+      "n.ext": "Paste the pairing code you copied in Step 6. It is shown under Creator Dashboard → Extensions → SHUTTERPARTY → Configure.",
       "pair": "Pairing code",
       "h.pair": "The server address, the channel id and the key that opens it are all in this one string. Do not show it to anyone.",
       "pair.reads": "server {s} / channel {c}",
@@ -1648,6 +1737,19 @@
       "preset": "Effect preset",
       "accent": "Accent colour",
       "place": "Photo corner",
+      "cdPlace": "Countdown position",
+      "cdPlace.center": "Center",
+      "cdPlace.tl": "Top left",
+      "cdPlace.tr": "Top right",
+      "cdPlace.bl": "Bottom left",
+      "cdPlace.br": "Bottom right",
+      "cdPlace.tc": "Top",
+      "cdPlace.bc": "Bottom",
+      "cdPlace.ml": "Left",
+      "cdPlace.mr": "Right",
+      "cdAgain": "Show again",
+      "n.cdSame": "Same corner as the photos. The number goes above the pile of photos, and the photos stay where they are.",
+      "n.cdAmounts": "Whether to count 3·2·1 before a photo is set per amount in the extension's settings on Twitch. Here you only choose where it appears on screen.",
       "scale": "Effect size",
       "n.clock": "The time printed on a photo is this computer's clock. If it is wrong, every photo keeps the wrong time.",
       "s.sample": "The preview",
@@ -1762,6 +1864,10 @@
       "log.created": "made “{n}” in “{s}” and wrote the settings into it",
       "log.createfail": "could not make it: {m} (a source of the same name blocks it)",
       "log.needscene": "choose the scene to make it in",
+      "log.scenesloading": "OBS has not loaded its scenes yet; reading them again shortly",
+      "build.loading": "OBS is still loading its scenes. When it is done, the scene to put the overlay in appears here. If it does not, press {r}",
+      "build.nohost": "There is no scene to put the overlay in. Make the scene you stream from in OBS, then press {r}",
+      "next.reload": "Next: Step 4 — reload the scenes",
       "log.needtarget": "choose the browser source to write into",
       "log.arranged": "lifted “{o}” to the top of “{s}”",
       "log.frozen": "“{c}” is not inside any broadcast scene. OBS does not render a scene it is not showing, so a browser source in there freezes in the photographs. Nest it into a broadcast scene if you need it live",
@@ -1835,6 +1941,7 @@
     es: {
       "ttl": "SHUTTERPARTY — configuración",
       "lede": "Lo que ajustes aquí se escribe directamente en la fuente de navegador de OBS. Nada de ello aparece en el directo. La contraseña no sale de este PC.",
+      "step.n": "Paso {n}",
       "s.obs": "Conectar con OBS",
       "n.obs": "Los valores que OBS muestra en Herramientas → Ajustes del servidor WebSocket. Activa el servidor y copia la contraseña desde Mostrar información de conexión.",
       "host": "Host",
@@ -1850,23 +1957,23 @@
       "st.authfail": "contraseña incorrecta",
       "st.needpw": "escribe la contraseña",
       "conn.more": "Detalles de conexión (host, puerto, contraseña)",
-      "help.srv.h": "Puede que el servidor WebSocket de OBS esté desactivado. Comprueba esto en OBS, en orden.",
+      "help.srv.h": "Puede que el servidor WebSocket de OBS esté desactivado. Repasa el Paso 2 en OBS, en este orden.",
       "help.srv.1": "Abre OBS",
       "help.srv.2": "En el menú, abre Herramientas → Ajustes del servidor WebSocket",
       "help.srv.3": "Marca Habilitar servidor WebSocket. Si cambiaste Puerto del servidor de 4455, pon el mismo número en Puerto, en Detalles de conexión, abajo",
       "help.srv.4": "Ciérralo con OK. Esta página se conecta sola en menos de 30 segundos (o pulsa Conectar)",
       "help.srv.n": "Si Herramientas no tiene Ajustes del servidor WebSocket, tu OBS es anterior a la versión 28: actualízalo. Streamlabs Desktop no tiene este ajuste y no se puede usar.",
-      "help.pw.h": "Pega la contraseña de OBS en esta página.",
+      "help.pw.h": "Pega la contraseña de OBS en esta página. Repasa el Paso 2 en OBS, en este orden.",
       "help.pw.1": "En OBS, abre Herramientas → Ajustes del servidor WebSocket y pulsa Mostrar información de conexión",
       "help.pw.2": "Pulsa Copiar junto a Contraseña del servidor",
       "help.pw.3": "Pégala en Contraseña, abajo, y pulsa Conectar",
-      "next.connect": "Siguiente: conectar con OBS",
-      "next.build": "Siguiente: crear la escena de captura y la superposición",
-      "next.gate": "Siguiente: elegir cuándo funciona el botón",
-      "next.pair": "Siguiente: pegar el código de vinculación",
-      "next.push": "Siguiente: escribir en OBS",
-      "next.test": "Pruébalo sin estar en directo",
-      "help.ext.h": "El código de vinculación se obtiene en Twitch.",
+      "next.connect": "Siguiente: Paso 3 — conectar con OBS",
+      "next.build": "Siguiente: Paso 4 — crear la escena de captura y la superposición",
+      "next.gate": "Siguiente: Paso 5 — elegir cuándo funciona el botón",
+      "next.pair": "Siguiente: Pasos 6 y 7 — copiar el código de vinculación en Twitch y pegarlo aquí",
+      "next.push": "Siguiente: Paso 8 — escribir en OBS",
+      "next.test": "Siguiente: Paso 8 — pruébalo sin estar en directo",
+      "help.ext.h": "El código de vinculación se obtiene en Twitch, en el Paso 6.",
       "help.ext.1": "En el Panel de creador de Twitch, abre Extensiones, busca SHUTTERPARTY e instálala",
       "help.ext.2": "Actívala (se recomienda como Componente, sobre el vídeo)",
       "help.ext.3": "Abre Configurar de SHUTTERPARTY y pulsa Copiar en Código de vinculación",
@@ -1886,7 +1993,7 @@
       "test": "Permitir fotografiar sin directo 30 minutos",
       "test.stop": "Terminarlo ahora",
       "log.testend": "se terminó el periodo sin directo",
-      "n.test": "Para comprobar los efectos. Se revierte solo 30 minutos después de pulsarlo.",
+      "n.test": "Púlsalo al final del Paso 8, después de Escribir en OBS. Sirve para comprobar los efectos y se revierte solo 30 minutos después de pulsarlo.",
       "test.left": "Se puede fotografiar sin directo {n} min más",
       "gate": "Escenas donde funciona el botón",
       "gate.add": "Añadir una escena…",
@@ -1915,7 +2022,7 @@
       "log.sceneok": "la escena «{n}» no contiene este overlay",
       "log.wasSource": "lo anterior, «{n}», era una fuente, y ya no se pueden elegir fuentes. Al fotografiar una, lo que OBS tapó queda en la imagen. Elige una escena de captura",
       "s.ext": "Conectar con la extensión de Twitch",
-      "n.ext": "Pega el código de vinculación que aparece en Panel de creador → Extensiones → SHUTTERPARTY → Configurar.",
+      "n.ext": "Pega el código de vinculación que copiaste en el Paso 6. Aparece en Panel de creador → Extensiones → SHUTTERPARTY → Configurar.",
       "pair": "Código de vinculación",
       "h.pair": "La dirección del servidor, el ID del canal y la clave que lo abre van en esta única cadena. No se la enseñes a nadie.",
       "pair.reads": "servidor {s} / canal {c}",
@@ -1937,6 +2044,19 @@
       "preset": "Preajuste de efectos",
       "accent": "Color principal",
       "place": "Esquina de la foto",
+      "cdPlace": "Posición de la cuenta atrás",
+      "cdPlace.center": "Centro",
+      "cdPlace.tl": "Arriba a la izquierda",
+      "cdPlace.tr": "Arriba a la derecha",
+      "cdPlace.bl": "Abajo a la izquierda",
+      "cdPlace.br": "Abajo a la derecha",
+      "cdPlace.tc": "Arriba",
+      "cdPlace.bc": "Abajo",
+      "cdPlace.ml": "Izquierda",
+      "cdPlace.mr": "Derecha",
+      "cdAgain": "Ver otra vez",
+      "n.cdSame": "Es la misma esquina que las fotos. El número va encima del montón de fotos y las fotos no se mueven.",
+      "n.cdAmounts": "Si se cuenta 3·2·1 antes de la foto se decide para cada cantidad en los ajustes de la extensión en Twitch. Aquí solo eliges dónde aparece en pantalla.",
       "scale": "Tamaño de los efectos",
       "n.clock": "La hora impresa en la foto es la de este ordenador. Si va mal, todas las fotos quedan con la hora equivocada.",
       "s.sample": "La vista previa",
@@ -2051,6 +2171,10 @@
       "log.created": "se creó «{n}» en «{s}» y se le escribieron los ajustes",
       "log.createfail": "no se pudo crear: {m} (una fuente con el mismo nombre lo impide)",
       "log.needscene": "elige la escena donde crearlo",
+      "log.scenesloading": "OBS aún no ha cargado sus escenas; se vuelven a leer en un momento",
+      "build.loading": "OBS todavía está cargando sus escenas. Cuando termine, aquí aparecerá la escena donde poner la superposición. Si no aparece, pulsa {r}",
+      "build.nohost": "No hay ninguna escena donde poner la superposición. Crea en OBS la escena desde la que emites y pulsa {r}",
+      "next.reload": "Siguiente: Paso 4 — volver a leer las escenas",
       "log.needtarget": "elige la fuente de navegador donde escribir",
       "log.arranged": "se subió «{o}» a lo más alto de «{s}»",
       "log.frozen": "«{c}» no está dentro de ninguna escena de emisión. OBS no renderiza una escena que no muestra, así que una fuente de navegador allí se congela en las fotos. Anídala en una escena de emisión si la necesitas en vivo",
@@ -2124,6 +2248,7 @@
     pt: {
       "ttl": "SHUTTERPARTY — configuração",
       "lede": "O que você definir aqui é escrito direto na fonte de navegador do OBS. Nada disso aparece na live. A senha não sai deste PC.",
+      "step.n": "Passo {n}",
       "s.obs": "Conectar ao OBS",
       "n.obs": "Os valores que o OBS mostra em Ferramentas → Configurações do servidor WebSocket. Ative o servidor e copie a senha em Mostrar informações da conexão.",
       "host": "Host",
@@ -2139,23 +2264,23 @@
       "st.authfail": "senha incorreta",
       "st.needpw": "digite a senha",
       "conn.more": "Detalhes da conexão (host, porta, senha)",
-      "help.srv.h": "O servidor WebSocket do OBS pode estar desligado. Confira isto no OBS, nesta ordem.",
+      "help.srv.h": "O servidor WebSocket do OBS pode estar desligado. Confira o Passo 2 no OBS, nesta ordem.",
       "help.srv.1": "Abra o OBS",
       "help.srv.2": "No menu, abra Ferramentas → Configurações do servidor WebSocket",
       "help.srv.3": "Marque Ativar servidor WebSocket. Se você mudou a Porta do servidor de 4455, coloque o mesmo número em Porta, em Detalhes da conexão, abaixo",
       "help.srv.4": "Feche com OK. Esta página se conecta sozinha em até 30 segundos (ou clique em Conectar)",
       "help.srv.n": "Se Ferramentas não tem Configurações do servidor WebSocket, o OBS é anterior à versão 28: atualize o OBS. O Streamlabs Desktop não tem essa opção e não pode ser usado.",
-      "help.pw.h": "Cole a senha do OBS nesta página.",
+      "help.pw.h": "Cole a senha do OBS nesta página. Confira o Passo 2 no OBS, nesta ordem.",
       "help.pw.1": "No OBS, abra Ferramentas → Configurações do servidor WebSocket e clique em Mostrar informações da conexão",
       "help.pw.2": "Clique em Copiar ao lado de Senha do servidor",
       "help.pw.3": "Cole em Senha, abaixo, e clique em Conectar",
-      "next.connect": "Próximo: conectar ao OBS",
-      "next.build": "Próximo: criar a cena de captura e a sobreposição",
-      "next.gate": "Próximo: escolher quando o botão funciona",
-      "next.pair": "Próximo: colar o código de pareamento",
-      "next.push": "Próximo: gravar no OBS",
-      "next.test": "Teste sem estar ao vivo",
-      "help.ext.h": "O código de pareamento vem da Twitch.",
+      "next.connect": "Próximo: Passo 3 — conectar ao OBS",
+      "next.build": "Próximo: Passo 4 — criar a cena de captura e a sobreposição",
+      "next.gate": "Próximo: Passo 5 — escolher quando o botão funciona",
+      "next.pair": "Próximo: Passos 6 e 7 — copiar o código de pareamento na Twitch e colar aqui",
+      "next.push": "Próximo: Passo 8 — gravar no OBS",
+      "next.test": "Próximo: Passo 8 — teste sem estar ao vivo",
+      "help.ext.h": "O código de pareamento vem da Twitch, no Passo 6.",
       "help.ext.1": "No Painel do criador da Twitch, abra Extensões, procure SHUTTERPARTY e instale",
       "help.ext.2": "Ative a extensão (recomendado como Componente, sobre o vídeo)",
       "help.ext.3": "Abra Configurar do SHUTTERPARTY e clique em Copiar em Código de pareamento",
@@ -2175,7 +2300,7 @@
       "test": "Permitir fotografar fora do ar por 30 minutos",
       "test.stop": "Encerrar agora",
       "log.testend": "a janela fora do ar terminou",
-      "n.test": "Para conferir os efeitos. Volta sozinho 30 minutos depois de você apertar.",
+      "n.test": "Clique no fim do Passo 8, depois de Escrever no OBS. Serve para conferir os efeitos e volta sozinho 30 minutos depois de você apertar.",
       "test.left": "Ainda dá para fotografar fora do ar por {n} min",
       "gate": "Cenas em que o botão funciona",
       "gate.add": "Adicionar uma cena…",
@@ -2204,7 +2329,7 @@
       "log.sceneok": "a cena «{n}» não contém este overlay",
       "log.wasSource": "o anterior, «{n}», era uma fonte, e fontes não podem mais ser escolhidas. Fotografar uma deixa na imagem o que o OBS cobriu. Escolha uma cena de captura",
       "s.ext": "Conectar à extensão da Twitch",
-      "n.ext": "Cole o código de pareamento que aparece em Painel do criador → Extensões → SHUTTERPARTY → Configurar.",
+      "n.ext": "Cole o código de pareamento que você copiou no Passo 6. Ele aparece em Painel do criador → Extensões → SHUTTERPARTY → Configurar.",
       "pair": "Código de pareamento",
       "h.pair": "O endereço do servidor, o ID do canal e a chave que o abre estão todos nessa única linha. Não mostre para ninguém.",
       "pair.reads": "servidor {s} / canal {c}",
@@ -2226,6 +2351,19 @@
       "preset": "Predefinição de efeitos",
       "accent": "Cor principal",
       "place": "Canto da foto",
+      "cdPlace": "Posição da contagem regressiva",
+      "cdPlace.center": "Centro",
+      "cdPlace.tl": "Canto superior esquerdo",
+      "cdPlace.tr": "Canto superior direito",
+      "cdPlace.bl": "Canto inferior esquerdo",
+      "cdPlace.br": "Canto inferior direito",
+      "cdPlace.tc": "Em cima",
+      "cdPlace.bc": "Embaixo",
+      "cdPlace.ml": "Esquerda",
+      "cdPlace.mr": "Direita",
+      "cdAgain": "Ver de novo",
+      "n.cdSame": "É o mesmo canto das fotos. O número fica acima da pilha de fotos, e as fotos não mudam de lugar.",
+      "n.cdAmounts": "Se haverá contagem 3·2·1 antes da foto é definido por valor nos ajustes da extensão na Twitch. Aqui você escolhe só onde ela aparece na tela.",
       "scale": "Tamanho dos efeitos",
       "n.clock": "A hora impressa na foto é a deste computador. Se estiver errada, todas as fotos ficam com a hora errada.",
       "s.sample": "A pré-visualização",
@@ -2340,6 +2478,10 @@
       "log.created": "«{n}» criada em «{s}» com as configurações escritas",
       "log.createfail": "não foi possível criar: {m} (uma fonte com o mesmo nome impede)",
       "log.needscene": "escolha a cena onde criar",
+      "log.scenesloading": "O OBS ainda não carregou as cenas; lendo de novo em instantes",
+      "build.loading": "O OBS ainda está carregando as cenas. Quando terminar, a cena onde colocar a sobreposição aparece aqui. Se não aparecer, clique em {r}",
+      "build.nohost": "Não há cena onde colocar a sobreposição. Crie no OBS a cena que você usa para transmitir e clique em {r}",
+      "next.reload": "Próximo: Passo 4 — ler as cenas de novo",
       "log.needtarget": "escolha a fonte de navegador onde escrever",
       "log.arranged": "“{o}” foi levado ao topo de “{s}”",
       "log.frozen": "“{c}” não está dentro de nenhuma cena de transmissão. O OBS não renderiza uma cena que não está exibindo, então uma fonte de navegador ali congela nas fotos. Aninhe-a numa cena de transmissão se precisar dela ao vivo",
@@ -2413,6 +2555,7 @@
     de: {
       "ttl": "SHUTTERPARTY — Einrichtung",
       "lede": "Was du hier einstellst, wird direkt in die OBS-Browserquelle geschrieben. Nichts davon erscheint im Stream. Das Passwort verlässt diesen PC nicht.",
+      "step.n": "Schritt {n}",
       "s.obs": "Mit OBS verbinden",
       "n.obs": "Die Werte, die OBS unter Werkzeuge → WebSocket-Servereinstellungen zeigt. Aktiviere den Server und kopiere das Passwort über Verbindungsinformationen anzeigen.",
       "host": "Host",
@@ -2428,23 +2571,23 @@
       "st.authfail": "falsches Passwort",
       "st.needpw": "Passwort eingeben",
       "conn.more": "Verbindungsdetails (Host, Port, Passwort)",
-      "help.srv.h": "Der WebSocket-Server von OBS ist womöglich aus. Prüfe in OBS der Reihe nach:",
+      "help.srv.h": "Der WebSocket-Server von OBS ist womöglich aus. Geh Schritt 2 in OBS der Reihe nach durch:",
       "help.srv.1": "OBS starten",
       "help.srv.2": "Im Menü Werkzeuge → WebSocket-Servereinstellungen öffnen",
       "help.srv.3": "WebSocket-Server aktivieren anhaken. Hast du den Serverport von 4455 geändert, trag dieselbe Zahl unten unter Verbindungsdetails bei Port ein",
       "help.srv.4": "Mit OK schließen. Diese Seite verbindet sich innerhalb von 30 Sekunden von selbst (oder drück Verbinden)",
       "help.srv.n": "Fehlt unter Werkzeuge der Eintrag WebSocket-Servereinstellungen, ist OBS älter als Version 28 — aktualisiere OBS. Streamlabs Desktop hat diese Einstellung nicht und funktioniert nicht.",
-      "help.pw.h": "Füge das Passwort von OBS auf dieser Seite ein.",
+      "help.pw.h": "Füge das Passwort von OBS auf dieser Seite ein. Geh Schritt 2 in OBS der Reihe nach durch:",
       "help.pw.1": "In OBS Werkzeuge → WebSocket-Servereinstellungen öffnen und Verbindungsinformationen anzeigen drücken",
       "help.pw.2": "Neben Serverpasswort auf Kopieren drücken",
       "help.pw.3": "Unten bei Passwort einfügen und Verbinden drücken",
-      "next.connect": "Als Nächstes: mit OBS verbinden",
-      "next.build": "Als Nächstes: Aufnahmeszene und Overlay anlegen",
-      "next.gate": "Als Nächstes: festlegen, wann der Button wirkt",
-      "next.pair": "Als Nächstes: Kopplungscode einfügen",
-      "next.push": "Als Nächstes: in OBS schreiben",
-      "next.test": "Ohne Stream ausprobieren",
-      "help.ext.h": "Den Kopplungscode gibt dir Twitch.",
+      "next.connect": "Als Nächstes: Schritt 3 — mit OBS verbinden",
+      "next.build": "Als Nächstes: Schritt 4 — Aufnahmeszene und Overlay anlegen",
+      "next.gate": "Als Nächstes: Schritt 5 — festlegen, wann der Button wirkt",
+      "next.pair": "Als Nächstes: Schritte 6 und 7 — Kopplungscode auf Twitch kopieren und hier einfügen",
+      "next.push": "Als Nächstes: Schritt 8 — in OBS schreiben",
+      "next.test": "Als Nächstes: Schritt 8 — ohne Stream ausprobieren",
+      "help.ext.h": "Den Kopplungscode gibt dir Twitch, in Schritt 6.",
       "help.ext.1": "Öffne im Twitch-Creator-Dashboard Erweiterungen, such SHUTTERPARTY und installiere sie",
       "help.ext.2": "Aktiviere sie (empfohlen als Komponente über dem Video)",
       "help.ext.3": "Öffne bei SHUTTERPARTY Konfigurieren und drück unter Kopplungscode auf Kopieren",
@@ -2464,7 +2607,7 @@
       "test": "30 Minuten ohne Stream fotografieren",
       "test.stop": "Jetzt beenden",
       "log.testend": "das Fenster ohne Stream ist beendet",
-      "n.test": "Um die Effekte zu prüfen. Es endet 30 Minuten nach dem Klick von selbst.",
+      "n.test": "Am Ende von Schritt 8 drücken, nach Auf OBS schreiben. Zum Prüfen der Effekte; es endet 30 Minuten nach dem Klick von selbst.",
       "test.left": "Noch {n} Min ohne Stream fotografierbar",
       "gate": "Szenen, in denen der Knopf wirkt",
       "gate.add": "Szene hinzufügen…",
@@ -2493,7 +2636,7 @@
       "log.sceneok": "die Szene „{n}“ enthält dieses Overlay nicht",
       "log.wasSource": "das bisherige „{n}“ war eine Quelle, und Quellen sind nicht mehr wählbar. Fotografiert man eine, bleibt im Bild, was OBS überdeckt hat. Wähle stattdessen eine Aufnahmeszene",
       "s.ext": "Mit der Twitch-Erweiterung verbinden",
-      "n.ext": "Füge den Kopplungscode ein, der unter Creator-Dashboard → Erweiterungen → SHUTTERPARTY → Konfigurieren steht.",
+      "n.ext": "Füge den Kopplungscode ein, den du in Schritt 6 kopiert hast. Er steht unter Creator-Dashboard → Erweiterungen → SHUTTERPARTY → Konfigurieren.",
       "pair": "Kopplungscode",
       "h.pair": "Serveradresse, Kanal-ID und der Schlüssel dazu stecken alle in dieser einen Zeichenkette. Zeige sie niemandem.",
       "pair.reads": "Server {s} / Kanal {c}",
@@ -2515,6 +2658,19 @@
       "preset": "Effekt-Voreinstellung",
       "accent": "Akzentfarbe",
       "place": "Ecke für das Foto",
+      "cdPlace": "Position des Countdowns",
+      "cdPlace.center": "Mitte",
+      "cdPlace.tl": "Oben links",
+      "cdPlace.tr": "Oben rechts",
+      "cdPlace.bl": "Unten links",
+      "cdPlace.br": "Unten rechts",
+      "cdPlace.tc": "Oben",
+      "cdPlace.bc": "Unten",
+      "cdPlace.ml": "Links",
+      "cdPlace.mr": "Rechts",
+      "cdAgain": "Noch einmal zeigen",
+      "n.cdSame": "Das ist dieselbe Ecke wie die Fotos. Die Zahl steht über dem Fotostapel, die Fotos bleiben, wo sie sind.",
+      "n.cdAmounts": "Ob vor einem Foto 3·2·1 gezählt wird, legst du pro Betrag in den Einstellungen der Erweiterung auf Twitch fest. Hier wählst du nur, wo es auf dem Bild erscheint.",
       "scale": "Größe der Effekte",
       "n.clock": "Die auf dem Foto gedruckte Uhrzeit ist die dieses Computers. Geht sie falsch, tragen alle Fotos die falsche Zeit.",
       "s.sample": "Die Vorschau",
@@ -2629,6 +2785,10 @@
       "log.created": "„{n}“ in „{s}“ angelegt und die Einstellungen hineingeschrieben",
       "log.createfail": "konnte nicht angelegt werden: {m} (eine Quelle gleichen Namens steht im Weg)",
       "log.needscene": "wähle die Szene, in der es angelegt wird",
+      "log.scenesloading": "OBS hat seine Szenen noch nicht geladen; sie werden gleich neu gelesen",
+      "build.loading": "OBS lädt seine Szenen noch. Danach erscheint hier die Szene für das Overlay. Wenn nicht, drück {r}",
+      "build.nohost": "Es gibt keine Szene für das Overlay. Leg in OBS die Szene an, aus der du streamst, und drück dann {r}",
+      "next.reload": "Als Nächstes: Schritt 4 — Szenen neu laden",
       "log.needtarget": "wähle die Browserquelle, in die geschrieben wird",
       "log.arranged": "„{o}“ in „{s}“ nach ganz oben gelegt",
       "log.frozen": "„{c}“ liegt in keiner Sendeszene. OBS rendert eine Szene nicht, die es nicht zeigt — eine Browserquelle darin friert auf den Fotos ein. Verschachtele sie bei Bedarf in eine Sendeszene",
@@ -2702,6 +2862,7 @@
     fr: {
       "ttl": "SHUTTERPARTY — configuration",
       "lede": "Ce que tu règles ici est écrit directement dans la source navigateur d'OBS. Rien n'en apparaît à l'antenne. Le mot de passe ne quitte pas ce PC.",
+      "step.n": "Étape {n}",
       "s.obs": "Se connecter à OBS",
       "n.obs": "Les valeurs qu'OBS affiche dans Outils → Paramètres du serveur WebSocket. Active le serveur, puis copie le mot de passe depuis Afficher les informations de connexion.",
       "host": "Hôte",
@@ -2717,23 +2878,23 @@
       "st.authfail": "mot de passe incorrect",
       "st.needpw": "saisis le mot de passe",
       "conn.more": "Détails de connexion (hôte, port, mot de passe)",
-      "help.srv.h": "Le serveur WebSocket d'OBS est peut-être désactivé. Vérifie ceci dans OBS, dans l'ordre.",
+      "help.srv.h": "Le serveur WebSocket d'OBS est peut-être désactivé. Reprends l'Étape 2 dans OBS, dans l'ordre.",
       "help.srv.1": "Lance OBS",
       "help.srv.2": "Dans le menu, ouvre Outils → Paramètres du serveur WebSocket",
       "help.srv.3": "Coche Activer le serveur WebSocket. Si tu as changé le Port du serveur (4455 par défaut), mets le même nombre dans Port, sous Détails de connexion, plus bas",
       "help.srv.4": "Ferme avec OK. Cette page se connecte toute seule en moins de 30 secondes (ou appuie sur Connecter)",
       "help.srv.n": "Si Outils ne contient pas Paramètres du serveur WebSocket, ton OBS est antérieur à la version 28 : mets-le à jour. Streamlabs Desktop n'a pas ce réglage et ne peut pas être utilisé.",
-      "help.pw.h": "Colle le mot de passe d'OBS dans cette page.",
+      "help.pw.h": "Colle le mot de passe d'OBS dans cette page. Reprends l'Étape 2 dans OBS, dans l'ordre.",
       "help.pw.1": "Dans OBS, ouvre Outils → Paramètres du serveur WebSocket et appuie sur Afficher les informations de connexion",
       "help.pw.2": "Appuie sur Copier à côté de Mot de passe du serveur",
       "help.pw.3": "Colle-le dans Mot de passe, plus bas, et appuie sur Connecter",
-      "next.connect": "Ensuite : se connecter à OBS",
-      "next.build": "Ensuite : créer la scène de capture et la surcouche",
-      "next.gate": "Ensuite : choisir quand le bouton fonctionne",
-      "next.pair": "Ensuite : coller le code d'association",
-      "next.push": "Ensuite : écrire dans OBS",
-      "next.test": "Essaie sans être en live",
-      "help.ext.h": "Le code d'association vient de Twitch.",
+      "next.connect": "Ensuite : Étape 3 — se connecter à OBS",
+      "next.build": "Ensuite : Étape 4 — créer la scène de capture et la surcouche",
+      "next.gate": "Ensuite : Étape 5 — choisir quand le bouton fonctionne",
+      "next.pair": "Ensuite : Étapes 6 et 7 — copier le code d'association sur Twitch et le coller ici",
+      "next.push": "Ensuite : Étape 8 — écrire dans OBS",
+      "next.test": "Ensuite : Étape 8 — essaie sans être en live",
+      "help.ext.h": "Le code d'association vient de Twitch, à l'Étape 6.",
       "help.ext.1": "Dans le Tableau de bord du créateur Twitch, ouvre Extensions, cherche SHUTTERPARTY et installe-la",
       "help.ext.2": "Active-la (de préférence en Composant, par-dessus la vidéo)",
       "help.ext.3": "Ouvre Configurer de SHUTTERPARTY et appuie sur Copier sous Code d'association",
@@ -2753,7 +2914,7 @@
       "test": "Autoriser 30 minutes hors direct",
       "test.stop": "Arrêter maintenant",
       "log.testend": "la fenêtre hors direct est terminée",
-      "n.test": "Pour vérifier les effets. Cela revient tout seul 30 minutes après le clic.",
+      "n.test": "À presser à la fin de l'Étape 8, après Écrire dans OBS. Pour vérifier les effets ; cela revient tout seul 30 minutes après le clic.",
       "test.left": "Encore {n} min hors direct",
       "gate": "Scènes où le bouton fonctionne",
       "gate.add": "Ajouter une scène…",
@@ -2782,7 +2943,7 @@
       "log.sceneok": "la scène « {n} » ne contient pas cet overlay",
       "log.wasSource": "le réglage précédent « {n} » était une source, et les sources ne sont plus proposées. En photographier une garde sur l'image ce qu'OBS avait masqué. Choisis plutôt une scène de capture",
       "s.ext": "Se connecter à l'extension Twitch",
-      "n.ext": "Colle le code d'association affiché dans Tableau de bord du créateur → Extensions → SHUTTERPARTY → Configurer.",
+      "n.ext": "Colle le code d'association copié à l'Étape 6. Il est affiché dans Tableau de bord du créateur → Extensions → SHUTTERPARTY → Configurer.",
       "pair": "Code d'association",
       "h.pair": "L'adresse du serveur, l'identifiant de la chaîne et la clé qui l'ouvre tiennent tous dans cette seule chaîne. Ne la montre à personne.",
       "pair.reads": "serveur {s} / chaîne {c}",
@@ -2804,6 +2965,19 @@
       "preset": "Préréglage d'effets",
       "accent": "Couleur d'accent",
       "place": "Coin de la photo",
+      "cdPlace": "Position du compte à rebours",
+      "cdPlace.center": "Centre",
+      "cdPlace.tl": "En haut à gauche",
+      "cdPlace.tr": "En haut à droite",
+      "cdPlace.bl": "En bas à gauche",
+      "cdPlace.br": "En bas à droite",
+      "cdPlace.tc": "En haut",
+      "cdPlace.bc": "En bas",
+      "cdPlace.ml": "À gauche",
+      "cdPlace.mr": "À droite",
+      "cdAgain": "Revoir",
+      "n.cdSame": "C'est le même coin que les photos. Le nombre s'affiche au-dessus de la pile de photos, et les photos ne bougent pas.",
+      "n.cdAmounts": "Le décompte 3·2·1 avant une photo se règle pour chaque montant dans les réglages de l'extension sur Twitch. Ici, tu choisis seulement où il apparaît à l'écran.",
       "scale": "Taille des effets",
       "n.clock": "L'heure imprimée sur la photo est celle de cet ordinateur. Si elle est fausse, toutes les photos porteront une heure fausse.",
       "s.sample": "L'aperçu",
@@ -2918,6 +3092,10 @@
       "log.created": "« {n} » créée dans « {s} » et réglages écrits dedans",
       "log.createfail": "création impossible : {m} (une source du même nom l'empêche)",
       "log.needscene": "choisis la scène où la créer",
+      "log.scenesloading": "OBS n'a pas encore chargé ses scènes ; nouvelle lecture dans un instant",
+      "build.loading": "OBS charge encore ses scènes. Une fois fini, la scène où mettre la surcouche apparaît ici. Sinon, appuie sur {r}",
+      "build.nohost": "Il n'y a aucune scène où mettre la surcouche. Crée dans OBS la scène depuis laquelle tu streames, puis appuie sur {r}",
+      "next.reload": "Ensuite : Étape 4 — relire les scènes",
       "log.needtarget": "choisis la source navigateur où écrire",
       "log.arranged": "« {o} » placé tout en haut de « {s} »",
       "log.frozen": "« {c} » n’est dans aucune scène de diffusion. OBS ne rend pas une scène qu’il n’affiche pas : une source navigateur y reste figée sur les photos. Imbrique-la dans une scène de diffusion si tu en as besoin",
@@ -2991,6 +3169,7 @@
     it: {
       "ttl": "SHUTTERPARTY — impostazioni",
       "lede": "Quello che imposti qui viene scritto direttamente nella fonte browser di OBS. Niente di tutto ciò compare in diretta. La password non esce da questo PC.",
+      "step.n": "Passo {n}",
       "s.obs": "Collegarsi a OBS",
       "n.obs": "I valori che OBS mostra in Strumenti → Impostazioni server WebSocket. Attiva il server, poi copia la password da Visualizza informazioni di connessione.",
       "host": "Host",
@@ -3006,23 +3185,23 @@
       "st.authfail": "password errata",
       "st.needpw": "inserisci la password",
       "conn.more": "Dettagli di connessione (host, porta, password)",
-      "help.srv.h": "Il server WebSocket di OBS potrebbe essere spento. Controlla in OBS, in quest'ordine.",
+      "help.srv.h": "Il server WebSocket di OBS potrebbe essere spento. Ripercorri il Passo 2 in OBS, in quest'ordine.",
       "help.srv.1": "Apri OBS",
       "help.srv.2": "Dal menu apri Strumenti → Impostazioni server WebSocket",
       "help.srv.3": "Spunta Abilita il server WebSocket. Se hai cambiato la Porta server da 4455, metti lo stesso numero in Porta, in Dettagli di connessione qui sotto",
       "help.srv.4": "Chiudi con OK. Questa pagina si collega da sola entro 30 secondi (oppure premi Connetti)",
       "help.srv.n": "Se in Strumenti non c'è Impostazioni server WebSocket, OBS è precedente alla versione 28: aggiornalo. Streamlabs Desktop non ha questa impostazione e non si può usare.",
-      "help.pw.h": "Incolla in questa pagina la password di OBS.",
+      "help.pw.h": "Incolla in questa pagina la password di OBS. Ripercorri il Passo 2 in OBS, in quest'ordine.",
       "help.pw.1": "In OBS apri Strumenti → Impostazioni server WebSocket e premi Visualizza informazioni di connessione",
       "help.pw.2": "Premi Copia accanto a Password server",
       "help.pw.3": "Incollala in Password qui sotto e premi Connetti",
-      "next.connect": "Prossimo: collegarsi a OBS",
-      "next.build": "Prossimo: creare la scena di cattura e l'overlay",
-      "next.gate": "Prossimo: scegliere quando funziona il pulsante",
-      "next.pair": "Prossimo: incollare il codice di collegamento",
-      "next.push": "Prossimo: scrivere in OBS",
-      "next.test": "Provalo senza andare in diretta",
-      "help.ext.h": "Il codice di collegamento si prende su Twitch.",
+      "next.connect": "Prossimo: Passo 3 — collegarsi a OBS",
+      "next.build": "Prossimo: Passo 4 — creare la scena di cattura e l'overlay",
+      "next.gate": "Prossimo: Passo 5 — scegliere quando funziona il pulsante",
+      "next.pair": "Prossimo: Passi 6 e 7 — copiare il codice di collegamento su Twitch e incollarlo qui",
+      "next.push": "Prossimo: Passo 8 — scrivere in OBS",
+      "next.test": "Prossimo: Passo 8 — provalo senza andare in diretta",
+      "help.ext.h": "Il codice di collegamento si prende su Twitch, al Passo 6.",
       "help.ext.1": "Nella Dashboard del creator di Twitch apri Estensioni, cerca SHUTTERPARTY e installala",
       "help.ext.2": "Attivala (consigliato come Componente, sopra il video)",
       "help.ext.3": "Apri Configura di SHUTTERPARTY e premi Copia sotto Codice di collegamento",
@@ -3042,7 +3221,7 @@
       "test": "Consenti 30 minuti fuori diretta",
       "test.stop": "Termina adesso",
       "log.testend": "la finestra fuori diretta è finita",
-      "n.test": "Per controllare gli effetti. Torna da solo 30 minuti dopo il clic.",
+      "n.test": "Premilo alla fine del Passo 8, dopo Scrivi su OBS. Serve a controllare gli effetti e torna da solo 30 minuti dopo il clic.",
       "test.left": "Ancora {n} min fuori diretta",
       "gate": "Scene in cui il pulsante funziona",
       "gate.add": "Aggiungi una scena…",
@@ -3071,7 +3250,7 @@
       "log.sceneok": "la scena «{n}» non contiene questo overlay",
       "log.wasSource": "l'impostazione precedente «{n}» era una fonte, e le fonti non sono più selezionabili. Fotografarne una lascia nell'immagine ciò che OBS aveva coperto. Scegli invece una scena di ripresa",
       "s.ext": "Collegarsi all'estensione Twitch",
-      "n.ext": "Incolla il codice di collegamento mostrato in Dashboard del creator → Estensioni → SHUTTERPARTY → Configura.",
+      "n.ext": "Incolla il codice di collegamento copiato al Passo 6. Si trova in Dashboard del creator → Estensioni → SHUTTERPARTY → Configura.",
       "pair": "Codice di collegamento",
       "h.pair": "L'indirizzo del server, l'ID del canale e la chiave che lo apre stanno tutti in questa sola stringa. Non mostrarla a nessuno.",
       "pair.reads": "server {s} / canale {c}",
@@ -3093,6 +3272,19 @@
       "preset": "Preset degli effetti",
       "accent": "Colore principale",
       "place": "Angolo della foto",
+      "cdPlace": "Posizione del conto alla rovescia",
+      "cdPlace.center": "Centro",
+      "cdPlace.tl": "In alto a sinistra",
+      "cdPlace.tr": "In alto a destra",
+      "cdPlace.bl": "In basso a sinistra",
+      "cdPlace.br": "In basso a destra",
+      "cdPlace.tc": "In alto",
+      "cdPlace.bc": "In basso",
+      "cdPlace.ml": "A sinistra",
+      "cdPlace.mr": "A destra",
+      "cdAgain": "Mostra di nuovo",
+      "n.cdSame": "È lo stesso angolo delle foto. Il numero va sopra la pila di foto, e le foto restano dove sono.",
+      "n.cdAmounts": "Se contare 3·2·1 prima della foto si decide per ogni importo nelle impostazioni dell'estensione su Twitch. Qui scegli solo dove compare sullo schermo.",
       "scale": "Dimensione degli effetti",
       "n.clock": "L'ora stampata sulla foto è quella di questo computer. Se è sbagliata, tutte le foto riporteranno l'ora sbagliata.",
       "s.sample": "L'anteprima",
@@ -3207,6 +3399,10 @@
       "log.created": "creata «{n}» in «{s}» e scritte le impostazioni",
       "log.createfail": "impossibile crearla: {m} (una fonte con lo stesso nome lo impedisce)",
       "log.needscene": "scegli la scena in cui crearla",
+      "log.scenesloading": "OBS non ha ancora caricato le scene; le rileggo tra poco",
+      "build.loading": "OBS sta ancora caricando le scene. Quando ha finito, qui compare la scena in cui mettere l'overlay. Se non compare, premi {r}",
+      "build.nohost": "Non c'è nessuna scena in cui mettere l'overlay. Crea in OBS la scena da cui trasmetti, poi premi {r}",
+      "next.reload": "Prossimo: Passo 4 — rileggere le scene",
       "log.needtarget": "scegli la fonte browser su cui scrivere",
       "log.arranged": "«{o}» portato in cima a «{s}»",
       "log.frozen": "«{c}» non è dentro nessuna scena di trasmissione. OBS non renderizza una scena che non sta mostrando, quindi una fonte browser lì dentro si congela nelle foto. Annidala in una scena di trasmissione se ti serve",
@@ -3280,6 +3476,7 @@
     ko: {
       "ttl": "SHUTTERPARTY — 설정",
       "lede": "여기서 정한 설정은 OBS 브라우저 소스에 그대로 기록됩니다. 방송 화면에는 아무것도 나오지 않습니다. 비밀번호는 이 PC 밖으로 나가지 않습니다.",
+      "step.n": "{n}단계",
       "s.obs": "OBS 에 연결하기",
       "n.obs": "OBS 의 「도구 → WebSocket 서버 설정」에 표시되는 값입니다. 서버를 켜고 「서버 정보 표시」에서 비밀번호를 복사하세요.",
       "host": "호스트",
@@ -3295,23 +3492,23 @@
       "st.authfail": "비밀번호가 다릅니다",
       "st.needpw": "비밀번호를 입력해 주세요",
       "conn.more": "연결 세부 정보 (호스트 · 포트 · 비밀번호)",
-      "help.srv.h": "OBS 의 WebSocket 서버가 꺼져 있을 수 있습니다. OBS 에서 다음을 순서대로 확인하세요.",
+      "help.srv.h": "OBS 의 WebSocket 서버가 꺼져 있을 수 있습니다. OBS 에서 2단계를 순서대로 확인하세요.",
       "help.srv.1": "OBS 를 실행한다",
       "help.srv.2": "메뉴의 「도구」→「WebSocket 서버 설정」을 연다",
       "help.srv.3": "「WebSocket 서버 사용」에 체크한다. 「서버 포트」를 4455 에서 바꿨다면, 아래 「연결 세부 정보」의 포트도 같은 숫자로 한다",
       "help.srv.4": "「OK」로 닫는다. 이 페이지가 30 초 안에 알아서 연결합니다 (기다리지 않고 「연결」을 눌러도 됩니다)",
       "help.srv.n": "「도구」에 「WebSocket 서버 설정」이 없다면 OBS 가 28 보다 이전 버전입니다. OBS 를 최신으로 업데이트하세요. Streamlabs Desktop 에는 이 설정이 없어 사용할 수 없습니다.",
-      "help.pw.h": "OBS 의 비밀번호를 이 페이지에 붙여 넣으세요.",
+      "help.pw.h": "OBS 의 비밀번호를 이 페이지에 붙여 넣으세요. OBS 에서 2단계를 순서대로 확인하세요.",
       "help.pw.1": "OBS 의 「도구」→「WebSocket 서버 설정」에서 「서버 정보 표시」를 누른다",
       "help.pw.2": "「서버 비밀번호」 옆의 「복사」를 누른다",
       "help.pw.3": "아래 「비밀번호」 칸에 붙여 넣고 「연결」을 누른다",
-      "next.connect": "다음: OBS 에 연결",
-      "next.build": "다음: 촬영용 장면과 오버레이 만들기",
-      "next.gate": "다음: 버튼이 작동하는 장면 정하기",
-      "next.pair": "다음: 연동 코드 붙여 넣기",
-      "next.push": "다음: OBS 에 반영",
-      "next.test": "방송 없이 시험해 보기",
-      "help.ext.h": "연동 코드는 Twitch 에서 받습니다.",
+      "next.connect": "다음: 3단계 — OBS 에 연결",
+      "next.build": "다음: 4단계 — 촬영용 장면과 오버레이 만들기",
+      "next.gate": "다음: 5단계 — 버튼이 작동하는 장면 정하기",
+      "next.pair": "다음: 6·7단계 — Twitch 에서 연동 코드를 복사해 여기에 붙여 넣기",
+      "next.push": "다음: 8단계 — OBS 에 반영",
+      "next.test": "다음: 8단계 — 방송 없이 시험해 보기",
+      "help.ext.h": "연동 코드는 6단계에서 Twitch 에서 받습니다.",
       "help.ext.1": "Twitch 크리에이터 대시보드에서 「확장 프로그램」을 열고 SHUTTERPARTY 를 찾아 설치한다",
       "help.ext.2": "설치한 SHUTTERPARTY 를 활성화한다 (영상 위에 나오는 컴포넌트를 추천)",
       "help.ext.3": "SHUTTERPARTY 의 「설정」을 열고 「연동 코드」의 「복사」를 누른다",
@@ -3331,7 +3528,7 @@
       "test": "30분 동안 방송 없이 촬영 허용",
       "test.stop": "지금 끝내기",
       "log.testend": "방송 없이 찍을 수 있는 시간을 끝냈습니다",
-      "n.test": "연출을 확인하기 위한 것입니다. 누른 시점부터 30분 뒤에 자동으로 돌아갑니다.",
+      "n.test": "8단계의 마지막에, 「OBS 에 반영」 다음에 누릅니다. 연출을 확인하기 위한 것으로, 누른 시점부터 30분 뒤에 자동으로 돌아갑니다.",
       "test.left": "앞으로 {n} 분은 방송하지 않아도 찍힙니다",
       "gate": "버튼이 듣는 장면",
       "gate.add": "장면 추가…",
@@ -3360,7 +3557,7 @@
       "log.sceneok": "장면 「{n}」에는 이 오버레이가 없습니다",
       "log.wasSource": "이전 설정 「{n}」은 소스라서 더 이상 고를 수 없습니다. 소스를 찍으면 OBS 에서 가린 부분이 사진에 남습니다. 촬영용 장면을 다시 골라 주세요",
       "s.ext": "Twitch 확장 프로그램에 연결하기",
-      "n.ext": "Twitch 의 「크리에이터 대시보드 → 확장 프로그램 → SHUTTERPARTY → 설정」에 나오는 연동 코드를 그대로 붙여 넣으세요.",
+      "n.ext": "6단계에서 복사한 연동 코드를 그대로 붙여 넣으세요. 코드는 Twitch 의 「크리에이터 대시보드 → 확장 프로그램 → SHUTTERPARTY → 설정」에 나옵니다.",
       "pair": "연동 코드",
       "h.pair": "서버 주소와 채널 ID, 그리고 그것을 여는 열쇠가 이 한 줄에 모두 들어 있습니다. 다른 사람에게 보여 주지 마세요.",
       "pair.reads": "서버 {s} / 채널 {c}",
@@ -3382,6 +3579,19 @@
       "preset": "연출 프리셋",
       "accent": "콘셉트 색",
       "place": "사진의 위치",
+      "cdPlace": "카운트다운 위치",
+      "cdPlace.center": "가운데",
+      "cdPlace.tl": "왼쪽 위",
+      "cdPlace.tr": "오른쪽 위",
+      "cdPlace.bl": "왼쪽 아래",
+      "cdPlace.br": "오른쪽 아래",
+      "cdPlace.tc": "위",
+      "cdPlace.bc": "아래",
+      "cdPlace.ml": "왼쪽",
+      "cdPlace.mr": "오른쪽",
+      "cdAgain": "다시 보기",
+      "n.cdSame": "사진과 같은 모서리입니다. 숫자는 사진 더미 위에 표시되며, 사진의 배치는 바뀌지 않습니다.",
+      "n.cdAmounts": "사진을 찍기 전에 3·2·1을 셀지는 Twitch 확장 프로그램 설정에서 금액별로 정합니다. 여기서는 화면의 어디에 표시할지만 정합니다.",
       "scale": "연출의 크기",
       "n.clock": "사진에 찍히는 시각은 이 PC의 시계입니다. 시계가 틀리면 모든 사진에 틀린 시각이 남습니다.",
       "s.sample": "미리보기",
@@ -3496,6 +3706,10 @@
       "log.created": "「{s}」에 「{n}」을 만들고 설정을 기록했습니다",
       "log.createfail": "만들지 못했습니다: {m}(같은 이름의 소스가 있으면 만들 수 없습니다)",
       "log.needscene": "만들 장면을 골라 주세요",
+      "log.scenesloading": "OBS 가 아직 장면을 불러오지 않았습니다. 잠시 후 다시 읽습니다",
+      "build.loading": "OBS 가 장면을 불러오는 중입니다. 끝나면 여기에 오버레이를 둘 장면 칸이 나옵니다. 나오지 않으면 「{r}」을 누르세요",
+      "build.nohost": "오버레이를 둘 장면이 없습니다. OBS 에서 방송에 쓰는 장면을 만든 뒤 「{r}」을 누르세요",
+      "next.reload": "다음: 4단계 — 장면 다시 읽기",
       "log.needtarget": "기록할 브라우저 소스를 골라 주세요",
       "log.arranged": "「{o}」을(를) 「{s}」의 맨 위로 올렸습니다",
       "log.frozen": "「{c}」은(는) 어떤 방송 장면에도 들어 있지 않습니다. OBS는 표시하지 않는 장면을 렌더링하지 않으므로, 그 안의 브라우저 소스는 사진에서 멈춥니다. 필요하면 방송 장면에 중첩하세요",
@@ -3569,6 +3783,7 @@
     zh: {
       "ttl": "SHUTTERPARTY — 设置",
       "lede": "在这里定下的设置会直接写进 OBS 的浏览器源。直播画面上不会出现任何设置。密码不会离开这台电脑。",
+      "step.n": "第 {n} 步",
       "s.obs": "连接 OBS",
       "n.obs": "OBS 的「工具 → WebSocket 服务器设置」里显示的值。先启用服务器，再从「显示连接信息」复制密码。",
       "host": "主机",
@@ -3584,23 +3799,23 @@
       "st.authfail": "密码不对",
       "st.needpw": "请输入密码",
       "conn.more": "连接详情（主机 · 端口 · 密码）",
-      "help.srv.h": "OBS 的 WebSocket 服务器可能没有开启。请在 OBS 里按顺序确认。",
+      "help.srv.h": "OBS 的 WebSocket 服务器可能没有开启。请在 OBS 里按顺序确认第 2 步。",
       "help.srv.1": "打开 OBS",
       "help.srv.2": "在菜单里打开「工具」→「WebSocket 服务器设置」",
       "help.srv.3": "勾选「开启 WebSocket 服务器」。如果把「服务器端口」从 4455 改过，把下面「连接详情」里的端口也改成同一个数字",
       "help.srv.4": "点「OK」关闭。本页会在 30 秒内自动连接（也可以直接点「连接」）",
       "help.srv.n": "「工具」里没有「WebSocket 服务器设置」，说明 OBS 早于 28 版，请更新 OBS。Streamlabs Desktop 没有这个设置，无法使用。",
-      "help.pw.h": "把 OBS 的密码粘贴到本页。",
+      "help.pw.h": "把 OBS 的密码粘贴到本页。请在 OBS 里按顺序确认第 2 步。",
       "help.pw.1": "在 OBS 的「工具」→「WebSocket 服务器设置」里点「显示连接信息」",
       "help.pw.2": "点「服务器密码」旁边的「复制」",
       "help.pw.3": "粘贴到下面的「密码」栏，然后点「连接」",
-      "next.connect": "下一步：连接 OBS",
-      "next.build": "下一步：创建拍摄用场景和叠加层",
-      "next.gate": "下一步：决定按钮在哪些场景有效",
-      "next.pair": "下一步：粘贴连接码",
-      "next.push": "下一步：写入 OBS",
-      "next.test": "不开播试一试",
-      "help.ext.h": "连接码在 Twitch 那边获取。",
+      "next.connect": "下一步：第 3 步 — 连接 OBS",
+      "next.build": "下一步：第 4 步 — 创建拍摄用场景和叠加层",
+      "next.gate": "下一步：第 5 步 — 决定按钮在哪些场景有效",
+      "next.pair": "下一步：第 6、7 步 — 在 Twitch 复制连接码，粘贴到这里",
+      "next.push": "下一步：第 8 步 — 写入 OBS",
+      "next.test": "下一步：第 8 步 — 不开播试一试",
+      "help.ext.h": "连接码在第 6 步从 Twitch 那边获取。",
       "help.ext.1": "在 Twitch 创作者面板打开「扩展」，找到 SHUTTERPARTY 并安装",
       "help.ext.2": "启用 SHUTTERPARTY（推荐作为显示在视频上的组件）",
       "help.ext.3": "打开 SHUTTERPARTY 的「设置」，在「连接码」处点「复制」",
@@ -3620,7 +3835,7 @@
       "test": "允许 30 分钟不直播也能拍",
       "test.stop": "现在结束",
       "log.testend": "不直播也能拍的时间已结束",
-      "n.test": "用于确认演出效果。按下后 30 分钟会自动恢复。",
+      "n.test": "在第 8 步的最后、「写入 OBS」之后按。用于确认演出效果，按下后 30 分钟会自动恢复。",
       "test.left": "还有 {n} 分钟可以不直播拍摄",
       "gate": "按钮生效的场景",
       "gate.add": "添加场景…",
@@ -3649,7 +3864,7 @@
       "log.sceneok": "场景「{n}」里没有这个叠加层",
       "log.wasSource": "之前设的「{n}」是来源，现在已经不能选来源了。拍来源会把 OBS 里遮住的部分留在图里。请重新选一个拍摄用的场景",
       "s.ext": "连接 Twitch 扩展",
-      "n.ext": "把 Twitch 的「创作者面板 → 扩展 → SHUTTERPARTY → 设置」里显示的连接码原样粘贴进来。",
+      "n.ext": "把第 6 步复制的连接码原样粘贴进来。连接码显示在 Twitch 的「创作者面板 → 扩展 → SHUTTERPARTY → 设置」里。",
       "pair": "连接码",
       "h.pair": "服务器地址、频道 ID 和打开它的密钥，都在这一串里。不要给别人看。",
       "pair.reads": "服务器 {s} / 频道 {c}",
@@ -3671,6 +3886,19 @@
       "preset": "效果预设",
       "accent": "主题色",
       "place": "照片的位置",
+      "cdPlace": "倒计时的位置",
+      "cdPlace.center": "中间",
+      "cdPlace.tl": "左上",
+      "cdPlace.tr": "右上",
+      "cdPlace.bl": "左下",
+      "cdPlace.br": "右下",
+      "cdPlace.tc": "上方",
+      "cdPlace.bc": "下方",
+      "cdPlace.ml": "左侧",
+      "cdPlace.mr": "右侧",
+      "cdAgain": "再看一次",
+      "n.cdSame": "与照片在同一个角。数字会显示在照片堆的上方，照片的位置不变。",
+      "n.cdAmounts": "拍照前是否倒数 3·2·1，在 Twitch 的扩展设置里按金额决定。这里只决定它显示在画面的哪里。",
       "scale": "效果的大小",
       "n.clock": "照片上打印的时间来自这台电脑的时钟。时钟不准，所有照片都会留下错误的时间。",
       "s.sample": "预览",
@@ -3785,6 +4013,10 @@
       "log.created": "已在「{s}」里创建「{n}」并写入设置",
       "log.createfail": "创建不了：{m}（有同名来源就建不了）",
       "log.needscene": "请选择创建到哪个场景",
+      "log.scenesloading": "OBS 还没有加载场景，稍后再读取一次",
+      "build.loading": "OBS 正在加载场景。加载完后，这里会出现放置叠加层的场景。如果一直没有出现，请点「{r}」",
+      "build.nohost": "没有可以放置叠加层的场景。请先在 OBS 里建好用于直播的场景，再点「{r}」",
+      "next.reload": "下一步：第 4 步 — 重新读取场景",
       "log.needtarget": "请选择要写入的浏览器源",
       "log.arranged": "已将「{o}」置于「{s}」的最上层",
       "log.frozen": "「{c}」不在任何直播场景中。OBS 不会渲染没有显示的场景，因此其中的浏览器源在照片里会定格。如有需要，请把它嵌套进直播场景",
@@ -3858,6 +4090,7 @@
     ru: {
       "ttl": "SHUTTERPARTY — настройка",
       "lede": "То, что вы зададите здесь, записывается прямо в браузерный источник OBS. Ничего из этого не появляется в эфире. Пароль не покидает этот компьютер.",
+      "step.n": "Шаг {n}",
       "s.obs": "Подключиться к OBS",
       "n.obs": "Значения, которые OBS показывает в Сервис → Настройки сервера WebSocket. Включите сервер и скопируйте пароль в «Показать сведения о подключении».",
       "host": "Хост",
@@ -3873,23 +4106,23 @@
       "st.authfail": "неверный пароль",
       "st.needpw": "введите пароль",
       "conn.more": "Параметры подключения (хост, порт, пароль)",
-      "help.srv.h": "Похоже, сервер WebSocket в OBS выключен. Проверьте в OBS по порядку.",
+      "help.srv.h": "Похоже, сервер WebSocket в OBS выключен. Пройдите Шаг 2 в OBS по порядку.",
       "help.srv.1": "Запустите OBS",
       "help.srv.2": "В меню откройте Сервис → Настройки сервера WebSocket",
       "help.srv.3": "Отметьте «Включить сервер WebSocket». Если вы меняли «Порт сервера» с 4455, укажите то же число в поле «Порт» в «Параметрах подключения» ниже",
       "help.srv.4": "Закройте кнопкой OK. Страница подключится сама в течение 30 секунд (или нажмите «Подключить»)",
       "help.srv.n": "Если в меню «Сервис» нет «Настроек сервера WebSocket», у вас OBS старше версии 28 — обновите OBS. В Streamlabs Desktop этой настройки нет, он не подходит.",
-      "help.pw.h": "Вставьте пароль из OBS на эту страницу.",
+      "help.pw.h": "Вставьте пароль из OBS на эту страницу. Пройдите Шаг 2 в OBS по порядку.",
       "help.pw.1": "В OBS откройте Сервис → Настройки сервера WebSocket и нажмите «Показать сведения о подключении»",
       "help.pw.2": "Нажмите «Копировать» рядом с «Паролем сервера»",
       "help.pw.3": "Вставьте его в поле «Пароль» ниже и нажмите «Подключить»",
-      "next.connect": "Далее: подключиться к OBS",
-      "next.build": "Далее: создать сцену съёмки и оверлей",
-      "next.gate": "Далее: выбрать, когда работает кнопка",
-      "next.pair": "Далее: вставить код связи",
-      "next.push": "Далее: записать в OBS",
-      "next.test": "Попробовать без эфира",
-      "help.ext.h": "Код связи выдаёт Twitch.",
+      "next.connect": "Далее: Шаг 3 — подключиться к OBS",
+      "next.build": "Далее: Шаг 4 — создать сцену съёмки и оверлей",
+      "next.gate": "Далее: Шаг 5 — выбрать, когда работает кнопка",
+      "next.pair": "Далее: Шаги 6 и 7 — скопировать код связи в Twitch и вставить сюда",
+      "next.push": "Далее: Шаг 8 — записать в OBS",
+      "next.test": "Далее: Шаг 8 — попробовать без эфира",
+      "help.ext.h": "Код связи выдаёт Twitch (Шаг 6).",
       "help.ext.1": "В Панели автора Twitch откройте «Расширения», найдите SHUTTERPARTY и установите",
       "help.ext.2": "Активируйте его (лучше как компонент поверх видео)",
       "help.ext.3": "Откройте «Настроить» у SHUTTERPARTY и нажмите «Копировать» в разделе «Код связи»",
@@ -3909,7 +4142,7 @@
       "test": "Разрешить съёмку вне эфира на 30 минут",
       "test.stop": "Завершить сейчас",
       "log.testend": "окно съёмки вне эфира закрыто",
-      "n.test": "Чтобы проверить эффекты. Отключится само через 30 минут после нажатия.",
+      "n.test": "Нажмите в самом конце, после «Записать в OBS» (Шаг 8). Это для проверки эффектов; отключится само через 30 минут после нажатия.",
       "test.left": "Ещё {n} мин можно снимать вне эфира",
       "gate": "Сцены, в которых кнопка работает",
       "gate.add": "Добавить сцену…",
@@ -3938,7 +4171,7 @@
       "log.sceneok": "в сцене «{n}» этого оверлея нет",
       "log.wasSource": "прежняя настройка «{n}» была источником, а источники больше не предлагаются. При съёмке источника то, что OBS закрыл, остаётся на картинке. Выберите сцену для съёмки",
       "s.ext": "Подключиться к расширению Twitch",
-      "n.ext": "Вставьте код связи, показанный в Панель автора → Расширения → SHUTTERPARTY → Настроить.",
+      "n.ext": "Вставьте код связи, который вы скопировали (Шаг 6). Он показан в Панель автора → Расширения → SHUTTERPARTY → Настроить.",
       "pair": "Код связи",
       "h.pair": "Адрес сервера, идентификатор канала и ключ к нему — всё в этой одной строке. Никому её не показывайте.",
       "pair.reads": "сервер {s} / канал {c}",
@@ -3960,6 +4193,19 @@
       "preset": "Пресет эффектов",
       "accent": "Основной цвет",
       "place": "Угол для фото",
+      "cdPlace": "Где идёт обратный отсчёт",
+      "cdPlace.center": "По центру",
+      "cdPlace.tl": "Слева вверху",
+      "cdPlace.tr": "Справа вверху",
+      "cdPlace.bl": "Слева внизу",
+      "cdPlace.br": "Справа внизу",
+      "cdPlace.tc": "Вверху",
+      "cdPlace.bc": "Внизу",
+      "cdPlace.ml": "Слева",
+      "cdPlace.mr": "Справа",
+      "cdAgain": "Показать ещё раз",
+      "n.cdSame": "Это тот же угол, что и у фото. Цифры появятся над стопкой фото, а фото останутся на месте.",
+      "n.cdAmounts": "Считать ли 3·2·1 перед фото, задаётся для каждой суммы в настройках расширения на Twitch. Здесь выбирается только место на экране.",
       "scale": "Размер эффектов",
       "n.clock": "Время на снимке — это часы данного компьютера. Если они идут неверно, все фотографии сохранят неверное время.",
       "s.sample": "Предпросмотр",
@@ -4074,6 +4320,10 @@
       "log.created": "в «{s}» создан «{n}», настройки записаны",
       "log.createfail": "создать не удалось: {m} (мешает источник с тем же именем)",
       "log.needscene": "выберите сцену, в которой его создать",
+      "log.scenesloading": "OBS ещё не загрузил сцены; перечитаю через мгновение",
+      "build.loading": "OBS ещё загружает сцены. Когда закончит, здесь появится сцена для оверлея. Если не появится, нажмите «{r}»",
+      "build.nohost": "Нет сцены для оверлея. Создайте в OBS сцену, из которой вы стримите, и нажмите «{r}»",
+      "next.reload": "Далее: Шаг 4 — перечитать сцены",
       "log.needtarget": "выберите браузерный источник для записи",
       "log.arranged": "«{o}» поднят наверх в «{s}»",
       "log.frozen": "«{c}» не входит ни в одну эфирную сцену. OBS не рендерит сцену, которую не показывает, поэтому браузер-источник внутри застынет на фотографиях. При необходимости вложите её в эфирную сцену",
@@ -4147,6 +4397,7 @@
     pl: {
       "ttl": "SHUTTERPARTY — konfiguracja",
       "lede": "To, co ustawisz tutaj, jest zapisywane wprost w źródle przeglądarki w OBS. Nic z tego nie pojawia się na streamie. Hasło nie opuszcza tego komputera.",
+      "step.n": "Krok {n}",
       "s.obs": "Połącz z OBS",
       "n.obs": "Wartości, które OBS pokazuje w Narzędzia → Ustawienia serwera WebSocket. Włącz serwer, a potem skopiuj hasło z Pokaż informacje połączenia.",
       "host": "Host",
@@ -4162,23 +4413,23 @@
       "st.authfail": "błędne hasło",
       "st.needpw": "wpisz hasło",
       "conn.more": "Szczegóły połączenia (host, port, hasło)",
-      "help.srv.h": "Serwer WebSocket w OBS może być wyłączony. Sprawdź w OBS po kolei.",
+      "help.srv.h": "Serwer WebSocket w OBS może być wyłączony. Przejdź w OBS po kolei Krok 2.",
       "help.srv.1": "Uruchom OBS",
       "help.srv.2": "W menu otwórz Narzędzia → Ustawienia serwera WebSocket",
       "help.srv.3": "Zaznacz Włącz serwer WebSocket. Jeśli zmieniono Port serwera z 4455, wpisz tę samą liczbę w polu Port w Szczegółach połączenia poniżej",
       "help.srv.4": "Zamknij przyciskiem OK. Ta strona połączy się sama w ciągu 30 sekund (albo naciśnij Połącz)",
       "help.srv.n": "Jeśli w Narzędziach nie ma Ustawień serwera WebSocket, OBS jest starszy niż wersja 28 — zaktualizuj go. Streamlabs Desktop nie ma tego ustawienia i nie da się go użyć.",
-      "help.pw.h": "Wklej na tę stronę hasło z OBS.",
+      "help.pw.h": "Wklej na tę stronę hasło z OBS. Przejdź w OBS po kolei Krok 2.",
       "help.pw.1": "W OBS otwórz Narzędzia → Ustawienia serwera WebSocket i naciśnij Pokaż informacje połączenia",
       "help.pw.2": "Naciśnij Kopiuj obok Hasła serwera",
       "help.pw.3": "Wklej je w pole Hasło poniżej i naciśnij Połącz",
-      "next.connect": "Dalej: połącz z OBS",
-      "next.build": "Dalej: utwórz scenę do zdjęć i nakładkę",
-      "next.gate": "Dalej: wybierz, kiedy działa przycisk",
-      "next.pair": "Dalej: wklej kod parowania",
-      "next.push": "Dalej: zapisz w OBS",
-      "next.test": "Wypróbuj bez transmisji",
-      "help.ext.h": "Kod parowania daje Twitch.",
+      "next.connect": "Dalej: Krok 3 — połącz z OBS",
+      "next.build": "Dalej: Krok 4 — utwórz scenę do zdjęć i nakładkę",
+      "next.gate": "Dalej: Krok 5 — wybierz, kiedy działa przycisk",
+      "next.pair": "Dalej: Kroki 6 i 7 — skopiuj kod parowania na Twitchu i wklej go tutaj",
+      "next.push": "Dalej: Krok 8 — zapisz w OBS",
+      "next.test": "Dalej: Krok 8 — wypróbuj bez transmisji",
+      "help.ext.h": "Kod parowania daje Twitch (Krok 6).",
       "help.ext.1": "W Panelu twórcy Twitch otwórz Rozszerzenia, znajdź SHUTTERPARTY i zainstaluj",
       "help.ext.2": "Aktywuj je (zalecane jako komponent nad wideo)",
       "help.ext.3": "Otwórz Konfiguruj przy SHUTTERPARTY i naciśnij Kopiuj przy Kodzie parowania",
@@ -4198,7 +4449,7 @@
       "test": "Pozwól fotografować poza transmisją przez 30 minut",
       "test.stop": "Zakończ teraz",
       "log.testend": "okno poza transmisją zostało zamknięte",
-      "n.test": "Do sprawdzenia efektów. Wyłączy się samo 30 minut po kliknięciu.",
+      "n.test": "Naciśnij na samym końcu, po Zapisz do OBS (Krok 8). Do sprawdzenia efektów; wyłączy się samo 30 minut po kliknięciu.",
       "test.left": "Jeszcze {n} min poza transmisją",
       "gate": "Sceny, w których działa przycisk",
       "gate.add": "Dodaj scenę…",
@@ -4227,7 +4478,7 @@
       "log.sceneok": "scena „{n}” nie zawiera tego overlaya",
       "log.wasSource": "poprzednie ustawienie „{n}” było źródłem, a źródeł nie da się już wybrać. Fotografowanie źródła zostawia na obrazku to, co OBS zasłonił. Wybierz scenę do zdjęć",
       "s.ext": "Połącz z rozszerzeniem Twitcha",
-      "n.ext": "Wklej kod parowania pokazany w Panel twórcy → Rozszerzenia → SHUTTERPARTY → Konfiguruj.",
+      "n.ext": "Wklej skopiowany kod parowania (Krok 6). Jest pokazany w Panel twórcy → Rozszerzenia → SHUTTERPARTY → Konfiguruj.",
       "pair": "Kod parowania",
       "h.pair": "Adres serwera, identyfikator kanału i klucz, który go otwiera — wszystko mieści się w tym jednym ciągu. Nikomu go nie pokazuj.",
       "pair.reads": "serwer {s} / kanał {c}",
@@ -4249,6 +4500,19 @@
       "preset": "Zestaw efektów",
       "accent": "Kolor przewodni",
       "place": "Róg zdjęcia",
+      "cdPlace": "Położenie odliczania",
+      "cdPlace.center": "Środek",
+      "cdPlace.tl": "Lewy górny róg",
+      "cdPlace.tr": "Prawy górny róg",
+      "cdPlace.bl": "Lewy dolny róg",
+      "cdPlace.br": "Prawy dolny róg",
+      "cdPlace.tc": "Góra",
+      "cdPlace.bc": "Dół",
+      "cdPlace.ml": "Lewa strona",
+      "cdPlace.mr": "Prawa strona",
+      "cdAgain": "Pokaż jeszcze raz",
+      "n.cdSame": "To ten sam róg co zdjęcia. Liczba pojawi się nad stosem zdjęć, a zdjęcia zostaną na miejscu.",
+      "n.cdAmounts": "To, czy odliczać 3·2·1 przed zdjęciem, ustawia się dla każdej kwoty w ustawieniach rozszerzenia na Twitchu. Tutaj wybierasz tylko miejsce na ekranie.",
       "scale": "Rozmiar efektów",
       "n.clock": "Godzina nadrukowana na zdjęciu pochodzi z zegara tego komputera. Jeśli jest błędna, wszystkie zdjęcia zachowają błędny czas.",
       "s.sample": "Podgląd",
@@ -4363,6 +4627,10 @@
       "log.created": "utworzono „{n}” w „{s}” i zapisano ustawienia",
       "log.createfail": "nie udało się utworzyć: {m} (przeszkadza źródło o tej samej nazwie)",
       "log.needscene": "wybierz scenę, w której to utworzyć",
+      "log.scenesloading": "OBS nie wczytał jeszcze scen; za chwilę odczytam je ponownie",
+      "build.loading": "OBS wciąż wczytuje sceny. Gdy skończy, pojawi się tu scena na nakładkę. Jeśli się nie pojawi, naciśnij {r}",
+      "build.nohost": "Nie ma sceny, w której można umieścić nakładkę. Utwórz w OBS scenę, z której streamujesz, i naciśnij {r}",
+      "next.reload": "Dalej: Krok 4 — odczytaj sceny ponownie",
       "log.needtarget": "wybierz źródło przeglądarki do zapisu",
       "log.arranged": "„{o}” przeniesione na samą górę „{s}”",
       "log.frozen": "„{c}” nie znajduje się w żadnej scenie emisyjnej. OBS nie renderuje sceny, której nie pokazuje, więc źródło przeglądarki w środku zastyga na zdjęciach. W razie potrzeby zagnieźdź ją w scenie emisyjnej",
@@ -4436,6 +4704,7 @@
     tr: {
       "ttl": "SHUTTERPARTY — kurulum",
       "lede": "Burada belirlediğiniz ayarlar doğrudan OBS'nin tarayıcı kaynağına yazılır. Hiçbiri yayında görünmez. Parola bu bilgisayardan dışarı çıkmaz.",
+      "step.n": "Adım {n}",
       "s.obs": "OBS'ye bağlan",
       "n.obs": "OBS'nin Araçlar → WebSocket Suncusu Ayarları bölümünde gösterdiği değerler. Sunucuyu açın, sonra Bağlanma Bilgilerini Göster'den parolayı kopyalayın.",
       "host": "Host",
@@ -4451,23 +4720,23 @@
       "st.authfail": "parola yanlış",
       "st.needpw": "parolayı girin",
       "conn.more": "Bağlantı ayrıntıları (sunucu, port, parola)",
-      "help.srv.h": "OBS'nin WebSocket sunucusu kapalı olabilir. OBS'de sırayla kontrol edin.",
+      "help.srv.h": "OBS'nin WebSocket sunucusu kapalı olabilir. OBS'de Adım 2'yi sırayla kontrol edin.",
       "help.srv.1": "OBS'yi açın",
       "help.srv.2": "Menüden Araçlar → WebSocket Suncusu Ayarları'nı açın",
       "help.srv.3": "WebSocket sunucuyu etkinleştir kutusunu işaretleyin. Sunucu Portu'nu 4455'ten değiştirdiyseniz, aşağıdaki Bağlantı ayrıntıları'nda Port'a aynı sayıyı yazın",
       "help.srv.4": "OK ile kapatın. Bu sayfa 30 saniye içinde kendiliğinden bağlanır (ya da Bağlan'a basın)",
       "help.srv.n": "Araçlar'da WebSocket Suncusu Ayarları yoksa OBS 28'den eski bir sürümdür; OBS'yi güncelleyin. Streamlabs Desktop'ta bu ayar yoktur ve kullanılamaz.",
-      "help.pw.h": "OBS'nin parolasını bu sayfaya yapıştırın.",
+      "help.pw.h": "OBS'nin parolasını bu sayfaya yapıştırın. OBS'de Adım 2'yi sırayla kontrol edin.",
       "help.pw.1": "OBS'de Araçlar → WebSocket Suncusu Ayarları'nı açıp Bağlanma Bilgilerini Göster'e basın",
       "help.pw.2": "Sunucu Parolası'nın yanındaki Kopyala'ya basın",
       "help.pw.3": "Aşağıdaki Parola alanına yapıştırıp Bağlan'a basın",
-      "next.connect": "Sıradaki: OBS'ye bağlan",
-      "next.build": "Sıradaki: çekim sahnesini ve katmanı oluştur",
-      "next.gate": "Sıradaki: düğmenin ne zaman çalışacağını seç",
-      "next.pair": "Sıradaki: eşleştirme kodunu yapıştır",
-      "next.push": "Sıradaki: OBS'ye yaz",
-      "next.test": "Yayın açmadan dene",
-      "help.ext.h": "Eşleştirme kodunu Twitch verir.",
+      "next.connect": "Sıradaki: Adım 3 — OBS'ye bağlan",
+      "next.build": "Sıradaki: Adım 4 — çekim sahnesini ve katmanı oluştur",
+      "next.gate": "Sıradaki: Adım 5 — düğmenin ne zaman çalışacağını seç",
+      "next.pair": "Sıradaki: Adım 6 ve 7 — eşleştirme kodunu Twitch'te kopyala ve buraya yapıştır",
+      "next.push": "Sıradaki: Adım 8 — OBS'ye yaz",
+      "next.test": "Sıradaki: Adım 8 — yayın açmadan dene",
+      "help.ext.h": "Eşleştirme kodunu Twitch verir (Adım 6).",
       "help.ext.1": "Twitch Yaratıcı Paneli'nde Uzantılar'ı açın, SHUTTERPARTY'yi bulup yükleyin",
       "help.ext.2": "Etkinleştirin (videonun üstünde görünen Bileşen olarak önerilir)",
       "help.ext.3": "SHUTTERPARTY'nin Yapılandır sayfasını açıp Eşleştirme kodu altındaki Kopyala'ya basın",
@@ -4487,7 +4756,7 @@
       "test": "30 dakika yayın dışı çekime izin ver",
       "test.stop": "Şimdi bitir",
       "log.testend": "yayın dışı çekim süresi sona erdi",
-      "n.test": "Efektleri kontrol etmek için. Bastıktan 30 dakika sonra kendiliğinden geri döner.",
+      "n.test": "Adım 8'in sonunda, OBS'ye yaz'dan sonra basın. Efektleri kontrol etmek içindir; bastıktan 30 dakika sonra kendiliğinden geri döner.",
       "test.left": "{n} dk daha yayın dışı çekilebilir",
       "gate": "Düğmenin çalıştığı sahneler",
       "gate.add": "Sahne ekle…",
@@ -4516,7 +4785,7 @@
       "log.sceneok": "«{n}» sahnesi bu yayın katmanını içermiyor",
       "log.wasSource": "önceki ayar «{n}» bir kaynaktı ve artık kaynaklar seçilemiyor. Bir kaynağı fotoğraflamak, OBS'de üstünü kapattığınız şeyleri görüntüde bırakır. Bunun yerine bir çekim sahnesi seçin",
       "s.ext": "Twitch uzantısına bağlan",
-      "n.ext": "Yaratıcı Paneli → Uzantılar → SHUTTERPARTY → Yapılandır bölümünde görünen eşleştirme kodunu olduğu gibi yapıştırın.",
+      "n.ext": "Adım 6'da kopyaladığınız eşleştirme kodunu olduğu gibi yapıştırın. Kod, Yaratıcı Paneli → Uzantılar → SHUTTERPARTY → Yapılandır bölümünde görünür.",
       "pair": "Eşleştirme kodu",
       "h.pair": "Sunucu adresi, kanal kimliği ve onu açan anahtar, hepsi bu tek dizede. Kimseye göstermeyin.",
       "pair.reads": "sunucu {s} / kanal {c}",
@@ -4538,6 +4807,19 @@
       "preset": "Efekt ön ayarı",
       "accent": "Vurgu rengi",
       "place": "Fotoğrafın köşesi",
+      "cdPlace": "Geri sayımın yeri",
+      "cdPlace.center": "Orta",
+      "cdPlace.tl": "Sol üst",
+      "cdPlace.tr": "Sağ üst",
+      "cdPlace.bl": "Sol alt",
+      "cdPlace.br": "Sağ alt",
+      "cdPlace.tc": "Üst",
+      "cdPlace.bc": "Alt",
+      "cdPlace.ml": "Sol",
+      "cdPlace.mr": "Sağ",
+      "cdAgain": "Tekrar göster",
+      "n.cdSame": "Fotoğraflarla aynı köşe. Sayı, fotoğraf yığınının üstünde görünür; fotoğrafların yeri değişmez.",
+      "n.cdAmounts": "Fotoğraftan önce 3·2·1 sayılıp sayılmayacağı, Twitch'teki uzantı ayarlarında her tutar için ayrı belirlenir. Burada yalnızca ekranda nerede görüneceğini seçersiniz.",
       "scale": "Efektlerin boyutu",
       "n.clock": "Fotoğrafa basılan saat bu bilgisayarın saatidir. Yanlışsa bütün fotoğraflar yanlış saatle kalır.",
       "s.sample": "Önizleme",
@@ -4652,6 +4934,10 @@
       "log.created": "«{s}» içinde «{n}» oluşturuldu ve ayarlar yazıldı",
       "log.createfail": "oluşturulamadı: {m} (aynı adlı bir kaynak engelliyor)",
       "log.needscene": "oluşturulacağı sahneyi seçin",
+      "log.scenesloading": "OBS sahneleri henüz yüklemedi; birazdan yeniden okunacak",
+      "build.loading": "OBS sahneleri hâlâ yüklüyor. Bitince katmanın konacağı sahne burada görünür. Görünmezse {r} düğmesine basın",
+      "build.nohost": "Katmanın konacağı bir sahne yok. OBS'de yayın yaptığınız sahneyi oluşturup {r} düğmesine basın",
+      "next.reload": "Sıradaki: Adım 4 — sahneleri yeniden oku",
       "log.needtarget": "yazılacak tarayıcı kaynağını seçin",
       "log.arranged": "“{o}”, “{s}” içinde en üste alındı",
       "log.frozen": "“{c}” hiçbir yayın sahnesinin içinde değil. OBS göstermediği bir sahneyi işlemez, dolayısıyla içindeki tarayıcı kaynağı fotoğraflarda donar. Gerekiyorsa bir yayın sahnesinin içine yerleştirin",
@@ -4740,7 +5026,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-646e27dc2e83";
+  var BUILD = "sp-3900eb258339";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -5486,7 +5772,7 @@
     stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
     gateSet: "", testUntil: "", theme: "liquid", pack: "",
     packSlots: "", discordWebhook: "", discordHook: "", discordSet: "",
-    discordSheet: "0", discordPaid: "0"
+    discordSheet: "0", discordPaid: "0", cdPlace: "center"
   };
   /* @end config-defaults */
 
@@ -5537,7 +5823,7 @@
     // on purpose — a key belongs here by decision — but the list is checked
     // against the defaults (tools/contract-check.mjs), because the failure of
     // forgetting one is silence.
-    ["host", "port", "pw", "src", "preset", "accent", "place", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil", "theme", "pack", "packSlots", "discordWebhook", "discordHook", "discordSet", "discordSheet", "discordPaid"].forEach(function (k) {
+    ["host", "port", "pw", "src", "preset", "accent", "place", "cdPlace", "scale", "lang", "ebs", "ch", "ebsToken", "saveDir", "saveFrom", "saveParty", "saveSize", "stampShot", "stampSave", "glass", "scenes", "gateSet", "testUntil", "theme", "pack", "packSlots", "discordWebhook", "discordHook", "discordSet", "discordSheet", "discordPaid"].forEach(function (k) {
       if (q.get(k)) base[k] = q.get(k);
     });
     return base;
@@ -5832,7 +6118,7 @@
     dConn: $("dConn"),
     connect: $("btnConnect"),
     build: $("btnBuild"), refresh: $("btnRefresh"), shot: $("btnShot"),
-    buildReady: $("buildReady"), nVertical: $("nVertical"), notice: $("notice"), contents: $("contents"), preview: $("preview"),
+    buildReady: $("buildReady"), dest: $("dest"), noHost: $("noHost"), nVertical: $("nVertical"), notice: $("notice"), contents: $("contents"), preview: $("preview"),
     capName: $("capName"), newSrcName: $("newSrcName"), newSrcScene: $("newSrcScene"),
     gate: $("gateScenes"), gateAll: $("gateAll"), warnGate: $("warnGate"),
     // The picker and the list it feeds, which go away together when every
@@ -5877,6 +6163,24 @@
 
   function setText(id, key, vars) { $(id).textContent = t(key, vars); }
 
+  /* A section heading that is one of the eight setup steps: the number, then
+   * the words. The number is the whole setup's (src/shared/steps.json, written
+   * on the element as data-step), the same on the Twitch Config panel and the
+   * guide page, so "Step 7" means one thing wherever it is read. It is its own
+   * element and not part of the sentence, because the panel quotes the heading
+   * words (s.obs, s.ext …) as they are, for broadcasters whose older copy of
+   * this page has no numbers to look for (docs/onboarding-plan.md §4.L). */
+  function stepLabel(node) { return t("step.n", { n: node.getAttribute("data-step") }); }
+  function setStepHead(id, key) {
+    var h = $(id);
+    h.textContent = "";
+    var no = document.createElement("span");
+    no.className = "stepNo";
+    no.textContent = stepLabel(h);
+    h.appendChild(no);
+    h.appendChild(document.createTextNode(t(key)));
+  }
+
   function paint() {
     document.documentElement.lang = lang;
     document.title = t("ttl");
@@ -5891,7 +6195,7 @@
     setText("rLook", "nav.look");
     setText("rSave", "nav.save");
 
-    setText("sObs", "s.obs");
+    setStepHead("sObs", "s.obs");
     setText("nObs", "n.obs");
     setText("lHost", "host");
     setText("lPort", "port");
@@ -5899,7 +6203,7 @@
     setText("sConn", "conn.more");
     el.connect.textContent = identified ? t("disconnect") : t("connect");
 
-    setText("sBuild", "s.build");
+    setStepHead("sBuild", "s.build");
     setText("nBuild", "n.build");
     setText("sNames", "build.names");
     setText("lCapName", "capName");
@@ -5911,7 +6215,7 @@
     el.capName.placeholder = t("capDefault");
     el.newSrcName.placeholder = t("newSrcDefault");
 
-    setText("sGate", "s.gate");
+    setStepHead("sGate", "s.gate");
     setText("nGate", "n.gate");
     setText("lGateAll", "l.gateAll");
     setText("lGate", "gate");
@@ -5919,7 +6223,7 @@
     setText("hLive", "h.live");
     setText("warnGate", "warn.gate");
 
-    setText("sExt", "s.ext");
+    setStepHead("sExt", "s.ext");
     setText("nExt", "n.ext");
     setText("lPair", "pair");
     setText("hPair", "h.pair");
@@ -5940,6 +6244,16 @@
     setText("lPreset", "preset");
     setText("lAccent", "accent");
     setText("lPlace", "place");
+    setText("lCdPlace", "cdPlace");
+    $("cdMap").setAttribute("aria-label", t("cdPlace"));
+    Array.prototype.forEach.call(document.querySelectorAll("#cdMap button"), function (b) {
+      var name = t("cdPlace." + b.getAttribute("data-cdplace"));
+      b.setAttribute("aria-label", name);
+      b.title = name;
+    });
+    setText("nCdSame", "n.cdSame");
+    setText("btnCdAgain", "cdAgain");
+    setText("nCdAmounts", "n.cdAmounts");
     setText("lScale", "scale");
     setText("lStampShot", "stampShot");
     setText("lGlass", "glass");
@@ -6008,6 +6322,9 @@
     el.logTtl.textContent = t("logTitle");
     el.logClose.textContent = t("logCloseLabel");
     el.push.textContent = t("push");
+    // The write is step 8, and the button sits under every tab, so the number
+    // rides on the line above it rather than on a heading.
+    $("dockStep").textContent = stepLabel($("dockStep"));
 
     renderLangPick();
     renderOvLang();
@@ -6444,6 +6761,9 @@
     // one thing left is to see it work — off air, with the thirty-minute
     // window. Suggested once; opening the window is what retires it (ui.triedTest).
     var next = missing || (ui.triedTest ? "" : "test");
+    // The build step with nowhere to put the overlay: what helps is reading
+    // the scenes again, not a button that is not shown (60-building-the-pieces.js).
+    if (next === "build" && el.build.hidden) next = "reload";
     var head = t(missing ? "hdr.setup" : "hdr.ready");
     el.chip.dataset.state = missing ? "wait" : "ok";
     el.chipText.textContent = next ? head + " · " + t("next." + next) : head;
@@ -6464,6 +6784,7 @@
   var NEXT = {
     connect: { pane: "obs", tab: "tabObs", ring: "btnConnect" },
     build:   { pane: "obs", tab: "tabObs", ring: "btnBuild" },
+    reload:  { pane: "obs", tab: "tabObs", ring: "btnRefresh" },
     gate:    { pane: "obs", tab: "tabObs", ring: "stepGate", focus: "gateAll" },
     pair:    { pane: "ext", tab: "tabExt", ring: "pairCode" },
     push:    { pane: "",    tab: "",       ring: "btnPush" },
@@ -6928,6 +7249,8 @@
 
   function obsOnClosed() {
     scenesKnown = false;            // ...and neither is anything it said
+    scenesLoading = false;          // a new connection asks afresh
+    stopSceneRetry();
     el.shot.disabled = true;
     el.connect.textContent = t("connect");
     renderRail();
@@ -6940,6 +7263,7 @@
     // is asked for again below, and until it comes back nothing may act on
     // the old one (F16).
     scenesKnown = false;
+    stopSceneRetry();
     status("ok", t("st.ok"), true);
     el.connect.textContent = t("disconnect");
     renderRail();
@@ -7000,10 +7324,52 @@
    * anything: is the target a scene on the connection in front of me, now. */
   var scenesKnown = false;
 
+  /* OBS STILL LOADING (本人の実機 2026-09-26).
+   *
+   * Opened before OBS, this page connects the moment OBS's WebSocket server is
+   * up — which can be before OBS has loaded its scene collection, and then
+   * GetSceneList answers with no scenes. OBS itself never has none: it keeps
+   * at least one scene at all times. So an empty list is "not loaded yet", and
+   * believing it did two things wrong: the host-scene picker stayed empty (the
+   * build button could do nothing, and nothing said why), and the chosen
+   * capture scene, absent from the empty list, was cleared as if it had been
+   * a source.
+   *
+   * Asked again on a short ladder until scenes arrive or the connection goes;
+   * meanwhile the build step shows only what can be done now (renderBuildState). */
+  var scenesLoading = false;
+  var sceneRetry = { timer: null, n: 0 };
+  function retryScenes() {
+    clearTimeout(sceneRetry.timer);
+    if (sceneRetry.n >= 8) return;            // ~40 s in all; after that the button is there
+    var wait = Math.min(1500 * Math.pow(1.4, sceneRetry.n), 8000);
+    sceneRetry.n++;
+    sceneRetry.timer = setTimeout(function () {
+      sceneRetry.timer = null;
+      if (identified && scenesLoading) loadScenes().then(scanTargets);
+    }, wait);
+  }
+  function stopSceneRetry() {
+    clearTimeout(sceneRetry.timer);
+    sceneRetry.timer = null;
+    sceneRetry.n = 0;
+  }
+
   function loadScenes() {
     return request("GetSceneList")
       .then(function (res) {
-        scenes = (res.scenes || []).map(function (x) { return x.sceneName; }).sort(function (a, b) {
+        var list = (res.scenes || []).map(function (x) { return x.sceneName; });
+        if (!list.length) {
+          if (!scenesLoading) log(t("log.scenesloading"), "warn");
+          scenesLoading = true;
+          scenesKnown = false;
+          scenes = [];
+          retryScenes();
+          return renderHostScenes();
+        }
+        scenesLoading = false;
+        stopSceneRetry();
+        scenes = list.sort(function (a, b) {
           return a.localeCompare(b);
         });
         scenesKnown = true;
@@ -7477,6 +7843,18 @@
     el.build.textContent = building ? t("build.busy") : (made ? t("build.again") : t("build.go"));
     el.build.disabled = building || !identified;
     el.refresh.disabled = !identified;
+    /* Nowhere to put the overlay: OBS has not loaded its scenes yet, or has
+     * none but the capture scene. The picker and the build button can do
+     * nothing then, so they are not shown; what is shown is why, and the one
+     * button that helps (本人の実機 2026-09-26). While building, the list is
+     * being read again inside buildAll(), so nothing is hidden mid-press. */
+    var noHost = identified && !building && !el.newSrcScene.options.length;
+    el.dest.hidden = noHost;
+    el.build.hidden = noHost;
+    el.noHost.hidden = !noHost;
+    if (noHost) el.noHost.textContent = t(scenesLoading ? "build.loading" : "build.nohost", { r: t("refresh") });
+    el.refresh.classList.toggle("primary", noHost);
+    renderReady();                  // the next step reads el.build.hidden
     el.shot.disabled = !identified || !cfg.src;
     el.buildReady.hidden = !made;
     if (made) el.buildReady.textContent = t("build.ready", { c: cfg.src, o: target });
@@ -7497,6 +7875,7 @@
       o.textContent = name;
       el.newSrcScene.appendChild(o);
     });
+    renderBuildState();
     if (keep && scenes.indexOf(keep) !== -1 && keep !== cfg.src) {
       el.newSrcScene.value = keep;
       return Promise.resolve();
@@ -7559,6 +7938,10 @@
     var c = {
       host: cfg.host, port: cfg.port, pw: cfg.pw, src: cfg.src,
       preset: cfg.preset, accent: cfg.accent, place: cfg.place, scale: cfg.scale,
+      // Where the 3-2-1 before a bought photograph stands (docs/countdown-plan.md
+      // §1.4). Which amounts count down is not here: that is the Twitch panel's,
+      // and the EBS's to decide.
+      cdPlace: cfg.cdPlace,
       // The language the broadcaster chose on this page is the one their whole
       // audience will read the overlay in (§4.8). Sending it is what keeps the
       // overlay from falling back to the language of whatever browser OBS
@@ -8600,7 +8983,33 @@
     cfg.place = stackSide;
     setRadio("grpPlace", "place", stackSide);
     saveCfg(cfg);
+    paintCdMap();
     tellSample();
+  }
+
+  /* Where the 3-2-1 before a bought photograph stands (docs/countdown-plan.md
+   * §1.4-1.5). Choosing a place plays one count there in the sample — the
+   * overlay's own count, not a picture of one — so what is chosen is what is
+   * seen. A corner the photographs also use is allowed, and said: the number
+   * goes above the pile, and the pile does not move for it. */
+  var CD_PLACES = ["center", "tl", "tc", "tr", "ml", "mr", "bl", "bc", "br"];
+  function applyCdPlace(p) {
+    cfg.cdPlace = CD_PLACES.indexOf(p) >= 0 ? p : "center";
+    saveCfg(cfg);
+    paintCdMap();
+    tellSample();
+    tellSample({ act: "countdown" });
+  }
+
+  function paintCdMap() {
+    var place = CD_PLACES.indexOf(cfg.cdPlace) >= 0 ? cfg.cdPlace : "center";
+    $("cdMap").setAttribute("data-pile", cfg.place === "br" ? "br" : "bl");
+    Array.prototype.forEach.call(document.querySelectorAll("#cdMap button"), function (b) {
+      var on = b.getAttribute("data-cdplace") === place;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.textContent = on ? "5" : "";
+    });
+    $("nCdSame").hidden = place !== (cfg.place === "br" ? "br" : "bl");
   }
 
   /* Whether a bought print carries the clock.
@@ -8742,6 +9151,9 @@
   wireGroup("grpStampShot", "stampshot", applyStampShot);
   wireGroup("grpGlass", "glass", applyGlass);
   wireGroup("grpPlace", "place", applyPlace);
+  wireGroup("cdMap", "cdplace", applyCdPlace);
+  $("btnCdAgain").addEventListener("click", function () { tellSample({ act: "countdown" }); });
+  paintCdMap();
   wireGroup("grpTheme", "theme", applyThemeChoice);
 
   /* ================= the sample =================
@@ -8803,6 +9215,11 @@
 
   var sampleFrame = null;
   var sampleReady = false;
+  // A one-off act ("countdown", "party") asked for while the frame was still
+  // loading — the shape was just switched, or the tab just opened. The look
+  // goes on load anyway; without this the act itself was dropped, and the
+  // count a place button promises never played. The latest one wins.
+  var sampleOwed = "";
 
   /**
    * Everything the sample is allowed to know.
@@ -8818,6 +9235,8 @@
       preset: cfg.preset,
       accent: cfg.accent,
       place: cfg.place,
+      // Where the 3-2-1 stands: the sample is where the broadcaster chooses it.
+      cdPlace: cfg.cdPlace,
       scale: cfg.scale,
       lang: cfg.lang || lang,
       // The clock is part of how a print looks, so the sample has to be told
@@ -8915,7 +9334,11 @@
    * frame ignores anything not carrying its own name.
    */
   function tellSample(extra) {
-    if (!sampleFrame || !sampleReady) return;
+    if (!sampleFrame) return;
+    if (!sampleReady) {
+      if (extra && extra.act) sampleOwed = extra.act;
+      return;
+    }
     var m = demoConfig();
     m.to = "shutterparty-demo";
     m.act = "look";
@@ -8937,6 +9360,9 @@
     sampleFrame.addEventListener("load", function () {
       sampleReady = true;
       tellSample();
+      var owed = sampleOwed;
+      sampleOwed = "";
+      if (owed) tellSample({ act: owed });
     });
     sampleFrame.src = sampleUrl();
     el.sample.appendChild(sampleFrame);
@@ -9073,14 +9499,35 @@
       el.pairInfo.textContent = t("pair.bad");
       return;
     }
+    var fresh = got.ebs !== cfg.ebs || got.ch !== cfg.ch || got.token !== cfg.ebsToken;
     cfg.ebs = got.ebs;
     cfg.ch = got.ch;
     cfg.ebsToken = got.token;
     saveCfg(cfg);
+    if (fresh) tellPasted(got);
     saveSecrets();
     ebsSetState("off");
     showPairInfo();
     renderRail();
+  }
+
+  /* ---- telling the EBS a code was pasted (docs/onboarding-plan.md §4.J, J-3) ----
+
+     The one moment this page knows which channel it is. Said once each time
+     a code different from the one it holds is pasted, so the owner can tell a broadcaster who stopped before this page
+     from one who stopped after it, and the Config panel can mark the step
+     done (§4.K). Only the channel and the token that proves it — the same two
+     the overlay sends every time it connects. Never waited for and never
+     reported: setting up must not depend on it, and a failure here is not the
+     broadcaster's problem. */
+  function tellPasted(got) {
+    try {
+      fetch(got.ebs + "/overlay/pasted", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ch: got.ch, t: got.token })
+      }).catch(function () {});
+    } catch (e) {}
   }
 
   // Which attempt is the current one. Each press opens its own socket and its
@@ -9099,6 +9546,8 @@
     var base = cfg.ebs.replace(/\/+$/, "");
     var url = base.replace(/^http/, "ws") + "/stream?ch=" + encodeURIComponent(cfg.ch) +
       "&t=" + encodeURIComponent(cfg.ebsToken);
+    // Opened and closed without a word. The EBS counts an overlay from its
+    // first report, so this check is not one connecting (onboarding-plan §4.J).
     ebsSetState("connecting");
     // The attempt is the newest from the moment it is asked for, before the
     // socket exists: if the constructor throws, the previous attempt must not

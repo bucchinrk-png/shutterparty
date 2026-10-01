@@ -105,6 +105,23 @@
     --font: var(--font-sys);
     --mono: var(--mono-sys);
     --cap-font: var(--mono-sys);
+    /* The camera's count before a bought photograph (the lens, below). A
+       theme may give it its own face (--cd-font) or ask for the segments
+       the base draws (--cd-digits: seg); without either it is the rounded
+       face embedded here (本人の決定 2026-09-25). */
+    --cd-font: "SP-cd-Round", var(--font-sys);
+    --cd-digits: text;
+    --cd-camera: round;
+  }
+  /* M PLUS Rounded 1c ExtraBold (M+ FONTS PROJECT, SIL Open Font License
+     1.1, https://fonts.google.com/specimen/M+PLUS+Rounded+1c): the digits
+     1-9 and nothing else, which is all the lens ever shows. */
+  @font-face {
+    font-family: "SP-cd-Round";
+    font-style: normal;
+    font-weight: 800;
+    src: url(data:font/woff2;base64,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) format("woff2");
+    unicode-range: U+0031-0039;
   }
   /* @generated theme-fonts — src/shared/themes.json。手で書き換えない */
   :root[data-theme="liquid"]    { --font: var(--font-sys);                  --mono: var(--mono-sys);                  --cap-font: var(--mono-sys); }
@@ -223,6 +240,14 @@
      the row below does not move, because the base drops the number with a
      transform rather than with space. Aimed tight, by looking. */
   :root[data-theme="pixel"] { --cd-num-drop: 9; }
+  /* The camera's own count, before a bought photograph: seven segments, the
+     self-timer display of a camera of the same era, rather than a face. The
+     base draws the segments; this only asks for them (本人 2026-09-25). */
+  :root[data-theme="pixel"] { --cd-digits: seg; }
+  /* ...in this theme's own camera, the 8-bit one on the bar, drawn by the base
+     at the countdown's size and framed like the vessels here: a dark outer
+     step and the session's light colour inside it (本人 2026-09-25: 案 2). */
+  :root[data-theme="pixel"] { --cd-camera: pixel; }
   /* The goal bar's tube: square, two hard steps, a hard drop. */
   :root[data-theme="pixel"] .g-tube { border-radius: 0; box-shadow: 0 0 0 calc(3 * var(--u)) rgb(var(--acc-hi-rgb)), 0 0 0 calc(6 * var(--u)) #0b0b14, calc(6 * var(--u)) calc(6 * var(--u)) 0 calc(6 * var(--u)) rgba(0, 0, 0, .45); }
 
@@ -474,6 +499,10 @@
 
   /* The camera, the stopwatch and the crowd bubble in the edge's gold. */
   :root[data-theme="celestial"] .g-cam { color: rgb(var(--acc-hi-rgb)); }
+  /* The camera that counts before a bought photograph is this theme's camera
+     too: the sky-filled silhouette, edged in the session's light colour, drawn
+     by the base at that size (本人 2026-09-25: 案 2). */
+  :root[data-theme="celestial"] { --cd-camera: sky; }
   :root[data-theme="celestial"] .g-bubble { color: rgb(var(--acc-hi-rgb)); }
   /* ---- theme: stamp (src/overlay/themes/stamp.css, v1.0) ---- */
   /*
@@ -2184,6 +2213,126 @@
   .chip { display: none; }
   :root[data-debug] .chip { display: flex; }
 
+  /* ---------- the 3-2-1 before a bought photograph ----------
+     docs/countdown-plan.md §1.3-1.4. The EBS decides which purchases are
+     counted down to; this only plays the seconds and then takes the
+     photograph (60-capture.js). Nothing here is photographed: the capture is of
+     the broadcaster's own scene, and this page is not in it (CLAUDE.md), so the
+     camera may stand in front of a face.
+
+     A camera counting in its lens (本人の決定 2026-09-25). It was a bare
+     number, 300u tall in the centre, and that read as a number and nothing
+     else. The camera is the product's own object (the bar's, the banner's),
+     and it says "your photograph" before the digit is even read. Small on
+     purpose: 192u wide, about a quarter of the old number's area, because
+     the count is a part of the effect and not its headline.
+
+     Not the party's 3-2-1. That one is the plate in the middle and means "the
+     party is about to start"; this is a camera with the amount's colour round
+     its lens, wherever the broadcaster put it, and means "your photograph in
+     five" (or three: the channel's length, §5.1). The
+     two can follow each other on a last hit (§1.6), and looking alike would
+     say the wrong thing.
+
+     No flash of the frame: the lens lights at zero and nothing else does, so
+     it stays outside the 3Hz / 0.35 rule for full-frame light (§4.6). Two
+     colours: the body is the theme's camera colour, read off the bar's own
+     camera (.g-cam) by 65-shot-countdown.js so the two cameras on screen are
+     one object; the ring round the lens that runs out a step a second is the
+     purchase's (--glow-rgb, set from the amount). The self-timer lamp in the corner blinks faster as
+     it runs out, the same 1 / 2 / 2.9 a second the plate's lamp keeps.
+
+     A theme reaches it through three variables and nothing else: --cd-font,
+     the digit's face; --cd-digits: seg, the seven segments drawn in the
+     markup instead of a face; and --cd-camera, which of the drawings below
+     it stands in — round (the product's own, in the theme's camera colour),
+     pixel, or sky. A theme that has its own camera on the bar (--cam-glyph)
+     picks the drawing that is that camera (本人 2026-09-25: 案 2), and the
+     drawing takes the session's colours through the same variables the
+     theme's vessels use. The choices are read off the variables by the
+     script (data-digits, data-camera), because display is not a property a
+     theme may write. A new theme whose camera is none of these adds a
+     drawing here — the base's job, like any other missing entrance.
+
+     Placed by data-place. The bottom corners are moved above the pile of
+     photographs by the script (the pile's height is not something CSS knows);
+     the values here are where they sit before the first print. The safe band's
+     two variables are read with a zero fallback, so a landscape canvas, which
+     does not set them, is placed exactly as the numbers say. */
+  .shotcd {
+    --u: calc(100 * min(1vw, 1vh) / 1080);
+    position: fixed;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility 0s linear .3s;
+  }
+  .shotcd.on { opacity: 1; visibility: visible; transition: opacity .12s ease, visibility 0s; }
+  .shotcd-cam {
+    display: block;
+    width: calc(192 * var(--u));
+    height: calc(156 * var(--u));
+    overflow: visible;
+    color: rgb(var(--acc-rgb));
+    filter: drop-shadow(0 calc(3 * var(--u)) calc(3.5 * var(--u)) rgba(0,0,0,.34));
+  }
+  /* In the drawing's own units: the lens is 9.4 across. */
+  .shotcd-num {
+    font-family: var(--cd-font);
+    font-weight: 800;
+    font-size: 6.8px;
+    fill: #fbfaf6;
+    font-variant-numeric: tabular-nums;
+  }
+  .shotcd-seg { display: none; }
+  .shotcd-seg rect { fill: rgba(251,250,246,.09); }
+  .shotcd-seg rect.lit { fill: #fbfaf6; }
+  .shotcd[data-digits="seg"] .shotcd-seg { display: inline; }
+  .cdc-pixel .shotcd-lamp { fill: rgb(244,241,230); }
+  .shotcd[data-digits="seg"] .shotcd-num { visibility: hidden; }
+  .shotcd-ring {
+    fill: none;
+    stroke: rgb(var(--glow-rgb));
+    stroke-width: .95;
+    transition: stroke-dashoffset .95s linear;
+  }
+  /* Three drawings, one shown (--cd-camera, read by the script). */
+  .cdc { display: none; }
+  .shotcd[data-camera="round"] .cdc-round,
+  .shotcd[data-camera="pixel"] .cdc-pixel,
+  .shotcd[data-camera="sky"] .cdc-sky { display: inline; }
+  /* pixel: steps, not slides, and a hard shadow like its vessels. */
+  .cdc-pixel .shotcd-ring { stroke-width: 1; transition: none; }
+  .cdc-step { fill: rgb(var(--acc-hi-rgb)); }
+  .cdc-grid rect { fill: rgb(35,38,58); }
+  .cdc-grid rect.lit { fill: rgb(244,241,230); }
+  .shotcd[data-camera="pixel"] .shotcd-cam { filter: drop-shadow(calc(5 * var(--u)) calc(5 * var(--u)) 0 rgba(0,0,0,.45)); }
+  /* sky: edged in the session's light colour, as the theme's bar camera is. */
+  .cdc-edge { stroke: rgb(var(--acc-hi-rgb)); }
+  .shotcd-glint { fill: #fff; opacity: 0; }
+  .shotcd-lamp { fill: #f3efe6; }
+  .shotcd.on .shotcd-lamp { animation: shotLamp 1s steps(1, end) infinite; }
+  .shotcd[data-n="2"] .shotcd-lamp { animation-duration: .5s; }
+  .shotcd[data-n="1"] .shotcd-lamp { animation-duration: .34s; }
+  @keyframes shotLamp { 0% { fill: #ff4b3a; } 50% { fill: #f3efe6; } }
+  @media (prefers-reduced-motion: reduce) {
+    .shotcd.on .shotcd-lamp { animation: none; fill: #ff4b3a; }
+    .shotcd-ring { transition: none; }
+    /* Swapped in and out, not faded (docs/countdown-plan.md §1.3). */
+    .shotcd, .shotcd.on { transition: none; }
+  }
+  .shotcd[data-place="center"] { inset: 0; display: grid; place-items: center; }
+  .shotcd[data-place="tl"] { top: calc(var(--safe-top, 0%) + 5%); left: 5%; }
+  .shotcd[data-place="tc"] { top: calc(var(--safe-top, 0%) + 5%); left: 50%; transform: translateX(-50%); }
+  .shotcd[data-place="tr"] { top: calc(var(--safe-top, 0%) + 5%); right: 5%; }
+  /* The middle of a side is the middle of the room the band leaves. */
+  .shotcd[data-place="ml"] { top: calc(var(--safe-top, 0%) + (100% - var(--safe-top, 0%) - var(--safe-bottom, 0%)) / 2); left: 5%; transform: translateY(-50%); }
+  .shotcd[data-place="mr"] { top: calc(var(--safe-top, 0%) + (100% - var(--safe-top, 0%) - var(--safe-bottom, 0%)) / 2); right: 5%; transform: translateY(-50%); }
+  .shotcd[data-place="bl"] { bottom: calc(var(--safe-bottom, 0%) + 36%); left: 5%; }
+  .shotcd[data-place="bc"] { bottom: calc(var(--safe-bottom, 0%) + 36%); left: 50%; transform: translateX(-50%); }
+  .shotcd[data-place="br"] { bottom: calc(var(--safe-bottom, 0%) + 36%); right: 5%; }
+
   /* ---------- a vertical canvas: the safe band ----------
      Twitch's vertical view draws Twitch's own interface over the top of the
      video, and the broadcaster cannot turn it off. Measured on the real thing
@@ -2329,6 +2478,135 @@
   </div>
 </div>
 
+<!-- The 3-2-1 before a bought photograph (65-shot-countdown.js). Empty
+     whenever it is not counting, like every other vessel here. -->
+<div class="shotcd" id="shotCd" data-place="center" data-camera="round">
+  <svg class="shotcd-cam" id="shotCdCam" viewBox="0 0 32 26" aria-hidden="true">
+    <defs>
+      <clipPath id="cdBody"><path d="M12.2 2.4h7.6l1.7 2.8h7a2 2 0 0 1 2 2v15.3a2 2 0 0 1-2 2H3.5a2 2 0 0 1-2-2V7.2a2 2 0 0 1 2-2h7z"/></clipPath>
+      <pattern id="cdGrain" width="1.05" height="1.05" patternUnits="userSpaceOnUse">
+        <circle cx=".3" cy=".3" r=".26" fill="rgba(0,0,0,.22)"/>
+        <circle cx=".82" cy=".82" r=".2" fill="rgba(0,0,0,.14)"/>
+      </pattern>
+      <linearGradient id="cdShade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="white" stop-opacity=".22"/>
+        <stop offset=".42" stop-color="white" stop-opacity="0"/>
+        <stop offset="1" stop-color="black" stop-opacity=".2"/>
+      </linearGradient>
+      <radialGradient id="cdGlass" cx=".42" cy=".38" r=".7">
+        <stop offset="0" stop-color="rgb(58,51,44)"/>
+        <stop offset="1" stop-color="rgb(14,12,10)"/>
+      </radialGradient>
+      <linearGradient id="cdSky" x1="0" y1="0" x2=".85" y2="1">
+        <stop offset="0" stop-color="rgb(7,10,30)"/>
+        <stop offset="1" stop-color="rgb(36,22,64)"/>
+      </linearGradient>
+      <radialGradient id="cdNebula" cx=".8" cy=".12" r=".75">
+        <stop offset="0" stop-color="rgb(138,107,240)" stop-opacity=".62"/>
+        <stop offset="1" stop-color="rgb(126,98,224)" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- round: the product's own camera, in the theme's camera colour. -->
+    <g class="cdc cdc-round">
+      <!-- The shutter button, behind the body so the body covers its foot. -->
+      <rect x="4.2" y="2.9" width="4.2" height="3.2" rx=".9" fill="currentColor" stroke="white" stroke-width="1.5" paint-order="stroke"/>
+      <!-- The body, with the white die-cut edge every camera here has. -->
+      <path d="M12.2 2.4h7.6l1.7 2.8h7a2 2 0 0 1 2 2v15.3a2 2 0 0 1-2 2H3.5a2 2 0 0 1-2-2V7.2a2 2 0 0 1 2-2h7z" fill="currentColor" stroke="white" stroke-width="1.9" stroke-linejoin="round" paint-order="stroke"/>
+      <!-- One colour made into a camera: the lower half covered in grain like
+           the leather of a real one, a light line where it meets the top plate,
+           and light from above over all of it. -->
+      <g clip-path="url(#cdBody)">
+        <rect x="0" y="10.3" width="32" height="16" fill="rgba(0,0,0,.16)"/>
+        <rect x="0" y="10.3" width="32" height="16" fill="url(#cdGrain)"/>
+        <rect x="0" y="10.05" width="32" height=".5" fill="rgba(255,255,255,.34)"/>
+        <rect x="0" y="0" width="32" height="26" fill="url(#cdShade)"/>
+      </g>
+      <rect class="shotcd-lamp" x="4" y="6.9" width="3.6" height="1.9" rx=".8"/>
+      <!-- The lens: white collar, barrel, the ring that runs out, dark glass. -->
+      <circle cx="16" cy="14.8" r="6.35" fill="white"/>
+      <circle cx="16" cy="14.8" r="5.8" fill="rgb(31,27,23)"/>
+      <circle class="shotcd-ring" data-len="32.673" cx="16" cy="14.8" r="5.2" transform="rotate(-90 16 14.8)"/>
+      <circle cx="16" cy="14.8" r="4.7" fill="url(#cdGlass)"/>
+      <circle cx="16" cy="14.8" r="4.65" fill="none" stroke="rgba(255,255,255,.12)" stroke-width=".25"/>
+      <text class="shotcd-num" id="shotCdNum" x="16" y="15" text-anchor="middle" dominant-baseline="central"></text>
+      <!-- Seven segments, for a theme that asks for them (--cd-digits: seg). -->
+  <g class="shotcd-seg" transform="translate(16 14.8) skewX(-7)">
+      <rect data-s="a" x="-1.3" y="-3" width="2.6" height=".68" rx=".22"/>
+      <rect data-s="b" x="1.04" y="-2.72" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="c" x="1.04" y=".1" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="d" x="-1.3" y="2.32" width="2.6" height=".68" rx=".22"/>
+      <rect data-s="e" x="-1.72" y=".1" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="f" x="-1.72" y="-2.72" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="g" x="-1.3" y="-.34" width="2.6" height=".68" rx=".22"/>
+    </g>
+      <circle class="shotcd-glint" cx="16" cy="14.8" r="4.7"/>
+    </g>
+
+    <!-- pixel: the 8-bit camera of the pixel theme's bar, redrawn at this
+         size on a 32 x 24 grid, framed the way that theme frames its vessels
+         (a dark outer step and the session's light colour inside it). The
+         lens is a square window and its ring is square, running out a step a
+         second with no slide; the digit is seven segments on the grid. -->
+    <g class="cdc cdc-pixel" transform="translate(0 1)" shape-rendering="crispEdges">
+      <rect x="3" y="3" width="6" height="3" fill="rgb(11,11,20)"/>
+      <rect x="11" y="2" width="10" height="4" fill="rgb(11,11,20)"/>
+      <rect x="0" y="5" width="32" height="19" fill="rgb(11,11,20)"/>
+      <rect x="4" y="4" width="4" height="2" fill="rgb(244,241,230)"/>
+      <rect class="cdc-step" x="1" y="6" width="30" height="17"/>
+      <rect x="2" y="7" width="28" height="15" fill="rgb(244,241,230)"/>
+      <rect class="cdc-step" x="12" y="3" width="8" height="4"/>
+      <rect x="13" y="4" width="6" height="3" fill="rgb(244,241,230)"/>
+      <rect x="2" y="14" width="28" height="8" fill="rgb(217,211,194)"/>
+      <rect x="2" y="14" width="28" height="1" fill="rgb(251,250,246)"/>
+      <rect x="4" y="9" width="5" height="3" fill="rgb(11,11,20)"/>
+      <rect class="shotcd-lamp" x="5" y="10" width="3" height="1"/>
+      <rect x="10" y="9" width="12" height="12" fill="rgb(11,11,20)"/>
+      <path class="shotcd-ring" data-len="36" d="M16 10.5H20.5V19.5H11.5V10.5H16"/>
+      <rect x="12" y="11" width="8" height="8" fill="rgb(26,28,44)"/>
+      <g class="cdc-grid">
+        <rect data-s="a" x="14" y="12" width="4" height="1"/>
+        <rect data-s="g" x="14" y="15" width="4" height="1"/>
+        <rect data-s="d" x="14" y="18" width="4" height="1"/>
+        <rect data-s="f" x="14" y="12" width="1" height="4"/>
+        <rect data-s="b" x="17" y="12" width="1" height="4"/>
+        <rect data-s="e" x="14" y="15" width="1" height="4"/>
+        <rect data-s="c" x="17" y="15" width="1" height="4"/>
+      </g>
+      <rect class="shotcd-glint" x="12" y="11" width="8" height="8"/>
+    </g>
+
+    <!-- sky: the celestial theme's camera — the product's silhouette filled
+         with the sky its vessels hold (the navy, the violet nebula in the same
+         corner, one star), edged in the session's light colour the way its
+         bar camera is. No leather: it is a window, not a body. -->
+    <g class="cdc cdc-sky">
+      <rect class="cdc-edge" x="4.2" y="2.9" width="4.2" height="3.2" rx=".9" fill="url(#cdSky)" stroke-width="1.2" paint-order="stroke"/>
+      <path class="cdc-edge" d="M12.2 2.4h7.6l1.7 2.8h7a2 2 0 0 1 2 2v15.3a2 2 0 0 1-2 2H3.5a2 2 0 0 1-2-2V7.2a2 2 0 0 1 2-2h7z" fill="url(#cdSky)" stroke-width="1.5" stroke-linejoin="round" paint-order="stroke"/>
+      <g clip-path="url(#cdBody)">
+        <rect x="0" y="0" width="32" height="26" fill="url(#cdNebula)"/>
+        <circle cx="26.2" cy="8.2" r=".7" fill="rgb(255,248,226)"/>
+      </g>
+      <rect class="shotcd-lamp" x="4" y="6.9" width="3.6" height="1.9" rx=".8"/>
+      <circle cx="16" cy="14.8" r="6.35" fill="rgb(243,236,216)"/>
+      <circle cx="16" cy="14.8" r="5.8" fill="rgb(26,21,48)"/>
+      <circle class="shotcd-ring" data-len="32.673" cx="16" cy="14.8" r="5.2" transform="rotate(-90 16 14.8)"/>
+      <circle cx="16" cy="14.8" r="4.7" fill="url(#cdSky)"/>
+      <text class="shotcd-num" x="16" y="15" text-anchor="middle" dominant-baseline="central"></text>
+  <g class="shotcd-seg" transform="translate(16 14.8) skewX(-7)">
+      <rect data-s="a" x="-1.3" y="-3" width="2.6" height=".68" rx=".22"/>
+      <rect data-s="b" x="1.04" y="-2.72" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="c" x="1.04" y=".1" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="d" x="-1.3" y="2.32" width="2.6" height=".68" rx=".22"/>
+      <rect data-s="e" x="-1.72" y=".1" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="f" x="-1.72" y="-2.72" width=".68" height="2.62" rx=".22"/>
+      <rect data-s="g" x="-1.3" y="-.34" width="2.6" height=".68" rx=".22"/>
+    </g>
+      <circle class="shotcd-glint" cx="16" cy="14.8" r="4.7"/>
+    </g>
+  </svg>
+</div>
+
 <!-- The goal bar's twin: the liquid the viewers filled, emptying over the
      party. The seconds are a number and a stopwatch, not a word: nothing here
      needs translating but the one line under it. -->
@@ -2417,7 +2695,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-646e27dc2e83";
+  var BUILD = "sp-3900eb258339";
   /* @end build */
 
   /**
@@ -5808,7 +6086,7 @@
     stampShot: "on", stampSave: "datetime", glass: "clear", scenes: "",
     gateSet: "", testUntil: "", theme: "liquid", pack: "",
     packSlots: "", discordWebhook: "", discordHook: "", discordSet: "",
-    discordSheet: "0", discordPaid: "0"
+    discordSheet: "0", discordPaid: "0", cdPlace: "center"
   };
   /* @end config-defaults */
 
@@ -7336,6 +7614,10 @@
   // see flush(). A count rather than a flag so a path that ever sends two knows
   // it, instead of the first answer clearing the second's guard.
   var shooting = 0;
+  // The bought photograph being counted down to (65-shot-countdown.js), from
+  // the first number until zero. While it is here it holds the paid seat the
+  // way pendingPaid does: another paid window waits in heldShots behind it.
+  var shotCount = null;        // { people, paid, ignition }
   var ignitionShot = null;     // the frame that lit the party, held for the sheet
   var ignitionPaid = false;    // ...and whether it was bought, which the sheet ranks by
 
@@ -7375,8 +7657,20 @@
     // of its own — a whole one, starting when the current capture happens. OBS
     // blocks on every capture, and asking twice in a row is what stops a
     // broadcast (CLAUDE.md), so this must never turn into a burst.
-    if (extra && extra.paid && pendingPaid) {
+    //
+    // A count on screen holds the seat too: its photograph is still to be
+    // taken, and one bought after it must not be taken first — nor, above all,
+    // start a second 3-2-1 over the first (docs/countdown-plan.md §3.4).
+    if (extra && extra.paid && (pendingPaid || shotCount)) {
       heldShots.push({ people: n || 1, paid: extra.paid, ignition: extra.ignition || null });
+      return;
+    }
+    // Counted down to (docs/countdown-plan.md): the whole window waits for
+    // zero — this purchase, the presses the EBS counted with it, and the
+    // ignition when it is the last hit's own photograph. Free presses that
+    // arrive meanwhile are not held (§3.4); they come in their own windows.
+    if (countsDown(extra)) {
+      beginShotCount({ people: n || 1, paid: extra.paid, ignition: extra.ignition || null });
       return;
     }
     pending += n || 1;
@@ -7387,6 +7681,35 @@
       if (extra.ignition) pendingIgnition = extra.ignition;
     }
     if (dedupeTimer === null) dedupeTimer = setTimeout(flush, DEDUPE_MS);
+  }
+
+  /** Whether this window is one the EBS asked to be counted down to. */
+  function countsDown(w) {
+    return !!(w && w.paid && !BAR_ONLY && (cdCount(w.paid) || leadCount(w.ignition)));
+  }
+
+  /**
+   * Count a bought photograph down, then take it.
+   *
+   * At zero it goes in as an ordinary window, at once rather than after
+   * another 150ms: the number said "now". The capture itself is flush()'s, so
+   * everything that can refuse a photograph — a scene switched away, OBS gone,
+   * the shutter stopped — refuses it there and settles it (§3.1). A last hit's
+   * ignition rides with it, so LAST HIT goes up as the photograph is taken,
+   * which is the moment the EBS's clock has it (lib.js partyPhase, the lead).
+   */
+  function beginShotCount(w) {
+    shotCount = w;
+    setShotCounting(true);
+    playShotCount(cdCount(w.paid) || leadCount(w.ignition), bitsTone(w.paid.bits), function () {
+      shotCount = null;
+      setShotCounting(false);
+      pending += w.people;
+      pendingPaid = w.paid;
+      if (w.ignition) pendingIgnition = w.ignition;
+      clearTimeout(dedupeTimer);
+      dedupeTimer = setTimeout(flush, 0);
+    });
   }
 
   /* The two requests that photograph the SCENE for a press go through here, so
@@ -7432,12 +7755,20 @@
     // Whatever had to stand aside becomes the next window, one full DEDUPE_MS
     // from this capture. Set up before the exits below: a window that turns out
     // to be uncapturable must not take the ones queued behind it with it.
-    if (heldShots.length) {
+    //
+    // Not while a count is on screen: whatever is held is paid, and it waits
+    // for that photograph to be taken. The count's own zero calls flush(),
+    // which takes the next one from here.
+    if (heldShots.length && !shotCount) {
       var next = heldShots.shift();
-      pending = next.people;
-      pendingPaid = next.paid;
-      pendingIgnition = next.ignition;
-      dedupeTimer = setTimeout(flush, DEDUPE_MS);
+      if (countsDown(next)) {
+        beginShotCount(next);
+      } else {
+        pending = next.people;
+        pendingPaid = next.paid;
+        pendingIgnition = next.ignition;
+        dedupeTimer = setTimeout(flush, DEDUPE_MS);
+      }
     }
 
     if (people <= 0) { settlePaidShot(paid); return; }
@@ -9471,6 +9802,231 @@
     discordPrune();
   }
 
+  /* ================= the 3-2-1 before a bought photograph =================
+
+     docs/countdown-plan.md. The EBS decides which purchases are counted down
+     to — the broadcaster's setting for the amount, the viewer's switch, the
+     phase, and whether every overlay attached can count (§1.2, §3.5) — and
+     says so with paid.cd on the shot, or with a lead on the last hit's
+     ignition (§1.6). This file only plays the count. What happens at zero is
+     60-capture.js's: the photograph is taken the way any other is, and every
+     reason it may not be taken is asked then, not now (§3.1).
+
+     Two promises, both kept here:
+
+       - Once started, it runs to zero. A number that vanished half way would
+         look, to the person who paid, like a purchase taken back (§3.1).
+         Nothing here can stop it; what cannot be photographed at zero is
+         settled by the capture, as it always was.
+       - While it runs, the EBS is told there is no room for another bought
+         photograph (§3.4). The EBS already holds the next one back by its own
+         clock; this is the second of the two locks, and the overlay's own
+         queue (heldShots) is the third. */
+
+  var elShotCd = document.getElementById("shotCd");
+  var elShotCdNum = document.getElementById("shotCdNum");
+  var elShotCdCam = document.getElementById("shotCdCam");
+  // Every drawing has its own ring, digit and glint (shell.html: round,
+  // pixel, sky); all of them are kept in step and the stylesheet shows one.
+  var elShotCdRings = elShotCd.querySelectorAll(".shotcd-ring");
+  var elShotCdNums = elShotCd.querySelectorAll(".shotcd-num");
+  var elShotCdGlints = elShotCd.querySelectorAll(".shotcd-glint");
+  var elShotCdSegs = elShotCd.querySelectorAll("rect[data-s]");
+  var CD_CAMERAS = ["round", "pixel", "sky"];
+  // The lens light at zero, kept so the next count can put it out: a count
+  // can begin in the same turn the last one reached zero (flush takes the
+  // next held photograph at once), and a 380ms light left running would
+  // shine through that count's first number.
+  var cdGlintAnims = [];
+  function stopCdGlint() {
+    for (var i = 0; i < cdGlintAnims.length; i++) cdGlintAnims[i].cancel();
+    cdGlintAnims = [];
+  }
+
+  // Each ring as a dash the length of its own outline (data-len, shell.html).
+  for (var ri = 0; ri < elShotCdRings.length; ri++) {
+    elShotCdRings[ri].setAttribute("stroke-dasharray", elShotCdRings[ri].getAttribute("data-len"));
+  }
+
+  // Which of the seven segments are lit for each digit, a to g clockwise from
+  // the top and g across the middle, the way a camera's display names them.
+  var CD_LIT = { 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abcdfg" };
+
+  // The nine places the broadcaster can choose on the setup page (§1.4): the
+  // corners, the middle of each edge, and the centre.
+  var CD_PLACES = ["center", "tl", "tc", "tr", "ml", "mr", "bl", "bc", "br"];
+  var cdPlace = "center";
+  var shotCdTimer = null;
+
+  /* Whether a count is on screen now. Reported, never assigned directly: the
+   * state message is what carries it to the EBS (reportOverlayState, the same
+   * way setPaidWallRoom() works), and a bare assignment would never leave this
+   * page. */
+  var shotCounting = false;
+  function setShotCounting(on) {
+    on = !!on;
+    if (on === shotCounting) return;
+    shotCounting = on;
+    reportOverlayState();
+  }
+
+  function applyCdPlace(p) {
+    cdPlace = CD_PLACES.indexOf(p) >= 0 ? p : "center";
+    cfg.cdPlace = cdPlace;
+    elShotCd.setAttribute("data-place", cdPlace);
+    // A bottom corner's height is written inline; moved to the top or the
+    // centre, it has to go, or it holds the number where the old place put it.
+    placeShotCount();
+  }
+
+  /**
+   * How far to count for a bought photograph, as the EBS said it: 1 to 9, or
+   * nothing. The EBS sends 3 or 5, the broadcaster's choice (cdMs,
+   * docs/countdown-plan.md §5.1); the range is what keeps a number
+   * off the wire from holding the shutter for a minute.
+   */
+  function cdCount(paid) {
+    var n = Number(paid && paid.cd);
+    return n >= 1 && n <= 9 && Math.floor(n) === n ? n : 0;
+  }
+
+  /** The same for the last hit's lead, which arrives as milliseconds on its timeline. */
+  function leadCount(ign) {
+    var ms = Number(ign && ign.timeline && ign.timeline.leadMs);
+    return ms > 0 && ms <= TIMELINE_RANGE.leadMs.max ? Math.max(1, Math.round(ms / 1000)) : 0;
+  }
+
+  /* The bottom corners sit above the pile of free photographs, which lies
+   * along the bottom edge (85-display.js layoutStack) — above it, not beside
+   * it, because the pile runs sideways from the corner (§1.4). The pile's
+   * height is only known once a print has stood in it; before that, the
+   * stylesheet's own value stands.
+   *
+   * Placed again whenever the pile is laid out and whenever the frame changes
+   * size (layoutStack, the resize handler), not only when a count begins: five
+   * seconds is long enough for a free print to land in the pile, or for the
+   * source to be resized, and a height worked out at the start would then sit
+   * inside the pile or outside the band. */
+  function placeShotCount() {
+    // The bottom edge's three places, the middle one too: the pile runs
+    // sideways from its corner and can reach the middle of a narrow frame.
+    var low = cdPlace === "bl" || cdPlace === "bc" || cdPlace === "br";
+    var top = low ? pileTop() : 0;
+    elShotCd.style.bottom = low && top > 0 ? Math.round(H - top + H * 0.02) + "px" : "";
+  }
+
+  /** The digit in the lens, as text and — for a theme that asks — as segments. */
+  function showCdDigit(n) {
+    for (var i0 = 0; i0 < elShotCdNums.length; i0++) elShotCdNums[i0].textContent = n ? String(n) : "";
+    var lit = CD_LIT[n] || "";
+    for (var i = 0; i < elShotCdSegs.length; i++) {
+      var on = lit.indexOf(elShotCdSegs[i].getAttribute("data-s")) !== -1;
+      elShotCdSegs[i].setAttribute("class", on ? "lit" : "");
+    }
+  }
+
+  /**
+   * Dress the camera for the theme and the palette as they stand now.
+   *
+   * At the start of every count, and again whenever the theme or the palette
+   * changes (applyTheme, applyAccent) — the setup page's sample changes both
+   * under a running page, and a count is five seconds long. What is running
+   * is left alone: the digit, the ring's remaining length, the lamp's speed
+   * and the timer carry on where they are (§3.1: once started, it runs to
+   * zero); only the drawing and its colours change.
+   *
+   * The body of the product's own camera wears the theme's camera colour:
+   * whatever the theme gave the bar's camera (.g-cam, a colour it may set),
+   * so the two cameras on the screen are one object (本人 2026-09-25). Read
+   * off the element rather than restated here, so a theme says it once. The
+   * ring stays the amount's. The other two drawings take their colours from
+   * the session's variables in the stylesheet, so they follow on their own.
+   */
+  function dressShotCount() {
+    var themeCam = document.querySelector(".bitsbar .g-cam");
+    elShotCdCam.style.color = themeCam ? getComputedStyle(themeCam).color : "";
+    var rootStyle = getComputedStyle(document.documentElement);
+    var seg = String(rootStyle.getPropertyValue("--cd-digits")).trim() === "seg";
+    elShotCd.setAttribute("data-digits", seg ? "seg" : "text");
+    var camera = String(rootStyle.getPropertyValue("--cd-camera")).trim();
+    elShotCd.setAttribute("data-camera", CD_CAMERAS.indexOf(camera) >= 0 ? camera : "round");
+  }
+
+  /** How much of the ring is left: all of it at the start, none at zero. */
+  function setCdRing(left, total, now) {
+    for (var i = 0; i < elShotCdRings.length; i++) {
+      var ring = elShotCdRings[i];
+      if (now) ring.style.transition = "none";
+      ring.style.strokeDashoffset = String(Number(ring.getAttribute("data-len")) * (1 - left / total));
+    }
+    if (now) {
+      // Settled at full before the first step runs out, or it would slide
+      // back up from wherever the last count left it.
+      void elShotCdCam.getBoundingClientRect();
+      for (var j = 0; j < elShotCdRings.length; j++) elShotCdRings[j].style.transition = "";
+    }
+  }
+
+  /**
+   * Show n, n-1 … 1, a second each, then call done() at zero.
+   *
+   * One at a time, and the callers keep it so: beginShotCount() is reached
+   * only while nothing is being counted (60-capture.js: requestShot holds a
+   * purchase that arrives during a count, and flush takes the held one only
+   * once it is over), and the sample's own count only on the sample and only
+   * when none is running. Starting a second over the first would drop the
+   * first one's done() — its zero, and its photograph
+   * (tools/overlay-invariants.mjs holds the callers to this).
+   *
+   * `tone` is the amount's step (bitsTone), which is the colour of the ring
+   * round the lens: what money buys is shown in the amount's colour everywhere
+   * on this page. The body is the theme's camera colour.
+   */
+  function playShotCount(n, tone, done) {
+    clearTimeout(shotCdTimer);
+    stopCdGlint();
+    var total = n;
+    elShotCd.style.setProperty("--glow-rgb", "var(--b" + (tone || BITS_STEPS[0]) + ")");
+    dressShotCount();
+    setCdRing(total, total, true);
+    placeShotCount();
+    elShotCd.classList.add("on");
+    (function tick() {
+      if (n <= 0) {
+        elShotCd.classList.remove("on");
+        elShotCd.removeAttribute("data-n");
+        // Empty, so the page's text says nothing is on screen once it is not.
+        showCdDigit(0);
+        // The lens lights once: the shutter. A small area, so outside the
+        // full-frame rule (§4.6).
+        for (var gi = 0; gi < elShotCdGlints.length; gi++) {
+          if (reduceMotion || !elShotCdGlints[gi].animate) break;
+          cdGlintAnims.push(elShotCdGlints[gi].animate([{ opacity: 0 }, { opacity: .95, offset: .18 }, { opacity: 0 }],
+            { duration: 380, easing: "ease-out" }));
+        }
+        shotCdTimer = null;
+        done();
+        return;
+      }
+      showCdDigit(n);
+      // The lamp in the corner speeds up on the last two (shell.html).
+      elShotCd.setAttribute("data-n", String(n));
+      setCdRing(n - 1, total, false);
+      // The party's own tick (runCountdown), one per number. Nothing at zero:
+      // the shutter sounds there, as it does for every photograph. Heard
+      // through OBS, never in the extension (CLAUDE.md), and muted with the
+      // rest of this page's sound.
+      blip(720, 0.13, 0.34);
+      // The digit changes the way a camera's counter does: it comes up and
+      // stays, with no spring. The ring and the lamp carry the motion.
+      for (var ni = 0; ni < elShotCdNums.length; ni++) {
+        if (reduceMotion || !elShotCdNums[ni].animate) break;
+        elShotCdNums[ni].animate([{ opacity: .15 }, { opacity: 1, offset: .14 }, { opacity: 1 }], { duration: 950 });
+      }
+      n--;
+      shotCdTimer = setTimeout(tick, 1000);
+    })();
+  }
   /* ================= effects =================
 
      Ported from docs/prototype/overlay.html, which is where these numbers were
@@ -9527,6 +10083,9 @@
   window.addEventListener("resize", function () {
     measure();
     if (stack.length) layoutStack();
+    // Its height is in pixels of the old frame; with no pile to lay out,
+    // layoutStack() is not there to move it.
+    placeShotCount();
     // The wall and the free seat are placed from W, H and the band, and neither
     // had a way back: layoutPaid() ran only when a print entered or left, and
     // the free seat's transform was written once on the way in. A browser
@@ -9836,6 +10395,8 @@
     cfg.accent = name;
     document.documentElement.setAttribute("data-accent", name);
     saveCfg(cfg);
+    // A count on screen wears the palette too (65-shot-countdown.js).
+    dressShotCount();
   }
 
   /**
@@ -9875,6 +10436,9 @@
     cfg.pack = p ? p.name : "";
     cfg.packSlots = p ? Object.keys(p.slots).map(function (s) { return p.slots[s]; }).join(",") : "";
     saveCfg(cfg);
+    // A count on screen changes drawing with the theme, and keeps counting
+    // (65-shot-countdown.js).
+    dressShotCount();
     loadPack(p, function () {
       paintIcons();
       paintGlass();
@@ -10346,6 +10910,16 @@
     }
   }
 
+  /* How tall the pile stands, as last laid out. Kept when the pile empties, so
+   * a count placed above it (65-shot-countdown.js) does not drop to the floor
+   * between two prints. 0 until the first print. */
+  var pileH = 0;
+
+  /** The top of the pile, in pixels from the top of the frame; 0 before the first print. */
+  function pileTop() {
+    return pileH ? H - (safeBottom() + H * 0.035) - pileH : 0;
+  }
+
   function layoutStack() {
     // The pile sits on the floor of the band, not the floor of the frame: on a
     // vertical canvas the bottom of the picture is behind Twitch's own chrome
@@ -10356,6 +10930,8 @@
       var h0 = it.el.offsetHeight || it.hh;
       it.hh = h0;
       var vw = it.w * SCALE, vh = h0 * SCALE;
+      if (i === 0) pileH = 0;
+      pileH = Math.max(pileH, vh);
       var vx = stackSide === "br"
         ? W - padX - vw - i * (vw * STEP)
         : padX + i * (vw * STEP);
@@ -10382,6 +10958,8 @@
         { duration: 460, easing: "cubic-bezier(.42,0,.18,1)", fill: "forwards" });
       it.cur = to;
     }
+    // A count in a bottom corner stands on the pile, so it moves with it.
+    placeShotCount();
   }
 
   function dropCard(it) {
@@ -11218,9 +11796,13 @@
     // longest photo residence (quiet: 8.8s) so visible paid photos can cycle
     // off the wall while the EBS and overlay still share smaller valid drains.
     drainMaxMs:  { def: 40000, min: 8800, max: 120000 },
-    sheetMs:     { def: 5000,  min: 1000, max: 15000 }
+    sheetMs:     { def: 5000,  min: 1000, max: 15000 },
+    // The 3-2-1 before the last hit's own photograph, in front of everything
+    // else (docs/countdown-plan.md §1.6). Zero unless that purchase was counted
+    // down to; the EBS sends 5000 or nothing, and anything outside is zero.
+    leadMs:      { def: 0,     min: 0,    max: 5000 }
   };
-  var TIMELINE = { lastHitMs: 3000, countdownMs: 3000, partyMs: 20000, drainMaxMs: 40000, sheetMs: 5000 };
+  var TIMELINE = { lastHitMs: 3000, countdownMs: 3000, partyMs: 20000, drainMaxMs: 40000, sheetMs: 5000, leadMs: 0 };
 
   /**
    * Take a timeline from the EBS one field at a time.
@@ -11309,9 +11891,34 @@
     // as long as the party they set.
     if (ign) applyTimeline(ign.timeline);
     barClearParty();
-    var opensIn = TIMELINE.lastHitMs + TIMELINE.countdownMs;
+    // The lead too: this message comes when the last hit's count starts, and
+    // the overlay only puts LAST HIT up when it reaches zero (60-capture.js).
+    barHideFor(TIMELINE.leadMs + TIMELINE.lastHitMs + TIMELINE.countdownMs);
+  }
+
+  function barHideFor(opensIn) {
     barPartyTimers.push(setTimeout(function () { barParty = true; updateBar(); }, opensIn));
     barPartyTimers.push(setTimeout(function () { barParty = false; updateBar(); }, opensIn + TIMELINE.partyMs));
+  }
+
+  /**
+   * The same schedule for a bar source that connects after the ignition went
+   * by — reloaded during the lead, the name or the 3-2-1. The hello carries no
+   * ignition and its openMs is 0 until the party opens, so without this the
+   * strip stayed up through the whole party. What is left is the rest of the
+   * current segment (remainMs) and every segment after it, from the timeline
+   * the hello has just applied. A party already open is resumeParty()'s.
+   */
+  function barRejoin(m) {
+    if (!BAR_ONLY || !m) return;
+    var left = Math.max(0, Number(m.remainMs) || 0);
+    var opensIn =
+      m.phase === "lead"      ? left + TIMELINE.lastHitMs + TIMELINE.countdownMs :
+      m.phase === "lasthit"   ? left + TIMELINE.countdownMs :
+      m.phase === "countdown" ? left : -1;
+    if (opensIn < 0) return;
+    barClearParty();
+    barHideFor(opensIn);
   }
 
   /* What the strip last drew, so a rise can be told apart from a redraw. */
@@ -12099,6 +12706,8 @@
         // openMs, not remainMs — the latter ends the current phase rather than the
         // party, and would take the banner away seconds after putting it up.
         if (m.openMs > 0) resumeParty(Number(m.openMs) || 0);
+        // Before it opens, the bar source still has to get out of its way.
+        else barRejoin(m);
       } else if (m.type === "shoot") {
         // A scene can close while a press is in flight, and by the time this
         // arrives the EBS has already moved the bar and may have spent the goal
@@ -12228,7 +12837,10 @@
         kind: BAR_ONLY ? "bar" : "overlay",
         connected: BAR_ONLY ? false : identified,
         source: cfg.src, captureReady: BAR_ONLY ? false : captureOk,
-        wallRoom: BAR_ONLY ? true : paidWallRoom,
+        // No room while a bought photograph is being counted down to, whatever
+        // the wall says (docs/countdown-plan.md §3.4): its print has not
+        // arrived yet, and another would start a second count over it.
+        wallRoom: BAR_ONLY ? true : (paidWallRoom && !shotCounting),
         draining: BAR_ONLY ? false : paidDraining,
         // Reported, not decided here: the EBS is what refuses a press
         // (CLAUDE.md). This is a fact about the machine, like the other three.
@@ -12251,7 +12863,13 @@
         // that actually happen — a cache that answered with the old file, and
         // an accidental edit.
         build: BUILD,
-        staleCache: buildMismatch()
+        staleCache: buildMismatch(),
+        // What this page can play, declared rather than read off BUILD by the
+        // EBS: "cd" is the 3-2-1 before a bought photograph and the last
+        // hit's lead (docs/countdown-plan.md §3.5). Until every overlay that
+        // would take a photograph says it, the EBS counts nothing down. A bar
+        // takes no photograph and says nothing.
+        caps: BAR_ONLY ? [] : ["cd"]
       }));
     } catch (e) { /* the link is optional; local capture still works */ }
   }
@@ -12413,12 +13031,35 @@
     ignite({ name: DEMO_NAMES[0], timeline: null });
   }
 
+  /* One count, where the broadcaster put it, and then the photograph it was
+   * counting to (docs/countdown-plan.md §1.5). The count is the one the air
+   * plays (playShotCount); only the photograph is the sample's own, as every
+   * print here is. One at a time: a second request while it runs is dropped,
+   * which is what "once more" should mean.
+   *
+   * Five seconds and a 500 Bits frame unless the message says otherwise: the
+   * length the channel chose (3 or 5, §5.1) and an amount from the catalogue
+   * can be asked for, so both lengths and every colour can be looked at. Held
+   * to what the air takes — a length cdCount() accepts, a price that is a step
+   * of the ladder — and anything else is the default. */
+  var demoCounting = false;
+  function demoCountdown(n, bits) {
+    if (demoCounting) return;
+    var count = cdCount({ cd: n }) || 5;
+    var price = BITS_STEPS.indexOf(Number(bits)) >= 0 ? Number(bits) : 500;
+    demoCounting = true;
+    playShotCount(count, bitsTone(price), function () {
+      demoCounting = false;
+      demoPress(price);
+    });
+  }
+
   /* What the setup page is allowed to say.
    *
    * Only the four look settings and the language, and each is handed to the
    * same apply* the real page uses. Nothing here reads the message as a
    * command: a fragment cannot arrive and turn into a connection, because the
-   * only verbs are "party" and "stop".
+   * only verbs are "party", "stop" and "countdown".
    *
    * The origin is not checked, and cannot be: both pages are file://, which is
    * an opaque origin — every message arrives from "null" (measured). That is
@@ -12430,6 +13071,10 @@
     if (!m || m.to !== "shutterparty-demo") return;
     if (m.act === "party") { demoParty(); return; }
     if (m.act === "stop") { stopDemoLoop(); return; }
+    // The sample's count only. On the air a count belongs to a purchase, and
+    // playShotCount() holds one at a time: a message starting another over a
+    // bought one would take that purchase's zero, and its photograph, with it.
+    if (m.act === "countdown") { if (DEMO) demoCountdown(m.n, m.bits); return; }
     /* The theme site's pictures, for the skins and nothing else.
      *
      * Only the sample takes them: a page that is not #demo is the real overlay
@@ -12451,6 +13096,7 @@
     if (typeof m.preset === "string") applyPreset(m.preset);
     if (typeof m.accent === "string") applyAccent(m.accent);
     if (typeof m.place === "string") applyPlace(m.place);
+    if (typeof m.cdPlace === "string") applyCdPlace(m.cdPlace);
     if (typeof m.scale === "string") applyScale(m.scale);
     // Straight onto cfg: the clock is read at the moment a caption is
     // built, so the next press comes out with it or without it.
@@ -12519,6 +13165,7 @@
   applyAccent(cfg.accent);
   applyScale(cfg.scale);
   applyPlace(cfg.place);
+  applyCdPlace(cfg.cdPlace);
   applyGlass(cfg.glass);
   applyTheme(cfg.theme, cfg.pack, cfg.packSlots);
   updateBar();            // hidden until the EBS says what the goal is
