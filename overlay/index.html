@@ -2329,9 +2329,79 @@
   /* The middle of a side is the middle of the room the band leaves. */
   .shotcd[data-place="ml"] { top: calc(var(--safe-top, 0%) + (100% - var(--safe-top, 0%) - var(--safe-bottom, 0%)) / 2); left: 5%; transform: translateY(-50%); }
   .shotcd[data-place="mr"] { top: calc(var(--safe-top, 0%) + (100% - var(--safe-top, 0%) - var(--safe-bottom, 0%)) / 2); right: 5%; transform: translateY(-50%); }
-  .shotcd[data-place="bl"] { bottom: calc(var(--safe-bottom, 0%) + 36%); left: 5%; }
-  .shotcd[data-place="bc"] { bottom: calc(var(--safe-bottom, 0%) + 36%); left: 50%; transform: translateX(-50%); }
-  .shotcd[data-place="br"] { bottom: calc(var(--safe-bottom, 0%) + 36%); right: 5%; }
+  .shotcd[data-place="bl"] { bottom: calc(var(--safe-bottom, 0%) + 36% + var(--cd-name-room) * var(--u)); left: 5%; }
+  .shotcd[data-place="bc"] { bottom: calc(var(--safe-bottom, 0%) + 36% + var(--cd-name-room) * var(--u)); left: 50%; transform: translateX(-50%); }
+  .shotcd[data-place="br"] { bottom: calc(var(--safe-bottom, 0%) + 36% + var(--cd-name-room) * var(--u)); right: 5%; }
+
+  /* ---- whose photograph it is (docs/countdown-name-plan.md) ----
+
+     The buyer's name, on one line under the camera. Out of flow, so the
+     camera stays where its place puts it with a name or without one; the
+     bottom three places are lifted by --cd-name-room instead (above, and
+     placeShotCount()), always, so a nameless purchase is counted down to at
+     the same height as a named one.
+
+     Glass, like the goal bar's tube — but tinted, where the tube is clear:
+     OBS cannot blur what is behind a browser source, and a name has to be
+     read over whatever the broadcast is showing. The rim is the tube's.
+
+     Toward the frame from the edges: a long name centred under a camera in a
+     corner would run off the side (5% of the frame is all there is).
+
+     The size is the script's (fitShotName): 40u, stepped down to 28u for a
+     name too wide for 720u, and an ellipsis only past that. */
+  .shotcd { --cd-name-room: 75; }
+  .shotcd-box { position: relative; }
+  .shotcd-name {
+    position: absolute;
+    top: calc(100% + 10 * var(--u));
+    left: 50%;
+    transform: translateX(-50%);
+    box-sizing: content-box;
+    max-width: calc(720 * var(--u));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: calc(40 * var(--u));
+    line-height: 1.25;
+    color: #fbfaf6;
+    padding: calc(7 * var(--u)) calc(22 * var(--u)) calc(8 * var(--u));
+    border-radius: 999px;
+    /* .62, not the mock’s .5: over a white scene .5 left the name at about
+       3.4:1 against its own ground (OBS, 2026-10-02); this is 4.9:1. */
+    background: rgba(20,17,14,.62);
+    box-shadow:
+      inset 0 0 0 calc(1.5 * var(--u)) rgba(255,255,255,.3),
+      0 calc(3 * var(--u)) calc(3.5 * var(--u)) rgba(0,0,0,.34);
+  }
+  .shotcd-name[hidden] { display: none; }
+  .shotcd[data-place="tl"] .shotcd-name,
+  .shotcd[data-place="ml"] .shotcd-name,
+  .shotcd[data-place="bl"] .shotcd-name { left: 0; transform: none; }
+  .shotcd[data-place="tr"] .shotcd-name,
+  .shotcd[data-place="mr"] .shotcd-name,
+  .shotcd[data-place="br"] .shotcd-name { left: auto; right: 0; transform: none; }
+  /* pixel: the dark step and the session's light one, as its camera is framed. */
+  .shotcd[data-camera="pixel"] .shotcd-name {
+    margin-top: calc(4 * var(--u));
+    padding-inline: calc(18 * var(--u));
+    border-radius: 0;
+    color: rgb(244,241,230);
+    background: rgb(11,11,20);
+    box-shadow:
+      0 0 0 calc(4 * var(--u)) rgb(var(--acc-hi-rgb)),
+      calc(9 * var(--u)) calc(9 * var(--u)) 0 rgba(0,0,0,.45);
+  }
+  /* sky: the same sky its camera holds, edged the same way. */
+  .shotcd[data-camera="sky"] .shotcd-name {
+    color: rgb(255,248,226);
+    background: linear-gradient(135deg, rgb(7,10,30), rgb(36,22,64));
+    box-shadow:
+      inset 0 0 0 calc(1.5 * var(--u)) rgb(var(--acc-hi-rgb)),
+      0 calc(3 * var(--u)) calc(3.5 * var(--u)) rgba(0,0,0,.34);
+  }
 
   /* ---------- a vertical canvas: the safe band ----------
      Twitch's vertical view draws Twitch's own interface over the top of the
@@ -2481,6 +2551,11 @@
 <!-- The 3-2-1 before a bought photograph (65-shot-countdown.js). Empty
      whenever it is not counting, like every other vessel here. -->
 <div class="shotcd" id="shotCd" data-place="center" data-camera="round">
+  <!-- The camera, and under it whose photograph it is counting down to
+       (docs/countdown-name-plan.md). The box is the camera's own size and the
+       name hangs out of flow below it, so every place above still positions
+       the camera and a name never moves it. -->
+  <div class="shotcd-box">
   <svg class="shotcd-cam" id="shotCdCam" viewBox="0 0 32 26" aria-hidden="true">
     <defs>
       <clipPath id="cdBody"><path d="M12.2 2.4h7.6l1.7 2.8h7a2 2 0 0 1 2 2v15.3a2 2 0 0 1-2 2H3.5a2 2 0 0 1-2-2V7.2a2 2 0 0 1 2-2h7z"/></clipPath>
@@ -2605,6 +2680,8 @@
       <circle class="shotcd-glint" cx="16" cy="14.8" r="4.7"/>
     </g>
   </svg>
+  <div class="shotcd-name" id="shotCdName" hidden></div>
+  </div>
 </div>
 
 <!-- The goal bar's twin: the liquid the viewers filled, emptying over the
@@ -2695,7 +2772,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-3900eb258339";
+  var BUILD = "sp-6c6868fffbcd";
   /* @end build */
 
   /**
@@ -7701,7 +7778,7 @@
   function beginShotCount(w) {
     shotCount = w;
     setShotCounting(true);
-    playShotCount(cdCount(w.paid) || leadCount(w.ignition), bitsTone(w.paid.bits), function () {
+    playShotCount(cdCount(w.paid) || leadCount(w.ignition), bitsTone(w.paid.bits), w.paid.name || "", function () {
       shotCount = null;
       setShotCounting(false);
       pending += w.people;
@@ -9826,6 +9903,7 @@
   var elShotCd = document.getElementById("shotCd");
   var elShotCdNum = document.getElementById("shotCdNum");
   var elShotCdCam = document.getElementById("shotCdCam");
+  var elShotCdName = document.getElementById("shotCdName");
   // Every drawing has its own ring, digit and glint (shell.html: round,
   // pixel, sky); all of them are kept in step and the stylesheet shows one.
   var elShotCdRings = elShotCd.querySelectorAll(".shotcd-ring");
@@ -9912,7 +9990,60 @@
     // sideways from its corner and can reach the middle of a narrow frame.
     var low = cdPlace === "bl" || cdPlace === "bc" || cdPlace === "br";
     var top = low ? pileTop() : 0;
-    elShotCd.style.bottom = low && top > 0 ? Math.round(H - top + H * 0.02) + "px" : "";
+    // And above the name's row, which hangs under the camera out of flow:
+    // the room is added here and nowhere else, name or no name
+    // (docs/countdown-name-plan.md §2.2; the stylesheet's own value carries
+    // the same room before the first print).
+    elShotCd.style.bottom = low && top > 0 ? Math.round(H - top + H * 0.02 + CD_NAME_ROOM * cdUnit()) + "px" : "";
+  }
+
+  /* ---- whose photograph it is (docs/countdown-name-plan.md) ----
+   *
+   * The name the EBS sent with the purchase, shown under the camera for as
+   * long as the count runs and gone at zero — the same name that goes on the
+   * print that follows. A purchase that hid its name shows nothing at all:
+   * the element is taken out, not emptied, or its glass would stand there
+   * with nothing in it.
+   *
+   * The numbers are the plan's (§3.3), measured in the faces the themes use:
+   * 40u, stepped down to no less than 28u for a name wider than 720u, and an
+   * ellipsis (the stylesheet's) only when the floor is still too wide. The
+   * EBS cuts a name at 25 characters, and at these numbers 25 of the widest
+   * letters fit without one. Measured at the weight it is drawn in — 700,
+   * not the plate's 900 (fitPlateName), so the two do not share a function. */
+  var CD_NAME_BASE = 40, CD_NAME_FLOOR = 28, CD_NAME_MAX = 720;
+  // What the bottom three places are lifted by: the gap and the row (§2.2).
+  var CD_NAME_ROOM = 75;
+  var cdNameMeasure = document.createElement("canvas").getContext("2d");
+
+  /** One u of the count's own stylesheet, in pixels: the short side over 1080. */
+  function cdUnit() {
+    return Math.min(window.innerWidth, window.innerHeight) / 1080;
+  }
+
+  function fitShotName(name) {
+    var face = "700 100px " + getComputedStyle(elShotCdName).fontFamily;
+    cdNameMeasure.font = face;
+    var em = (cdNameMeasure.measureText(name).width || 1) / 100;
+    var size = Math.max(CD_NAME_FLOOR, Math.min(CD_NAME_BASE, Math.floor(CD_NAME_MAX / em)));
+    elShotCdName.style.fontSize = "calc(" + size + " * var(--u))";
+    // A face still on its way is measured as its fallback, which can be half
+    // as wide (the pixel face). It happens when the theme changes under a
+    // running count — the setup page's sample does that — so the name is
+    // fitted once more when the face has arrived, if it is still this name.
+    if (document.fonts && document.fonts.check && !document.fonts.check(face, name)) {
+      document.fonts.load(face, name).then(function () {
+        if (!elShotCdName.hidden && elShotCdName.textContent === name && document.fonts.check(face, name)) fitShotName(name);
+      }, function () {});
+    }
+  }
+
+  function showShotName(name) {
+    name = typeof name === "string" ? name : "";
+    // textContent, never innerHTML: this is a name a viewer chose.
+    elShotCdName.textContent = name;
+    elShotCdName.hidden = !name;
+    if (name) fitShotName(name);
   }
 
   /** The digit in the lens, as text and — for a theme that asks — as segments. */
@@ -9950,6 +10081,8 @@
     elShotCd.setAttribute("data-digits", seg ? "seg" : "text");
     var camera = String(rootStyle.getPropertyValue("--cd-camera")).trim();
     elShotCd.setAttribute("data-camera", CD_CAMERAS.indexOf(camera) >= 0 ? camera : "round");
+    // A theme changes the face, and the face is what the name was fitted in.
+    if (!elShotCdName.hidden) fitShotName(elShotCdName.textContent);
   }
 
   /** How much of the ring is left: all of it at the start, none at zero. */
@@ -9981,12 +10114,15 @@
    * `tone` is the amount's step (bitsTone), which is the colour of the ring
    * round the lens: what money buys is shown in the amount's colour everywhere
    * on this page. The body is the theme's camera colour.
+   *
+   * `name` is whose photograph it is, or "" for a purchase that hid it.
    */
-  function playShotCount(n, tone, done) {
+  function playShotCount(n, tone, name, done) {
     clearTimeout(shotCdTimer);
     stopCdGlint();
     var total = n;
     elShotCd.style.setProperty("--glow-rgb", "var(--b" + (tone || BITS_STEPS[0]) + ")");
+    showShotName(name);
     dressShotCount();
     setCdRing(total, total, true);
     placeShotCount();
@@ -9997,6 +10133,8 @@
         elShotCd.removeAttribute("data-n");
         // Empty, so the page's text says nothing is on screen once it is not.
         showCdDigit(0);
+        // The name with it: it is held for the count and no longer.
+        showShotName("");
         // The lens lights once: the shutter. A small area, so outside the
         // full-frame rule (§4.6).
         for (var gi = 0; gi < elShotCdGlints.length; gi++) {
@@ -12943,12 +13081,21 @@
    */
   var DEMO_GOAL = 1000;
 
-  /** One press, drawn the way a viewer's press is drawn. */
-  function demoPress(bits) {
+  /**
+   * One press, drawn the way a viewer's press is drawn.
+   *
+   * `name` is for the print that follows a sample count: the name that stood
+   * under the camera is the one on the print, as on the air. Without it the
+   * placeholders take turns.
+   */
+  function demoPress(bits, name) {
     var paid = null;
     if (bits) {
-      demoName = (demoName + 1) % DEMO_NAMES.length;
-      paid = { bits: bits, name: DEMO_NAMES[demoName] };
+      if (typeof name !== "string") {
+        demoName = (demoName + 1) % DEMO_NAMES.length;
+        name = DEMO_NAMES[demoName];
+      }
+      paid = { bits: bits, name: name };
       /* The bar takes the money, and drops it all when it crosses.
        *
        * Emptying rather than carrying the remainder over is the product's own
@@ -13043,14 +13190,27 @@
    * to what the air takes — a length cdCount() accepts, a price that is a step
    * of the ladder — and anything else is the default. */
   var demoCounting = false;
-  function demoCountdown(n, bits) {
+  function demoCountdown(n, bits, name) {
     if (demoCounting) return;
     var count = cdCount({ cd: n }) || 5;
     var price = BITS_STEPS.indexOf(Number(bits)) >= 0 ? Number(bits) : 500;
+    /* Whose it is (docs/countdown-name-plan.md 段 1). The message may name
+     * somebody — cut at the 25 characters the EBS cuts a real name at, and ""
+     * for a purchase that hid its name — so the longest name can be looked at
+     * in every place, and so tools/overlay-invariants.mjs can hold the fit to
+     * its numbers. Otherwise the next placeholder, the one the print that
+     * follows would have carried anyway. */
+    var who;
+    if (typeof name === "string") {
+      who = Array.from(name).slice(0, 25).join("");
+    } else {
+      demoName = (demoName + 1) % DEMO_NAMES.length;
+      who = DEMO_NAMES[demoName];
+    }
     demoCounting = true;
-    playShotCount(count, bitsTone(price), function () {
+    playShotCount(count, bitsTone(price), who, function () {
       demoCounting = false;
-      demoPress(price);
+      demoPress(price, who);
     });
   }
 
@@ -13074,7 +13234,7 @@
     // The sample's count only. On the air a count belongs to a purchase, and
     // playShotCount() holds one at a time: a message starting another over a
     // bought one would take that purchase's zero, and its photograph, with it.
-    if (m.act === "countdown") { if (DEMO) demoCountdown(m.n, m.bits); return; }
+    if (m.act === "countdown") { if (DEMO) demoCountdown(m.n, m.bits, m.name); return; }
     /* The theme site's pictures, for the skins and nothing else.
      *
      * Only the sample takes them: a page that is not #demo is the real overlay
