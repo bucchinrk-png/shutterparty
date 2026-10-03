@@ -2772,7 +2772,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-6c6868fffbcd";
+  var BUILD = "sp-62cc96df8918";
   /* @end build */
 
   /**
@@ -7712,11 +7712,29 @@
    * debt that is never paid would hold the next party open too. */
   var paidOwed = 0;
 
-  /** A paid capture reached the wall, or died on the way. Either ends the debt. */
-  function settlePaidShot(paid) {
+  /* The ids of paid photographs the EBS asked to hear back about and that have
+     not been settled yet (docs/f17-plan.md §3.3) — in the 150ms window, held
+     behind another, counted down to, or in OBS. Said to the EBS every thirty
+     seconds as "still holding" (94-ebs-link.js), so a photograph that waits a
+     long time here is not mistaken for one on a page that went away. */
+  var paidUnsettled = {};
+
+  /**
+   * A paid capture reached the wall, or died on the way. Either ends the debt.
+   *
+   * `drew` is true only when the print is on the wall, and every caller says
+   * which (tools/overlay-invariants.mjs). One the EBS sent with an id is also
+   * answered for, from here and only here, so each is answered exactly once:
+   * a photograph nobody drew is the one whose Bits the EBS puts on the bar.
+   */
+  function settlePaidShot(paid, drew) {
     if (!paid) return;
     paidOwed = Math.max(0, paidOwed - 1);
     updatePaidDraining();
+    if (paid.id && paidUnsettled[paid.id]) {
+      delete paidUnsettled[paid.id];
+      reportShot(paid.id, drew === true);
+    }
   }
 
   function requestShot(n, extra) {
@@ -7726,6 +7744,7 @@
     if (extra && extra.paid) {
       paidOwed++;
       updatePaidDraining();
+      if (extra.paid.id) paidUnsettled[extra.paid.id] = true;
     }
     // The EBS already gave each paid press a window of its own, precisely so
     // that a photo's name and amount belong to one person. Two of them arriving
@@ -7848,7 +7867,7 @@
       }
     }
 
-    if (people <= 0) { settlePaidShot(paid); return; }
+    if (people <= 0) { settlePaidShot(paid, false); return; }
 
     // The sequence starts whatever the camera does. The EBS has already lit the
     // party — presses are free on its side from this moment — so a capture that
@@ -7860,13 +7879,13 @@
     // one settles the debt. A party held open waiting for a print that was
     // never going to be taken is the same failure as one that ends too early.
     var source = cfg.src;
-    if (!source) { log(t("log.picksrc"), "warn"); settlePaidShot(paid); return; }
+    if (!source) { log(t("log.picksrc"), "warn"); settlePaidShot(paid, false); return; }
     if (!identified) {
       // Reachable even though the EBS thinks we are ready: it only knows what
       // we last told it, and OBS can drop between the telling and the press.
       log(t("log.notidentified"), "bad");
       status("bad", t("st.lost"), true);
-      settlePaidShot(paid);
+      settlePaidShot(paid, false);
       return;
     }
     // The last word about what this machine photographs belongs here, the same
@@ -7875,7 +7894,7 @@
     if (!srcIsScene) {
       log(t("log.notascene", { n: source }), "bad");
       setCaptureOk(false);         // and the EBS stops sending presses this way
-      settlePaidShot(paid);
+      settlePaidShot(paid, false);
       return;
     }
 
@@ -8080,8 +8099,8 @@
     // moved) is not renewed here: that press is settled and not taken again,
     // or an old press would be photographed on whatever the name is now.
     if (proof === undefined) proof = sceneProof;   // the yes this shot was allowed on
-    if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); settlePaidShot(paid); return; }
-    if (!identified || !srcIsScene || !sceneOpen()) { settlePaidShot(paid); return; }
+    if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); settlePaidShot(paid, false); return; }
+    if (!identified || !srcIsScene || !sceneOpen()) { settlePaidShot(paid, false); return; }
     sceneShot("GetSourceScreenshot", {
       sourceName: source,
       imageFormat: "jpg",
@@ -8111,10 +8130,13 @@
       // than in a catch below: a throw from here on would otherwise land in
       // that catch and settle the same debt twice, and the count has a floor
       // of zero, so it would simply be paid off early — silently.
-      settlePaidShot(paid);
+      // Drawn only when it was shown: a dropped frame (null) never reached
+      // the wall, and its buyer gets the bar instead (docs/f17-plan.md).
+      if (url) settlePaidShot(paid, true);
+      else settlePaidShot(paid, false);
       if (url) fileShot(url, lit, paid);
     }, function (e) {
-      settlePaidShot(paid);
+      settlePaidShot(paid, false);
       // A failure on a withdrawn yes says nothing about the name now. Marking
       // not-ready here would undo the probe the re-proof already ran.
       if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); return; }
@@ -9153,7 +9175,7 @@
     // broadcaster allowed, and this is still a connection. A press can be in
     // flight while the broadcaster steps away, and this path is the one that
     // writes files.
-    if (!identified || !srcIsScene || !sceneOpen()) { discordDrop(send); settlePaidShot(paid); return; }
+    if (!identified || !srcIsScene || !sceneOpen()) { discordDrop(send); settlePaidShot(paid, false); return; }
     var proof = sceneProof;      // the yes this shot was allowed on
     var permit = permitNow();    // ...carried whole, for the card's own last look
     // Started alongside the capture rather than awaited: the photo goes on
@@ -9180,7 +9202,7 @@
     }).then(function (r) {
       // A frame taken on a yes that has since been withdrawn is neither shown
       // nor kept. The debt is still settled — the purchase happened.
-      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid); return; }
+      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid, false); return; }
       var pic = String(r && r.imageData || "");
       if (!pic) throw new Error("empty imageData");
       setCaptureOk(true);
@@ -9203,7 +9225,7 @@
            * photograph on the broadcast; what they do not get is a file.
            */
           showPhoto(pic, people, paid);
-          settlePaidShot(paid);
+          settlePaidShot(paid, true);
           discordDrop(send);
           log(t("log.photostore.lost"), "warn");
           return;
@@ -9214,7 +9236,7 @@
         // true when the shutter went off (§4.1).
         if (!streaming) noteOffAir(ref);
         showPhoto(ref, people, paid);
-        settlePaidShot(paid);        // on the wall, so the drain can see it
+        settlePaidShot(paid, true);  // on the wall, so the drain can see it
         // Nothing past the settle may reach the catch below. It would settle
         // the same debt a second time — the count has a floor of zero, so that
         // is simply paid off early, silently. Caught here and said instead.
@@ -9236,8 +9258,8 @@
       });
     }).catch(function (e) {
       // A failure on a withdrawn yes says nothing about the name now.
-      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid); return; }
-      settlePaidShot(paid);
+      if (proof !== sceneProof) { log(t("log.shotstale"), "warn"); discordDrop(send); settlePaidShot(paid, false); return; }
+      settlePaidShot(paid, false);
       discordDrop(send);
       onCaptureFailed(e);
     });
@@ -12723,6 +12745,120 @@
   var ebsRetryTimer = null;
   var ebsManualClose = false;
 
+  /* ---- answering for paid photographs (docs/f17-plan.md §3) ----
+
+     A paid photograph the EBS sends with an id is one whose Bits are not on
+     the bar yet: they stay off it on the promise that it is drawn here. So this
+     page says, once per id, whether it was — and the EBS puts the Bits on the
+     bar when it was not. Saying it is the part that has to survive a dropped
+     socket, so what is said waits here until the EBS answers `shot-ack`. */
+
+  // This page's own mark, new on every load: the same page reconnecting keeps
+  // it, so the EBS knows an answer on a new socket is still this page's.
+  var pageInst = (function () {
+    var abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var out = "";
+    var bytes = new Uint8Array(16);
+    try { crypto.getRandomValues(bytes); } catch (e) {
+      for (var j = 0; j < 16; j++) bytes[j] = Math.floor(Math.random() * 256);
+    }
+    for (var i = 0; i < 16; i++) out += abc.charAt(bytes[i] % abc.length);
+    return out;
+  })();
+
+  // Said and not yet acknowledged: { id, drew, inst, at }. `inst` is set only
+  // on one a page before this one drew (below).
+  var shotOutbox = [];
+  var SHOT_KEEP_MS = 10 * 60 * 1000;   // the EBS's longest record (DELIVER_MAX_MS)
+  var SHOT_OUTBOX_MAX = 32;
+  var SHOT_HOLD_EVERY_MS = 30 * 1000;
+  var SHOT_HOLD_IDS = 100;             // per message; the EBS takes no more
+  // "Drawn" answers are also kept in this browser's storage until they are
+  // acknowledged. Reloaded between the print and the answer, the next page
+  // sends them again under the mark of the page that drew them — otherwise the
+  // record would run out and the Bits go on the bar as well as the photograph.
+  // Only "drawn": a lost "not drawn" runs out to the same answer. Nothing that
+  // names a viewer: an id, the page's mark, the channel and the time.
+  var SHOT_LS = "sp-shot-drawn";
+
+  function shotStored() {
+    var raw = null;
+    try { raw = JSON.parse(localStorage.getItem(SHOT_LS) || "[]"); } catch (e) { raw = null; }
+    if (!Array.isArray(raw)) return [];
+    var now = Date.now();
+    return raw.filter(function (r) {
+      return r && typeof r.id === "string" && typeof r.inst === "string" && typeof r.ch === "string" &&
+        typeof r.at === "number" && now - r.at < SHOT_KEEP_MS && r.at <= now + 60000;
+    }).slice(-SHOT_OUTBOX_MAX);
+  }
+
+  function shotStore(list) {
+    try {
+      if (list.length) localStorage.setItem(SHOT_LS, JSON.stringify(list));
+      else localStorage.removeItem(SHOT_LS);
+    } catch (e) { /* the memory copy still answers while this page lives */ }
+  }
+
+  function shotSend(r) {
+    if (!ebsWs || ebsWs.readyState !== 1) return;
+    var msg = { type: "shot", id: r.id, drew: r.drew };
+    if (r.inst) msg.inst = r.inst;
+    try { ebsWs.send(JSON.stringify(msg)); } catch (e) { /* kept; said again later */ }
+  }
+
+  /** Called once per id, from settlePaidShot() (60-capture.js) and nowhere else. */
+  function reportShot(id, drew) {
+    try {
+      if (BAR_ONLY || typeof id !== "string") return;
+      var r = { id: id, drew: drew === true, at: Date.now() };
+      shotOutbox.push(r);
+      if (shotOutbox.length > SHOT_OUTBOX_MAX) shotOutbox.splice(0, shotOutbox.length - SHOT_OUTBOX_MAX);
+      if (r.drew) {
+        var kept = shotStored();
+        kept.push({ id: id, inst: pageInst, ch: String(cfg.ch || ""), at: r.at });
+        shotStore(kept.slice(-SHOT_OUTBOX_MAX));
+      }
+      shotSend(r);
+    } catch (e) { /* never in the way of the print it answers for */ }
+  }
+
+  /** The EBS heard it: forget it here and in storage. */
+  function shotAcked(id) {
+    shotOutbox = shotOutbox.filter(function (r) { return r.id !== id; });
+    var kept = shotStored();
+    var left = kept.filter(function (r) { return r.id !== id; });
+    if (left.length !== kept.length) shotStore(left);
+  }
+
+  /**
+   * Say again what is unacknowledged, and which ids are still held here.
+   *
+   * On every (re)connect and every thirty seconds. Answers a page before this
+   * one drew are sent too, under its mark — only to the channel they were
+   * drawn for. "Still holding" lists the unsettled ids and the unacknowledged
+   * ones: a photograph drawn but not yet heard about is still this page's, and
+   * keeping its record alive is what lets the late answer arrive first.
+   */
+  function shotResend() {
+    if (BAR_ONLY || !ebsWs || ebsWs.readyState !== 1) return;
+    var now = Date.now();
+    shotOutbox = shotOutbox.filter(function (r) { return now - r.at < SHOT_KEEP_MS; });
+    shotOutbox.forEach(shotSend);
+    var mine = {};
+    shotOutbox.forEach(function (r) { mine[r.id] = true; });
+    shotStored().forEach(function (r) {
+      if (r.ch !== String(cfg.ch || "") || mine[r.id]) return;
+      shotSend({ id: r.id, drew: true, inst: r.inst === pageInst ? "" : r.inst });
+    });
+    var ids = Object.keys(paidUnsettled).concat(Object.keys(mine));
+    for (var i = 0; i < ids.length; i += SHOT_HOLD_IDS) {
+      try {
+        ebsWs.send(JSON.stringify({ type: "shot-holding", ids: ids.slice(i, i + SHOT_HOLD_IDS) }));
+      } catch (e) { /* the next round says it */ }
+    }
+  }
+  if (!BAR_ONLY) setInterval(shotResend, SHOT_HOLD_EVERY_MS);
+
   /**
    * The token this socket is opened with.
    *
@@ -12826,6 +12962,9 @@
       ebsSetState("live");
       log(t("log.ebs.live"), "ok");
       reportOverlayState();
+      // After the state, which carries this page's mark: an answer before it
+      // would be one the EBS cannot tell is this page's.
+      shotResend();
     };
 
     sock.onmessage = function (ev) {
@@ -12887,6 +13026,9 @@
         // running would put the banner back up.
         applyBarState(m);
         applyPhaseState(m);
+      } else if (m.type === "shot-ack") {
+        // The EBS has what this page said about one paid photograph.
+        if (typeof m.id === "string") shotAcked(m.id);
       }
     };
 
@@ -13007,7 +13149,12 @@
         // hit's lead (docs/countdown-plan.md §3.5). Until every overlay that
         // would take a photograph says it, the EBS counts nothing down. A bar
         // takes no photograph and says nothing.
-        caps: BAR_ONLY ? [] : ["cd"]
+        //
+        // "shot" is answering for a paid photograph sent with an id
+        // (docs/f17-plan.md §3.1), and `inst` is the mark that says which page
+        // answers. A bar draws no photograph and says neither.
+        caps: BAR_ONLY ? [] : ["cd", "shot"],
+        inst: BAR_ONLY ? undefined : pageInst
       }));
     } catch (e) { /* the link is optional; local capture still works */ }
   }
