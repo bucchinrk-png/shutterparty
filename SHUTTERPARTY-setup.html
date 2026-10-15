@@ -1064,6 +1064,14 @@
             <button id="btnEbs"></button>
             <span class="ebs-badge"><span id="ebsState"></span></span>
           </div>
+          <!-- Every Stream Deck remote of this channel, cut — for when the
+               deck is not at hand (docs/stream-deck-plan.md 段 3-2). The same
+               Twitch login as above, then /remote/revoke; the pairing above
+               is not touched (76-twitch-login.js, loginWhy "cut"). -->
+          <p class="note" id="nRemote"></p>
+          <div class="btns">
+            <button class="mini" id="btnCutRemotes"></button>
+          </div>
         </section>
       </section>
 
@@ -1559,6 +1567,15 @@
       "login.notYet": "ログインでの連携は、まだ使えません。下の連携コードを使ってください",
       "login.revokeUnsure": "Twitch 側でログインの取り消しを確かめられませんでした。連携は済んでいます（取り消せなかった分は約 4 時間で切れます）",
       "login.nudge": "連携コードでの連携は終わる予定です。Twitch でログインして連携し直してください。",
+      "remote.cut": "Stream Deck の連携を全て切る",
+      "remote.note": "Stream Deck: このチャンネルに連携した Stream Deck を全て切ります。切るときも Twitch でログインします。上の連携（オーバーレイ）はそのままです。",
+      "remote.as": "{n} の Stream Deck の連携を全て切ります。よければ「全て切る」を押してください。",
+      "remote.go": "全て切る",
+      "remote.cutting": "切っています…",
+      "remote.done": "Stream Deck の連携を全て切りました",
+      "remote.notYet": "Stream Deck の連携は、まだ使えません",
+      "remote.ebsDown": "サーバーが確かめられませんでした。もう一度「全て切る」を押してください",
+      "remote.stopped": "やめました。Stream Deck の連携は切っていません",
       "pair.more": "うまくいかないとき・ログインを使わないとき（連携コード）",
       "ebs.check": "つながるか試す",
       "ebs.off": "未確認",
@@ -1909,6 +1926,15 @@
       "login.notYet": "pairing by login is not available yet. Use the pairing code below",
       "login.revokeUnsure": "Twitch did not confirm that the login was revoked. You are paired (what could not be revoked expires in about 4 hours)",
       "login.nudge": "Pairing by pairing code is going away. Log in with Twitch to pair again.",
+      "remote.cut": "Cut every Stream Deck remote",
+      "remote.note": "Stream Deck remote: this ends every remote paired with your channel. You log in with Twitch to do it. The pairing above stays as it is.",
+      "remote.as": "This will cut every remote of {n}. Press Cut all to go on.",
+      "remote.go": "Cut all",
+      "remote.cutting": "cutting…",
+      "remote.done": "every remote was cut",
+      "remote.notYet": "the Stream Deck remote is not available yet",
+      "remote.ebsDown": "the server could not check it. Press Cut all again",
+      "remote.stopped": "stopped. No remote was cut",
       "pair.more": "If that does not work, or you would rather not log in (pairing code)",
       "ebs.check": "Test the connection",
       "ebs.off": "not checked",
@@ -2259,6 +2285,15 @@
       "login.notYet": "la vinculación por inicio de sesión aún no está disponible. Usa el código de vinculación de abajo",
       "login.revokeUnsure": "Twitch no confirmó que el inicio de sesión se revocara. Ya estás vinculado (lo que no se pudo revocar caduca en unas 4 horas)",
       "login.nudge": "La vinculación con código de vinculación va a desaparecer. Inicia sesión con Twitch para vincular de nuevo.",
+      "remote.cut": "Desconectar todos los controles de Stream Deck",
+      "remote.note": "Control de Stream Deck: desconecta todos los controles vinculados a tu canal. Para hacerlo, inicias sesión con Twitch. La vinculación de arriba no cambia.",
+      "remote.as": "Se desconectarán todos los controles de {n}. Pulsa Desconectar todo para continuar.",
+      "remote.go": "Desconectar todo",
+      "remote.cutting": "desconectando…",
+      "remote.done": "se desconectaron todos los controles",
+      "remote.notYet": "el control de Stream Deck aún no está disponible",
+      "remote.ebsDown": "el servidor no pudo comprobarlo. Pulsa Desconectar todo de nuevo",
+      "remote.stopped": "detenido. No se desconectó ningún control",
       "pair.more": "Si no funciona, o prefieres no iniciar sesión (código de vinculación)",
       "ebs.check": "Probar la conexión",
       "ebs.off": "sin comprobar",
@@ -2609,6 +2644,15 @@
       "login.notYet": "o pareamento por login ainda não está disponível. Use o código de pareamento abaixo",
       "login.revokeUnsure": "a Twitch não confirmou que o login foi revogado. Você já está pareado (o que não pôde ser revogado expira em cerca de 4 horas)",
       "login.nudge": "O pareamento por código de pareamento vai acabar. Entre com a Twitch para parear de novo.",
+      "remote.cut": "Desligar todos os controles do Stream Deck",
+      "remote.note": "Controle do Stream Deck: desliga todos os controles vinculados ao seu canal. Para isso, você entra com a Twitch. O vínculo acima continua como está.",
+      "remote.as": "Isso vai desligar todos os controles de {n}. Aperte Desligar tudo para continuar.",
+      "remote.go": "Desligar tudo",
+      "remote.cutting": "desligando…",
+      "remote.done": "todos os controles foram desligados",
+      "remote.notYet": "o controle do Stream Deck ainda não está disponível",
+      "remote.ebsDown": "o servidor não conseguiu verificar. Aperte Desligar tudo de novo",
+      "remote.stopped": "parado. Nenhum controle foi desligado",
       "pair.more": "Se não funcionar, ou se você preferir não fazer login (código de pareamento)",
       "ebs.check": "Testar a conexão",
       "ebs.off": "não verificado",
@@ -2959,6 +3003,15 @@
       "login.notYet": "Koppeln per Anmeldung ist noch nicht verfügbar. Nimm den Kopplungscode unten",
       "login.revokeUnsure": "Twitch hat nicht bestätigt, dass die Anmeldung widerrufen wurde. Gekoppelt bist du (was nicht widerrufen werden konnte, läuft in etwa 4 Stunden ab)",
       "login.nudge": "Das Koppeln per Kopplungscode wird eingestellt. Melde dich mit Twitch an, um neu zu koppeln.",
+      "remote.cut": "Alle Stream-Deck-Fernbedienungen trennen",
+      "remote.note": "Stream-Deck-Fernbedienung: trennt jede mit deinem Kanal gekoppelte Fernbedienung. Dafür meldest du dich mit Twitch an. Die Kopplung oben bleibt, wie sie ist.",
+      "remote.as": "Damit werden alle Fernbedienungen von {n} getrennt. Drücke „Alle trennen“, um fortzufahren.",
+      "remote.go": "Alle trennen",
+      "remote.cutting": "trenne…",
+      "remote.done": "alle Fernbedienungen wurden getrennt",
+      "remote.notYet": "die Stream-Deck-Fernbedienung ist noch nicht verfügbar",
+      "remote.ebsDown": "der Server konnte es nicht prüfen. Drücke erneut „Alle trennen“",
+      "remote.stopped": "abgebrochen. Keine Fernbedienung wurde getrennt",
       "pair.more": "Wenn es nicht klappt oder du dich nicht anmelden möchtest (Kopplungscode)",
       "ebs.check": "Verbindung testen",
       "ebs.off": "nicht geprüft",
@@ -3309,6 +3362,15 @@
       "login.notYet": "l'association par connexion n'est pas encore disponible. Utilise le code d'association ci-dessous",
       "login.revokeUnsure": "Twitch n'a pas confirmé la révocation de la connexion. L'association est faite (ce qui n'a pas pu être révoqué expire dans environ 4 heures)",
       "login.nudge": "L'association par code d'association va disparaître. Connecte-toi avec Twitch pour associer à nouveau.",
+      "remote.cut": "Couper toutes les télécommandes Stream Deck",
+      "remote.note": "Télécommande Stream Deck : coupe chaque télécommande associée à ta chaîne. Tu te connectes avec Twitch pour le faire. L’association ci-dessus reste telle quelle.",
+      "remote.as": "Toutes les télécommandes de {n} vont être coupées. Appuie sur Tout couper pour continuer.",
+      "remote.go": "Tout couper",
+      "remote.cutting": "coupure…",
+      "remote.done": "toutes les télécommandes ont été coupées",
+      "remote.notYet": "la télécommande Stream Deck n’est pas encore disponible",
+      "remote.ebsDown": "le serveur n’a pas pu vérifier. Appuie de nouveau sur Tout couper",
+      "remote.stopped": "arrêté. Aucune télécommande n’a été coupée",
       "pair.more": "Si ça ne marche pas, ou si tu préfères ne pas te connecter (code d'association)",
       "ebs.check": "Tester la connexion",
       "ebs.off": "non vérifié",
@@ -3659,6 +3721,15 @@
       "login.notYet": "il collegamento tramite accesso non è ancora disponibile. Usa il codice di collegamento qui sotto",
       "login.revokeUnsure": "Twitch non ha confermato la revoca dell'accesso. Il collegamento è fatto (ciò che non è stato revocato scade in circa 4 ore)",
       "login.nudge": "Il collegamento tramite codice di collegamento verrà dismesso. Accedi con Twitch per collegare di nuovo.",
+      "remote.cut": "Scollega tutti i telecomandi Stream Deck",
+      "remote.note": "Telecomando Stream Deck: scollega ogni telecomando associato al tuo canale. Per farlo accedi con Twitch. L’associazione qui sopra resta com’è.",
+      "remote.as": "Verranno scollegati tutti i telecomandi di {n}. Premi Scollega tutto per continuare.",
+      "remote.go": "Scollega tutto",
+      "remote.cutting": "scollegamento…",
+      "remote.done": "tutti i telecomandi sono stati scollegati",
+      "remote.notYet": "il telecomando Stream Deck non è ancora disponibile",
+      "remote.ebsDown": "il server non ha potuto verificarlo. Premi di nuovo Scollega tutto",
+      "remote.stopped": "interrotto. Nessun telecomando è stato scollegato",
       "pair.more": "Se non funziona, o se preferisci non accedere (codice di collegamento)",
       "ebs.check": "Prova la connessione",
       "ebs.off": "non verificato",
@@ -4009,6 +4080,15 @@
       "login.notYet": "로그인으로 하는 연동은 아직 쓸 수 없습니다. 아래의 연동 코드를 써 주세요",
       "login.revokeUnsure": "Twitch 쪽에서 로그인 취소를 확인하지 못했습니다. 연동은 끝났습니다(취소하지 못한 것은 약 4시간 뒤에 만료됩니다)",
       "login.nudge": "연동 코드로 하는 연동은 종료될 예정입니다. Twitch 로 로그인해서 다시 연동해 주세요.",
+      "remote.cut": "Stream Deck 리모컨 모두 끊기",
+      "remote.note": "Stream Deck 리모컨: 채널에 연동된 리모컨을 모두 끊습니다. 끊을 때도 Twitch로 로그인합니다. 위의 연동(오버레이)은 그대로입니다.",
+      "remote.as": "{n}의 리모컨을 모두 끊습니다. 계속하려면 \"모두 끊기\"를 누르세요.",
+      "remote.go": "모두 끊기",
+      "remote.cutting": "끊는 중…",
+      "remote.done": "리모컨을 모두 끊었습니다",
+      "remote.notYet": "Stream Deck 리모컨은 아직 쓸 수 없습니다",
+      "remote.ebsDown": "서버가 확인하지 못했습니다. \"모두 끊기\"를 다시 누르세요",
+      "remote.stopped": "중단했습니다. 리모컨을 끊지 않았습니다",
       "pair.more": "잘 안 될 때·로그인을 쓰지 않을 때(연동 코드)",
       "ebs.check": "연결되는지 시험",
       "ebs.off": "확인 안 함",
@@ -4359,6 +4439,15 @@
       "login.notYet": "通过登录来连接暂时还不能用。请使用下面的连接码",
       "login.revokeUnsure": "Twitch 那边没能确认登录已撤销。连接已经完成（没能撤销的部分约 4 小时后过期）",
       "login.nudge": "用连接码连接的方式将要停用。请用 Twitch 登录重新连接。",
+      "remote.cut": "断开所有 Stream Deck 遥控器",
+      "remote.note": "Stream Deck 遥控器：断开与你的频道关联的所有遥控器。断开时也需要用 Twitch 登录。上面的关联（叠加层）保持不变。",
+      "remote.as": "将断开 {n} 的所有遥控器。如要继续，请按“全部断开”。",
+      "remote.go": "全部断开",
+      "remote.cutting": "正在断开…",
+      "remote.done": "已断开所有遥控器",
+      "remote.notYet": "Stream Deck 遥控器暂时无法使用",
+      "remote.ebsDown": "服务器无法确认。请再按一次“全部断开”",
+      "remote.stopped": "已停止。没有断开任何遥控器",
       "pair.more": "不顺利时·不想登录时（连接码）",
       "ebs.check": "试试能不能连上",
       "ebs.off": "未确认",
@@ -4709,6 +4798,15 @@
       "login.notYet": "связь через вход пока недоступна. Используйте код связи ниже",
       "login.revokeUnsure": "Twitch не подтвердил отзыв входа. Связь установлена (то, что не удалось отозвать, истечёт примерно через 4 часа)",
       "login.nudge": "Связь по коду связи будет отключена. Войдите через Twitch, чтобы связать заново.",
+      "remote.cut": "Отключить все пульты Stream Deck",
+      "remote.note": "Пульт Stream Deck: отключает все пульты, привязанные к вашему каналу. Для этого нужно войти через Twitch. Привязка выше остаётся как есть.",
+      "remote.as": "Будут отключены все пульты {n}. Нажмите «Отключить все», чтобы продолжить.",
+      "remote.go": "Отключить все",
+      "remote.cutting": "отключаем…",
+      "remote.done": "все пульты отключены",
+      "remote.notYet": "пульт Stream Deck пока недоступен",
+      "remote.ebsDown": "сервер не смог проверить. Нажмите «Отключить все» ещё раз",
+      "remote.stopped": "остановлено. Ни один пульт не отключён",
       "pair.more": "Если не получается или вы не хотите входить (код связи)",
       "ebs.check": "Проверить связь",
       "ebs.off": "не проверено",
@@ -5059,6 +5157,15 @@
       "login.notYet": "parowanie przez logowanie nie jest jeszcze dostępne. Użyj kodu parowania poniżej",
       "login.revokeUnsure": "Twitch nie potwierdził cofnięcia logowania. Parowanie jest gotowe (to, czego nie udało się cofnąć, wygaśnie za około 4 godziny)",
       "login.nudge": "Parowanie kodem parowania zostanie wyłączone. Zaloguj się przez Twitch, aby sparować ponownie.",
+      "remote.cut": "Odłącz wszystkie piloty Stream Deck",
+      "remote.note": "Pilot Stream Deck: odłącza każdy pilot powiązany z twoim kanałem. Aby to zrobić, logujesz się przez Twitch. Powiązanie powyżej zostaje bez zmian.",
+      "remote.as": "Wszystkie piloty {n} zostaną odłączone. Naciśnij Odłącz wszystkie, aby kontynuować.",
+      "remote.go": "Odłącz wszystkie",
+      "remote.cutting": "odłączanie…",
+      "remote.done": "wszystkie piloty zostały odłączone",
+      "remote.notYet": "pilot Stream Deck nie jest jeszcze dostępny",
+      "remote.ebsDown": "serwer nie mógł tego sprawdzić. Naciśnij ponownie Odłącz wszystkie",
+      "remote.stopped": "przerwano. Żaden pilot nie został odłączony",
       "pair.more": "Jeśli to nie działa albo wolisz się nie logować (kod parowania)",
       "ebs.check": "Sprawdź połączenie",
       "ebs.off": "niesprawdzone",
@@ -5409,6 +5516,15 @@
       "login.notYet": "girişle eşleştirme henüz kullanılamıyor. Aşağıdaki eşleştirme kodunu kullanın",
       "login.revokeUnsure": "Twitch, girişin iptal edildiğini doğrulamadı. Eşleştirme tamam (iptal edilemeyen kısım yaklaşık 4 saat içinde sona erer)",
       "login.nudge": "Eşleştirme koduyla eşleştirme kaldırılacak. Yeniden eşleştirmek için Twitch ile giriş yapın.",
+      "remote.cut": "Tüm Stream Deck kumandalarını kes",
+      "remote.note": "Stream Deck kumandası: kanalınla eşlenen tüm kumandaları keser. Bunun için Twitch ile giriş yaparsın. Yukarıdaki eşleme olduğu gibi kalır.",
+      "remote.as": "{n} hesabının tüm kumandaları kesilecek. Devam etmek için Hepsini kes'e bas.",
+      "remote.go": "Hepsini kes",
+      "remote.cutting": "kesiliyor…",
+      "remote.done": "tüm kumandalar kesildi",
+      "remote.notYet": "Stream Deck kumandası henüz kullanılamıyor",
+      "remote.ebsDown": "sunucu doğrulayamadı. Hepsini kes'e yeniden bas",
+      "remote.stopped": "durduruldu. Hiçbir kumanda kesilmedi",
       "pair.more": "Olmazsa ya da giriş yapmak istemezseniz (eşleştirme kodu)",
       "ebs.check": "Bağlantıyı dene",
       "ebs.off": "denenmedi",
@@ -6785,6 +6901,7 @@
     loginSay: $("loginSay"), loginCode: $("loginCode"), loginWarn: $("loginWarn"),
     loginLinkRow: $("loginLinkRow"), loginLink: $("loginLink"),
     loginBtns: $("loginBtns"), loginGo: $("btnLoginGo"), loginStop: $("btnLoginStop"),
+    cutRemotes: $("btnCutRemotes"), nRemote: $("nRemote"),
     ebsState: $("ebsState"), ebsConnect: $("btnEbs"),
     saveMode: $("saveMode"), saveDir: $("saveDir"), fSaveDir: $("fSaveDir"),
     hFramed: $("hFramed"), hSaveDir: $("hSaveDir"),
@@ -10831,6 +10948,11 @@
      brought is revoked rather than used. */
   var loginRun = 0;
   var loginState = "idle";
+  /* What the login is for: "pair" this page, or "cut" every Stream Deck
+     remote of the channel (docs/stream-deck-plan.md 段 3-2). The same steps
+     up to the press; after it, a cut goes to /remote/revoke and changes
+     nothing this page holds. */
+  var loginWhy = "pair";
   var loginToken = "";
   var loginName = "";
   var loginCode = "";
@@ -10865,11 +10987,12 @@
     if (say) log(t(say), cls || "");
   }
 
-  function startLogin() {
+  function startLogin(why) {
     // The same guard as the pairing code: nothing is written into cfg before
     // the store has said what it already holds (99-go.js).
     if (secretState === "loading") return;
     dropLogin(false);
+    loginWhy = why === "cut" ? "cut" : "pair";
     var mine = loginRun;
     setLogin("asking", "login.asking");
     twitchPost("device", { client_id: LOGIN_CLIENT_ID, scopes: "" }, 10000).then(function (res) {
@@ -10959,12 +11082,14 @@
       // moving from a pairing code presses "allow" and is done. "Paired"
       // is what the rail means by it: all three values (47-the-rail.js). A
       // channel that got here by itself — ?ch= in the address — is not one.
-      if (cfg.ebs && cfg.ch && cfg.ebsToken && typeof d.user_id === "string" && d.user_id === String(cfg.ch)) {
+      // A cut always asks: it ends things, and nothing about this page says
+      // whose remotes they are.
+      if (loginWhy === "pair" && cfg.ebs && cfg.ch && cfg.ebsToken && typeof d.user_id === "string" && d.user_id === String(cfg.ch)) {
         loginState = "confirm";
         linkLogin();
         return;
       }
-      setLogin("confirm", "login.as");
+      setLogin("confirm", loginWhy === "cut" ? "remote.as" : "login.as");
       // Whoever pressed "allow" is looking at Twitch's tab. The mark in this
       // tab's title (renderLogin) and the button under the hand are what say
       // there is one more press here.
@@ -10980,6 +11105,7 @@
   /** "Pair": the one place the Twitch token leaves this page for the EBS. */
   function linkLogin() {
     if (loginState !== "confirm" || !loginToken) return;
+    if (loginWhy === "cut") { cutRemotes(); return; }
     var mine = loginRun;
     var token = loginToken;
     var ebs = loginEbs();
@@ -11048,8 +11174,53 @@
     }).catch(askAgain);
   }
 
+  /** "Cut all": the Twitch token to /remote/revoke, once. Nothing this page holds changes. */
+  function cutRemotes() {
+    var mine = loginRun;
+    var token = loginToken;
+    setLogin("linking", "remote.cutting");
+    function askAgain() {
+      if (mine !== loginRun) return;
+      setLogin("confirm", "remote.as");
+      loginWarn = "remote.ebsDown";
+      renderLogin();
+    }
+    var asked;
+    try {
+      asked = fetch(loginEbs() + "/remote/revoke", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: token }),
+        signal: within(15000)
+      });
+    } catch (e) { askAgain(); return; }
+    asked.then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (d) {
+        return { status: res.status, d: d || {} };
+      });
+    }).then(function (r) {
+      if (mine !== loginRun) return;
+      if (r.status === 200 && r.d.ok === true) {
+        loginRun++;
+        loginToken = loginName = "";
+        setLogin("idle", "remote.done", "ok");
+        log(t("remote.done"), "ok");
+        // Revoked as after a pairing; what Twitch says to it is not shown here
+        // (its words, "you are paired", are about a pairing).
+        twitchRevoke(token, false);
+        return;
+      }
+      if (r.status === 400 || r.status === 401) { endLogin("login.ebsNo", "bad"); return; }
+      // No REMOTE_SECRET on this EBS: there are no remotes to cut.
+      if (r.status === 503 && r.d.error === "not_configured") { endLogin("remote.notYet", "warn"); return; }
+      if (r.status === 429 || r.status >= 500) { askAgain(); return; }
+      endLogin("login.failed", "bad");
+    }).catch(askAgain);
+  }
+
   function stopLogin() {
-    endLogin("login.stopped", "");
+    // "Nothing was paired" would read as the pairing gone, after a cut that was stopped.
+    endLogin(loginWhy === "cut" ? "remote.stopped" : "login.stopped", "");
   }
 
   /** A page that is closing or reloading takes the attempt with it. The token
@@ -11071,7 +11242,8 @@
    *  it (90-wiring.js), and the token is revoked. Before the press there is
    *  nothing to drop: the sentence that asks is still there to be answered. */
   function loginOvertaken() {
-    if (loginState !== "linking") return;
+    // A cut does not touch the pairing, so a pairing changed by hand does not overtake it.
+    if (loginState !== "linking" || loginWhy !== "pair") return;
     dropLogin(false);
     setLogin("idle", "");
   }
@@ -11094,7 +11266,10 @@
     el.loginWarn.hidden = !loginWarn;
     el.loginWarn.textContent = loginWarn ? t(loginWarn) : "";
     el.loginGo.hidden = !confirm;
-    el.loginGo.textContent = t("login.go");
+    el.loginGo.textContent = t(loginWhy === "cut" ? "remote.go" : "login.go");
+    el.cutRemotes.textContent = t("remote.cut");
+    el.cutRemotes.disabled = el.login.disabled;
+    el.nRemote.textContent = t("remote.note");
     el.loginStop.hidden = !(waiting || confirm);
     el.loginStop.textContent = t("login.stop");
     el.loginBtns.hidden = el.loginGo.hidden && el.loginStop.hidden;
@@ -12295,7 +12470,8 @@
   el.themeCode.addEventListener("input", function () { applyPack(el.themeCode.value, true); });
   el.packNone.addEventListener("click", function () { el.themeCode.value = ""; applyPack("", true); });
   el.ebsConnect.addEventListener("click", checkEbs);
-  el.login.addEventListener("click", startLogin);
+  el.login.addEventListener("click", function () { startLogin("pair"); });
+  el.cutRemotes.addEventListener("click", function () { startLogin("cut"); });
   el.loginGo.addEventListener("click", linkLogin);
   el.loginStop.addEventListener("click", stopLogin);
   // A Twitch token waiting for its "pair" press does not outlive the page.
