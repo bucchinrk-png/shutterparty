@@ -262,7 +262,9 @@
     display: block; max-width: 100%;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .railBtn[data-ok="1"] .rState { color: var(--ok); }
+  /* On the state itself, not on its row: the connections row carries two —
+     OBS and Twitch — and one can be done while the other is not. */
+  .rState[data-ok="1"] { color: var(--ok); }
 
   /* ---------- panes ---------- */
   /* The same subtraction for the reading column: the panel is fixed, so without
@@ -334,6 +336,7 @@
   .howto > .loginCode { margin-top: 8px; font-family: var(--mono); font-size: 20px; letter-spacing: .18em; }
   .howto > #loginLinkRow { margin-top: 6px; }
   .howto > #loginLinkRow a { color: rgb(var(--acc-rgb)); }
+  #aRemoteGuide { color: rgb(var(--acc-rgb)); }
   .howto.plain > .loginWarn { margin-top: 8px; color: var(--warn); }
   .howto.plain > p.ok { color: var(--ok); }
   .howto.plain > p.warn { color: var(--warn); }
@@ -718,6 +721,40 @@
   .modalCard p { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--ink); overflow-wrap: anywhere; }
   .modalCard .btns { justify-content: flex-end; }
 
+  /* ---------- the first-time setup, over the settings ----------
+     One step on screen at a time (docs/setup-layout-plan.md §7). The display
+     goes on [open] only: a closed dialog has to stay display: none. */
+  .setupDlg {
+    width: min(760px, calc(100vw - 32px));
+    /* The open log is a fixed panel at the bottom, carried into the dialog
+       while it is open: the dialog centres itself in what is left above it. */
+    bottom: var(--logH, 0px);
+    max-height: calc(100vh - 48px - var(--logH, 0px));
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  }
+  .setupDlg[open] { display: flex; flex-direction: column; }
+  .setupDlg::backdrop { background: rgba(4, 6, 9, .74); }
+  .dlgHead { display: flex; align-items: baseline; gap: 12px; padding: 18px 24px 0; }
+  .dlgHead h2 { margin: 0; font-size: 17px; font-weight: 650; }
+  .dlgLeft { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+  .setupBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 24px 18px; }
+  .setupBody > .step:not(.on) { display: none; }
+  .setupBody > .step { border-top: 0; }
+  .dlgFoot {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    padding: 14px 24px;
+    border-top: 1px solid var(--line);
+  }
+  .dlgFoot .grow { flex: 1 1 auto; }
+  .dlgWhy { font-size: 12.5px; color: var(--warn); }
+  /* Esc pressed: where the way out is, for a moment. */
+  .dlgFoot .look { outline: 2px solid rgb(var(--pre-rgb)); outline-offset: 2px; }
+
   /* Settings are written as they are touched. Without a word for it, the page
      looks like it is waiting for a save button that does not exist. */
   #toast {
@@ -788,6 +825,10 @@
          the one next step and goes there (48-the-log.js renderReady / goNext,
          docs/onboarding-plan.md §4.H). -->
     <button class="chip" id="chip" type="button" data-state="wait"><span class="dot"></span><span id="chipText"></span></button>
+    <!-- Between the two ways of looking at the page (docs/setup-layout-plan.md):
+         the setup steps in order, or the settings by subject. One button, so
+         either is one press from the other. -->
+    <button class="ghost mini" id="btnView" type="button"></button>
     <div class="langpick">
       <span class="globe" aria-hidden="true">&#127760;</span>
       <label for="uiLang" id="lLang" class="rState"></label>
@@ -814,17 +855,20 @@
   <div class="body">
     <div class="railCol">
     <nav class="rail" id="rail" role="tablist" aria-orientation="vertical">
-      <button class="railBtn" type="button" role="tab" id="tabObs" data-pane="obs" aria-selected="true" aria-controls="paneObs">
-        <span class="rTitle" id="rObs"></span><span class="rState" id="rObsSt"></span>
-      </button>
-      <button class="railBtn" type="button" role="tab" id="tabExt" data-pane="ext" aria-selected="false" aria-controls="paneExt">
-        <span class="rTitle" id="rExt"></span><span class="rState" id="rExtSt"></span>
+      <button class="railBtn" type="button" role="tab" id="tabTry" data-pane="try" aria-selected="false" aria-controls="paneTry">
+        <span class="rTitle" id="rTry"></span><span class="rState" id="rTrySt"></span>
       </button>
       <button class="railBtn" type="button" role="tab" id="tabLook" data-pane="look" aria-selected="false" aria-controls="paneLook">
         <span class="rTitle" id="rLook"></span><span class="rState" id="rLookSt"></span>
       </button>
+      <button class="railBtn" type="button" role="tab" id="tabScenes" data-pane="scenes" aria-selected="false" aria-controls="paneScenes">
+        <span class="rTitle" id="rScenes"></span><span class="rState" id="rScenesSt"></span>
+      </button>
       <button class="railBtn" type="button" role="tab" id="tabSave" data-pane="save" aria-selected="false" aria-controls="paneSave">
         <span class="rTitle" id="rSave"></span><span class="rState" id="rSaveSt"></span>
+      </button>
+      <button class="railBtn" type="button" role="tab" id="tabConn" data-pane="conn" aria-selected="false" aria-controls="paneConn">
+        <span class="rTitle" id="rConn"></span><span class="rState" id="rObsSt"></span><span class="rState" id="rExtSt"></span>
       </button>
     </nav>
 
@@ -855,8 +899,18 @@
            works are all conversations with the same program, so they are
            one area. They used to be steps 1, 2, 3 and 7, with the extension
            and the appearance settings in between. -->
-      <section class="tabpane" id="paneObs" role="tabpanel" aria-labelledby="tabObs">
-        <section class="step">
+      <!-- The first-time setup: a dialog over the settings, one step at a time
+           (docs/setup-layout-plan.md §7). The sections are written here in the
+           setup's order; while the dialog is shut, applyView() moves the shared
+           ones into the tabs below, so every id and listener stays where it was.
+           It has a way out on every step and is never closed by Esc alone. -->
+      <dialog class="setupDlg" id="setupDlg" aria-labelledby="dlgTitle">
+      <div class="dlgHead">
+        <h2 id="dlgTitle"></h2>
+        <span class="dlgLeft" id="dlgLeft"></span>
+      </div>
+      <div class="setupBody" id="setupBody">
+        <section class="step" id="stepConn">
           <h2 id="sObs" data-step="3"></h2>
           <p class="note" id="nObs"></p>
           <!-- What to do in OBS, shown only once a connection has failed and
@@ -883,6 +937,9 @@
             </div>
           </details>
           <div class="btns"><button class="primary" id="btnConnect"></button></div>
+          <!-- Said on the step itself: the header chip that also says it is
+               under the dialog's backdrop (47-the-rail.js renderDlg). -->
+          <p class="note good" id="connOk" role="status" hidden></p>
         </section>
 
         <!-- One button, because there is one right answer.
@@ -902,7 +959,7 @@
           <!-- Shown instead of the picker and the build button while there is
                nowhere to put the overlay (60-building-the-pieces.js). -->
           <p class="note warn" id="noHost" hidden></p>
-          <div class="btns">
+          <div class="btns" id="buildBtns">
             <button class="primary big" id="btnBuild"></button>
             <button class="mini" id="btnRefresh"></button>
             <button class="mini" id="btnShot" disabled></button>
@@ -953,48 +1010,10 @@
           <p class="note warn" id="warnGate"></p>
           <p class="note" id="hGate"></p>
           <p class="note" id="hLive"></p>
-          <!-- A way to see the effects without going live. Time-limited on
-               purpose: a switch that turns the shutter on off-air is exactly
-               the thing nobody should be able to leave on by mistake. -->
-          <div class="btns"><button id="btnTest" type="button"></button></div>
-          <p class="note" id="hTest"></p>
         </section>
 
-        <!-- A different scene for a purchase past an amount
-             (87-special-scenes.js). A section of its own, after the numbered
-             steps: nothing here is needed to finish setting up, and it is not
-             hidden inside a fold either [本人 2026-10-05]. One row per line;
-             each row has its own place for what its scene contains, so two
-             answers cannot overwrite each other. -->
-        <section class="step" id="stepTiers" hidden>
-          <h2 id="sTiers"></h2>
-          <p class="note" id="nTiers"></p>
-          <div class="tier">
-            <div class="row">
-              <div class="field"><label for="tierBFrom" id="lTierB"></label><select id="tierBFrom"></select></div>
-              <div class="btns"><button class="mini" id="btnTierB" hidden></button></div>
-            </div>
-            <p class="note" id="hTierB" hidden></p>
-            <p class="notice" id="noticeTierB" hidden></p>
-            <p class="note contents" id="contentsTierB" hidden></p>
-            <img class="preview" id="previewTierB" hidden alt="">
-          </div>
-          <div class="tier">
-            <div class="row">
-              <div class="field"><label for="tierCFrom" id="lTierC"></label><select id="tierCFrom"></select></div>
-              <div class="btns"><button class="mini" id="btnTierC" hidden></button></div>
-            </div>
-            <p class="note" id="hTierC" hidden></p>
-            <p class="notice" id="noticeTierC" hidden></p>
-            <p class="note contents" id="contentsTierC" hidden></p>
-            <img class="preview" id="previewTierC" hidden alt="">
-          </div>
-        </section>
-      </section>
-
-      <!-- ================= Twitch ================= -->
-      <section class="tabpane" id="paneExt" role="tabpanel" aria-labelledby="tabExt" hidden>
-        <section class="step">
+        <!-- ================= Twitch ================= -->
+        <section class="step" id="stepPair">
           <h2 id="sExt" data-step="7"></h2>
           <p class="note" id="nExt"></p>
           <!-- Said only to somebody paired by a pairing code, which is going
@@ -1064,10 +1083,108 @@
             <button id="btnEbs"></button>
             <span class="ebs-badge"><span id="ebsState"></span></span>
           </div>
-          <!-- Every Stream Deck remote of this channel, cut — for when the
-               deck is not at hand (docs/stream-deck-plan.md 段 3-2). The same
-               Twitch login as above, then /remote/revoke; the pairing above
-               is not touched (76-twitch-login.js, loginWhy "cut"). -->
+        </section>
+
+        <!-- Step 8, and then seeing it work. The write is the button at the
+             foot of the left column; this one presses that one, so a first-time
+             setup reads top to bottom without hunting for it. The thirty-minute
+             window comes after it, because opening it before the write tries
+             the old overlay (docs/setup-layout-plan.md). -->
+        <section class="step" id="stepPush">
+          <h2 id="sPush" data-step="8"></h2>
+          <p class="note" id="nPush"></p>
+          <div class="btns"><button class="primary" id="btnPushHere" type="button"></button></div>
+          <!-- The dock's answer, said here too: the dock is under the dialog's
+               backdrop, and a write that worked said so nowhere in reach
+               (65-writing-the-settings.js renderDock). -->
+          <p class="note" id="pushSay" role="status"></p>
+          <!-- A way to see the effects without going live. Time-limited on
+               purpose: a switch that turns the shutter on off-air is exactly
+               the thing nobody should be able to leave on by mistake. Moved to
+               the Try tab when the page is shown as settings. -->
+          <div id="tryWindow">
+            <div class="btns"><button id="btnTest" type="button"></button></div>
+            <p class="note" id="hTest"></p>
+          </div>
+        </section>
+      </div>
+      <!-- The way out first, and on every step: a dialog that only lets you
+           forward is a trap. The reason Next will not go sits beside it. -->
+      <div class="dlgFoot">
+        <button class="ghost mini" id="btnDlgExit" type="button"></button>
+        <!-- The log's own button is in the rail, behind the dialog; a setup
+             that stalls is exactly when the log is wanted. -->
+        <button class="ghost mini" id="btnDlgLog" type="button" aria-expanded="false"></button>
+        <span class="grow"></span>
+        <span class="dlgWhy" id="dlgWhy" hidden></span>
+        <button id="btnDlgBack" type="button"></button>
+        <button class="primary" id="btnDlgNext" type="button"></button>
+        <button class="primary" id="btnDlgDone" type="button" hidden></button>
+      </div>
+      </dialog>
+
+      <!-- ================= the settings, by subject =================
+           Shown once setup is done (or when asked for). The sections they
+           share with the setup above are moved in by applyView(). -->
+
+      <!-- Trying it: what reaches OBS and the broadcast, not a setting. -->
+      <section class="tabpane" id="paneTry" role="tabpanel" aria-labelledby="tabTry" hidden>
+        <section class="step" id="stepTry">
+          <h2 id="sTry"></h2>
+          <p class="note" id="nTryPane"></p>
+          <div id="tryWindowSlot"></div>
+          <div class="btns" id="tryShotSlot"></div>
+          <p class="note" id="nTryShot"></p>
+        </section>
+      </section>
+
+      <!-- The scenes: what is photographed, when, and for which amounts. -->
+      <section class="tabpane" id="paneScenes" role="tabpanel" aria-labelledby="tabScenes" hidden>
+        <p class="note" id="scenesWait" hidden></p>
+        <!-- A different scene for a purchase past an amount
+             (87-special-scenes.js). Not part of the setup: nothing here is
+             needed to finish, and it is not hidden inside a fold either
+             [本人 2026-10-05]. One row per line; each row has its own place for
+             what its scene contains, so two answers cannot overwrite each other. -->
+        <section class="step" id="stepTiers" hidden>
+          <h2 id="sTiers"></h2>
+          <p class="note" id="nTiers"></p>
+          <div class="tier">
+            <div class="row">
+              <div class="field"><label for="tierBFrom" id="lTierB"></label><select id="tierBFrom"></select></div>
+              <div class="btns"><button class="mini" id="btnTierB" hidden></button></div>
+            </div>
+            <p class="note" id="hTierB" hidden></p>
+            <p class="notice" id="noticeTierB" hidden></p>
+            <p class="note contents" id="contentsTierB" hidden></p>
+            <img class="preview" id="previewTierB" hidden alt="">
+          </div>
+          <div class="tier">
+            <div class="row">
+              <div class="field"><label for="tierCFrom" id="lTierC"></label><select id="tierCFrom"></select></div>
+              <div class="btns"><button class="mini" id="btnTierC" hidden></button></div>
+            </div>
+            <p class="note" id="hTierC" hidden></p>
+            <p class="notice" id="noticeTierC" hidden></p>
+            <p class="note contents" id="contentsTierC" hidden></p>
+            <img class="preview" id="previewTierC" hidden alt="">
+          </div>
+        </section>
+      </section>
+
+      <!-- OBS and Twitch, the two connections, side by side (本人 2026-10-15). -->
+      <section class="tabpane" id="paneConn" role="tabpanel" aria-labelledby="tabConn" hidden>
+        <!-- Every Stream Deck remote of this channel, cut — for when the
+             deck is not at hand (docs/stream-deck-plan.md 段 3-2). The same
+             Twitch login as the pairing, then /remote/revoke; the pairing is
+             not touched (76-twitch-login.js, loginWhy "cut"). Its own section,
+             and only here: it is not part of setting up. -->
+        <section class="step" id="stepRemote">
+          <h2 id="sRemote"></h2>
+          <!-- What the deck is for, and where its plugin comes from: the guide
+               (Windows only). The SHUTTER PARTY key is the other way, beside
+               the Live panel, to give the signal (docs/setup-layout-plan.md §3.6). -->
+          <p class="note"><span id="nRemoteDeck"></span> <a id="aRemoteGuide" target="_blank" rel="noopener noreferrer"></a></p>
           <p class="note" id="nRemote"></p>
           <div class="btns">
             <button class="mini" id="btnCutRemotes"></button>
@@ -1517,7 +1634,7 @@
       "gate.remove": "「{n}」を外す",
       "h.live": "配信していないあいだは、OBS がつながっていてもボタンは効きません。撮られるのは配信中だけです。",
       "warn.gate": "有効なシーンがありません。撮影は始まりません — シーンを追加するか、「すべてのシーンで有効」にチェックを入れてください",
-      "h.gate": "シーンを追加すると、そのシーンが画面に出ているあいだだけ視聴者のボタンが効きます。席を外すときの「準備中」を入れないでおけば、カメラが回ったままでも撮られません。OBS は画面に出していないシーンも描画するので、止める方法はこれだけです。",
+      "h.gate": "シーンを追加すると、そのシーンにいる間だけ視聴者がボタンを押せます。席を外すときの「準備中」を入れないでおけば、カメラが回ったままでも撮られません。OBS は画面に出していないシーンも描画するので、止める方法はこれだけです。",
       "log.gateset": "ボタンが効くシーンを {n} にしました",
       "log.gateall": "どのシーンでも撮れる状態にしました",
       "log.gatenone": "有効なシーンがありません。追加するまで撮影は始まりません",
@@ -1568,7 +1685,7 @@
       "login.revokeUnsure": "Twitch 側でログインの取り消しを確かめられませんでした。連携は済んでいます（取り消せなかった分は約 4 時間で切れます）",
       "login.nudge": "連携コードでの連携は終わる予定です。Twitch でログインして連携し直してください。",
       "remote.cut": "Stream Deck の連携を全て切る",
-      "remote.note": "Stream Deck: このチャンネルに連携した Stream Deck を全て切ります。切るときも Twitch でログインします。上の連携（オーバーレイ）はそのままです。",
+      "remote.note": "このチャンネルに連携した Stream Deck を全て切ります。切るときも Twitch でログインします。上の連携（オーバーレイ）はそのままです。",
       "remote.as": "{n} の Stream Deck の連携を全て切ります。よければ「全て切る」を押してください。",
       "remote.go": "全て切る",
       "remote.cutting": "切っています…",
@@ -1742,12 +1859,34 @@
       "log.reset.kept": "設定は消去しましたが、保存してあった秘密を消しきれませんでした。もう一度リセットを押してください",
       "toast.saved": "設定を保存しました",
       "toast.nosave": "設定を保存できませんでした（ブラウザの設定を確かめてください）",
-      "nav.obs": "OBS",
-      "nav.ext": "Twitch 拡張",
+      "view.toSettings": "設定の一覧へ",
+      "view.toSetup": "はじめに（手順）",
+      "start.title": "はじめに",
+      "start.next": "次へ",
+      "start.back": "戻る",
+      "start.left": "あと {n}",
+      "start.last": "最後",
+      "start.done": "見た目を設定する",
+      "start.why": "先に OBS につないでください",
+      "start.connected": "OBS につながりました",
+      "nav.try": "試す",
+      "nav.scenes": "シーン",
+      "nav.conn": "接続",
+      "nav.settings": "設定",
+      "nav.tryOpen": "あと {n} 分",
+      "s.push": "OBS に反映して、試す",
+      "n.push": "ここまでの設定を OBS に書き込みます（左の列のいちばん下の「OBS に反映」と同じです）。書き込んだら、下のボタンで配信していなくても撮れるようにして、演出を確かめます。",
+      "s.try": "試す",
+      "n.try": "配信していなくても、撮れるかと演出の見え方を確かめられます。",
+      "n.tryShot": "テスト撮影は、撮影用シーンに写るものを 1 枚撮って、ここに出します。",
+      "n.scenesWait": "OBS につながると、ここで撮影用シーンとボタンが効くシーンを決められます。先に「接続」のタブで OBS につないでください。",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "連携した Stream Deck の SHUTTER PARTY のキーから、配信者の合図を出せます（Windows のみ）。プラグインの入れ方は案内ページにあります。",
+      "a.remote.guide": "案内ページを開く",
+      "n.test.any": "「OBS に反映」のあとで押します。演出を確かめるためのもので、押した時点から 30 分で自動的に戻ります。",
       "nav.look": "演出",
       "nav.save": "写真の保存",
       "hdr.ready": "設定完了", "hdr.setup": "設定中",
-      "nav.ok": "設定済み",
       "nav.todo": "未設定",
       "lang.label": "表示言語",
       "lang.auto": "ブラウザに合わせる",
@@ -1927,7 +2066,7 @@
       "login.revokeUnsure": "Twitch did not confirm that the login was revoked. You are paired (what could not be revoked expires in about 4 hours)",
       "login.nudge": "Pairing by pairing code is going away. Log in with Twitch to pair again.",
       "remote.cut": "Cut every Stream Deck remote",
-      "remote.note": "Stream Deck remote: this ends every remote paired with your channel. You log in with Twitch to do it. The pairing above stays as it is.",
+      "remote.note": "This ends every Stream Deck remote paired with your channel. You log in with Twitch to do it. The pairing above stays as it is.",
       "remote.as": "This will cut every remote of {n}. Press Cut all to go on.",
       "remote.go": "Cut all",
       "remote.cutting": "cutting…",
@@ -2101,12 +2240,34 @@
       "log.reset.kept": "the settings are erased, but the stored secrets could not be removed. Press Reset again",
       "toast.saved": "settings saved",
       "toast.nosave": "the settings could not be saved (check your browser's settings)",
-      "nav.obs": "OBS",
-      "nav.ext": "Twitch extension",
+      "view.toSettings": "All settings",
+      "view.toSetup": "Setup steps",
+      "start.title": "Getting started",
+      "start.next": "Next",
+      "start.back": "Back",
+      "start.left": "{n} to go",
+      "start.last": "Last step",
+      "start.done": "Set up the look",
+      "start.why": "Connect to OBS first",
+      "start.connected": "Connected to OBS",
+      "nav.try": "Try it",
+      "nav.scenes": "Scenes",
+      "nav.conn": "Connections",
+      "nav.settings": "Settings",
+      "nav.tryOpen": "{n} min left",
+      "s.push": "Write to OBS, then try it",
+      "n.push": "This writes everything so far into OBS (the same as Write to OBS at the foot of the left column). Then use the button below to shoot off-air and check the effects.",
+      "s.try": "Try it",
+      "n.try": "Check that shooting works and how the effects look, without going live.",
+      "n.tryShot": "A test shot takes one picture of what the capture scene shows, and puts it here.",
+      "n.scenesWait": "Once OBS is connected, you choose the capture scene and the scenes where the button works here. Connect to OBS in the Connections tab first.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "The SHUTTER PARTY key of a paired Stream Deck gives the broadcaster's signal (Windows only). How to install the plugin is in the guide.",
+      "a.remote.guide": "Open the guide",
+      "n.test.any": "Press this after Write to OBS. It is for checking the effects, and reverts on its own 30 minutes after you press it.",
       "nav.look": "Look",
       "nav.save": "Saving photos",
       "hdr.ready": "all set", "hdr.setup": "setting up",
-      "nav.ok": "done",
       "nav.todo": "not set",
       "lang.label": "Language",
       "lang.auto": "Match my browser",
@@ -2286,7 +2447,7 @@
       "login.revokeUnsure": "Twitch no confirmó que el inicio de sesión se revocara. Ya estás vinculado (lo que no se pudo revocar caduca en unas 4 horas)",
       "login.nudge": "La vinculación con código de vinculación va a desaparecer. Inicia sesión con Twitch para vincular de nuevo.",
       "remote.cut": "Desconectar todos los controles de Stream Deck",
-      "remote.note": "Control de Stream Deck: desconecta todos los controles vinculados a tu canal. Para hacerlo, inicias sesión con Twitch. La vinculación de arriba no cambia.",
+      "remote.note": "Desconecta todos los controles vinculados a tu canal. Para hacerlo, inicias sesión con Twitch. La vinculación de arriba no cambia.",
       "remote.as": "Se desconectarán todos los controles de {n}. Pulsa Desconectar todo para continuar.",
       "remote.go": "Desconectar todo",
       "remote.cutting": "desconectando…",
@@ -2460,12 +2621,34 @@
       "log.reset.kept": "los ajustes se han borrado, pero no se pudieron eliminar los secretos guardados. Pulsa Restablecer otra vez",
       "toast.saved": "ajustes guardados",
       "toast.nosave": "no se pudieron guardar los ajustes (revisa la configuración del navegador)",
-      "nav.obs": "OBS",
-      "nav.ext": "Extensión de Twitch",
+      "view.toSettings": "Todos los ajustes",
+      "view.toSetup": "Pasos de configuración",
+      "start.title": "Primeros pasos",
+      "start.next": "Siguiente",
+      "start.back": "Atrás",
+      "start.left": "Faltan {n}",
+      "start.last": "Último paso",
+      "start.done": "Configurar el aspecto",
+      "start.why": "Primero conéctate a OBS",
+      "start.connected": "Conectado a OBS",
+      "nav.try": "Probar",
+      "nav.scenes": "Escenas",
+      "nav.conn": "Conexiones",
+      "nav.settings": "Ajustes",
+      "nav.tryOpen": "quedan {n} min",
+      "s.push": "Escribir en OBS y probar",
+      "n.push": "Escribe en OBS todo lo configurado hasta aquí (lo mismo que Escribir en OBS, al pie de la columna izquierda). Después, con el botón de abajo, permite fotografiar sin directo y comprueba los efectos.",
+      "s.try": "Probar",
+      "n.try": "Comprueba que se puede fotografiar y cómo se ven los efectos, sin estar en directo.",
+      "n.tryShot": "La foto de prueba toma una imagen de lo que muestra la escena de captura y la pone aquí.",
+      "n.scenesWait": "Cuando OBS esté conectado, aquí eliges la escena de captura y las escenas donde funciona el botón. Primero conéctate a OBS en la pestaña Conexiones.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "La tecla SHUTTER PARTY de un Stream Deck vinculado da la señal del streamer (solo Windows). Cómo instalar el plugin está en la guía.",
+      "a.remote.guide": "Abrir la guía",
+      "n.test.any": "Púlsalo después de Escribir en OBS. Sirve para comprobar los efectos y se revierte solo 30 minutos después de pulsarlo.",
       "nav.look": "Aspecto",
       "nav.save": "Guardado de fotos",
       "hdr.ready": "todo listo", "hdr.setup": "configurando",
-      "nav.ok": "configurado",
       "nav.todo": "sin configurar",
       "lang.label": "Idioma",
       "lang.auto": "Igual que mi navegador",
@@ -2645,7 +2828,7 @@
       "login.revokeUnsure": "a Twitch não confirmou que o login foi revogado. Você já está pareado (o que não pôde ser revogado expira em cerca de 4 horas)",
       "login.nudge": "O pareamento por código de pareamento vai acabar. Entre com a Twitch para parear de novo.",
       "remote.cut": "Desligar todos os controles do Stream Deck",
-      "remote.note": "Controle do Stream Deck: desliga todos os controles vinculados ao seu canal. Para isso, você entra com a Twitch. O vínculo acima continua como está.",
+      "remote.note": "Desliga todos os controles vinculados ao seu canal. Para isso, você entra com a Twitch. O vínculo acima continua como está.",
       "remote.as": "Isso vai desligar todos os controles de {n}. Aperte Desligar tudo para continuar.",
       "remote.go": "Desligar tudo",
       "remote.cutting": "desligando…",
@@ -2819,12 +3002,34 @@
       "log.reset.kept": "as configurações foram apagadas, mas os segredos guardados não puderam ser removidos. Aperte Redefinir de novo",
       "toast.saved": "configurações salvas",
       "toast.nosave": "não foi possível salvar as configurações (verifique as opções do navegador)",
-      "nav.obs": "OBS",
-      "nav.ext": "Extensão da Twitch",
+      "view.toSettings": "Todas as configurações",
+      "view.toSetup": "Passos da configuração",
+      "start.title": "Primeiros passos",
+      "start.next": "Próximo",
+      "start.back": "Voltar",
+      "start.left": "Faltam {n}",
+      "start.last": "Último passo",
+      "start.done": "Configurar a aparência",
+      "start.why": "Conecte-se ao OBS primeiro",
+      "start.connected": "Conectado ao OBS",
+      "nav.try": "Testar",
+      "nav.scenes": "Cenas",
+      "nav.conn": "Conexões",
+      "nav.settings": "Configurações",
+      "nav.tryOpen": "faltam {n} min",
+      "s.push": "Escrever no OBS e testar",
+      "n.push": "Escreve no OBS tudo o que foi configurado até aqui (o mesmo que Escrever no OBS, no pé da coluna da esquerda). Depois, com o botão abaixo, permita fotografar fora do ar e confira os efeitos.",
+      "s.try": "Testar",
+      "n.try": "Confira se dá para fotografar e como os efeitos aparecem, sem estar ao vivo.",
+      "n.tryShot": "A foto de teste tira uma imagem do que a cena de captura mostra e a coloca aqui.",
+      "n.scenesWait": "Com o OBS conectado, aqui você escolhe a cena de captura e as cenas em que o botão funciona. Conecte-se ao OBS na aba Conexões primeiro.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "A tecla SHUTTER PARTY de um Stream Deck vinculado dá o sinal do streamer (só Windows). Como instalar o plugin está no guia.",
+      "a.remote.guide": "Abrir o guia",
+      "n.test.any": "Clique depois de Escrever no OBS. Serve para conferir os efeitos e volta sozinho 30 minutos depois de você apertar.",
       "nav.look": "Aparência",
       "nav.save": "Guardar fotos",
       "hdr.ready": "tudo pronto", "hdr.setup": "configurando",
-      "nav.ok": "configurado",
       "nav.todo": "por configurar",
       "lang.label": "Idioma",
       "lang.auto": "Igual ao meu navegador",
@@ -3004,7 +3209,7 @@
       "login.revokeUnsure": "Twitch hat nicht bestätigt, dass die Anmeldung widerrufen wurde. Gekoppelt bist du (was nicht widerrufen werden konnte, läuft in etwa 4 Stunden ab)",
       "login.nudge": "Das Koppeln per Kopplungscode wird eingestellt. Melde dich mit Twitch an, um neu zu koppeln.",
       "remote.cut": "Alle Stream-Deck-Fernbedienungen trennen",
-      "remote.note": "Stream-Deck-Fernbedienung: trennt jede mit deinem Kanal gekoppelte Fernbedienung. Dafür meldest du dich mit Twitch an. Die Kopplung oben bleibt, wie sie ist.",
+      "remote.note": "Trennt jede mit deinem Kanal gekoppelte Fernbedienung. Dafür meldest du dich mit Twitch an. Die Kopplung oben bleibt, wie sie ist.",
       "remote.as": "Damit werden alle Fernbedienungen von {n} getrennt. Drücke „Alle trennen“, um fortzufahren.",
       "remote.go": "Alle trennen",
       "remote.cutting": "trenne…",
@@ -3178,12 +3383,34 @@
       "log.reset.kept": "die Einstellungen sind gelöscht, aber die gespeicherten Geheimnisse ließen sich nicht entfernen. Drücke erneut auf Zurücksetzen",
       "toast.saved": "Einstellungen gespeichert",
       "toast.nosave": "die Einstellungen konnten nicht gespeichert werden (prüfe die Einstellungen deines Browsers)",
-      "nav.obs": "OBS",
-      "nav.ext": "Twitch-Erweiterung",
+      "view.toSettings": "Alle Einstellungen",
+      "view.toSetup": "Einrichtungsschritte",
+      "start.title": "Erste Schritte",
+      "start.next": "Weiter",
+      "start.back": "Zurück",
+      "start.left": "Noch {n}",
+      "start.last": "Letzter Schritt",
+      "start.done": "Aussehen einstellen",
+      "start.why": "Zuerst mit OBS verbinden",
+      "start.connected": "Mit OBS verbunden",
+      "nav.try": "Ausprobieren",
+      "nav.scenes": "Szenen",
+      "nav.conn": "Verbindungen",
+      "nav.settings": "Einstellungen",
+      "nav.tryOpen": "noch {n} Min.",
+      "s.push": "Auf OBS schreiben, dann ausprobieren",
+      "n.push": "Schreibt alles bisher Eingestellte in OBS (wie Auf OBS schreiben unten in der linken Spalte). Danach mit dem Button unten ohne Stream fotografieren und die Effekte prüfen.",
+      "s.try": "Ausprobieren",
+      "n.try": "Prüfen, ob das Fotografieren klappt und wie die Effekte aussehen, ohne live zu sein.",
+      "n.tryShot": "Die Testaufnahme macht ein Bild von dem, was die Aufnahmeszene zeigt, und zeigt es hier.",
+      "n.scenesWait": "Sobald OBS verbunden ist, wählst du hier die Aufnahmeszene und die Szenen, in denen der Button wirkt. Verbinde dich zuerst im Tab Verbindungen mit OBS.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "Die SHUTTER-PARTY-Taste eines gekoppelten Stream Deck gibt das Signal des Streamers (nur Windows). Wie man das Plugin installiert, steht in der Anleitung.",
+      "a.remote.guide": "Anleitung öffnen",
+      "n.test.any": "Nach Auf OBS schreiben drücken. Zum Prüfen der Effekte; es endet 30 Minuten nach dem Klick von selbst.",
       "nav.look": "Aussehen",
       "nav.save": "Fotos speichern",
       "hdr.ready": "fertig", "hdr.setup": "wird eingerichtet",
-      "nav.ok": "eingerichtet",
       "nav.todo": "offen",
       "lang.label": "Sprache",
       "lang.auto": "Wie mein Browser",
@@ -3363,7 +3590,7 @@
       "login.revokeUnsure": "Twitch n'a pas confirmé la révocation de la connexion. L'association est faite (ce qui n'a pas pu être révoqué expire dans environ 4 heures)",
       "login.nudge": "L'association par code d'association va disparaître. Connecte-toi avec Twitch pour associer à nouveau.",
       "remote.cut": "Couper toutes les télécommandes Stream Deck",
-      "remote.note": "Télécommande Stream Deck : coupe chaque télécommande associée à ta chaîne. Tu te connectes avec Twitch pour le faire. L’association ci-dessus reste telle quelle.",
+      "remote.note": "Coupe chaque télécommande associée à ta chaîne. Tu te connectes avec Twitch pour le faire. L’association ci-dessus reste telle quelle.",
       "remote.as": "Toutes les télécommandes de {n} vont être coupées. Appuie sur Tout couper pour continuer.",
       "remote.go": "Tout couper",
       "remote.cutting": "coupure…",
@@ -3537,12 +3764,34 @@
       "log.reset.kept": "les réglages sont effacés, mais les secrets enregistrés n’ont pas pu être supprimés. Appuie de nouveau sur Réinitialiser",
       "toast.saved": "réglages enregistrés",
       "toast.nosave": "les réglages n'ont pas pu être enregistrés (vérifie les paramètres de ton navigateur)",
-      "nav.obs": "OBS",
-      "nav.ext": "Extension Twitch",
+      "view.toSettings": "Tous les réglages",
+      "view.toSetup": "Étapes de configuration",
+      "start.title": "Premiers pas",
+      "start.next": "Suivant",
+      "start.back": "Retour",
+      "start.left": "Encore {n}",
+      "start.last": "Dernière étape",
+      "start.done": "Régler l’apparence",
+      "start.why": "Connectez-vous d’abord à OBS",
+      "start.connected": "Connecté à OBS",
+      "nav.try": "Essayer",
+      "nav.scenes": "Scènes",
+      "nav.conn": "Connexions",
+      "nav.settings": "Réglages",
+      "nav.tryOpen": "encore {n} min",
+      "s.push": "Écrire dans OBS, puis essayer",
+      "n.push": "Écrit dans OBS tout ce qui est réglé jusqu'ici (comme Écrire dans OBS, en bas de la colonne de gauche). Ensuite, avec le bouton ci-dessous, autorisez les photos hors direct et vérifiez les effets.",
+      "s.try": "Essayer",
+      "n.try": "Vérifiez que les photos fonctionnent et l'aspect des effets, sans être en direct.",
+      "n.tryShot": "La photo de test prend une image de ce que montre la scène de capture et l'affiche ici.",
+      "n.scenesWait": "Une fois OBS connecté, vous choisissez ici la scène de capture et les scènes où le bouton fonctionne. Connectez-vous d'abord à OBS dans l'onglet Connexions.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "La touche SHUTTER PARTY d'un Stream Deck associé donne le signal du streamer (Windows uniquement). L'installation du plugin est décrite dans le guide.",
+      "a.remote.guide": "Ouvrir le guide",
+      "n.test.any": "À presser après Écrire dans OBS. Pour vérifier les effets ; cela revient tout seul 30 minutes après le clic.",
       "nav.look": "Apparence",
       "nav.save": "Sauvegarde des photos",
       "hdr.ready": "tout est prêt", "hdr.setup": "configuration",
-      "nav.ok": "configuré",
       "nav.todo": "à faire",
       "lang.label": "Langue",
       "lang.auto": "Comme mon navigateur",
@@ -3722,7 +3971,7 @@
       "login.revokeUnsure": "Twitch non ha confermato la revoca dell'accesso. Il collegamento è fatto (ciò che non è stato revocato scade in circa 4 ore)",
       "login.nudge": "Il collegamento tramite codice di collegamento verrà dismesso. Accedi con Twitch per collegare di nuovo.",
       "remote.cut": "Scollega tutti i telecomandi Stream Deck",
-      "remote.note": "Telecomando Stream Deck: scollega ogni telecomando associato al tuo canale. Per farlo accedi con Twitch. L’associazione qui sopra resta com’è.",
+      "remote.note": "Scollega ogni telecomando associato al tuo canale. Per farlo accedi con Twitch. L’associazione qui sopra resta com’è.",
       "remote.as": "Verranno scollegati tutti i telecomandi di {n}. Premi Scollega tutto per continuare.",
       "remote.go": "Scollega tutto",
       "remote.cutting": "scollegamento…",
@@ -3896,12 +4145,34 @@
       "log.reset.kept": "le impostazioni sono state cancellate, ma i segreti salvati non si sono potuti rimuovere. Premi di nuovo Reimposta",
       "toast.saved": "impostazioni salvate",
       "toast.nosave": "impossibile salvare le impostazioni (controlla le impostazioni del browser)",
-      "nav.obs": "OBS",
-      "nav.ext": "Estensione Twitch",
+      "view.toSettings": "Tutte le impostazioni",
+      "view.toSetup": "Passi di configurazione",
+      "start.title": "Primi passi",
+      "start.next": "Avanti",
+      "start.back": "Indietro",
+      "start.left": "Ancora {n}",
+      "start.last": "Ultimo passo",
+      "start.done": "Imposta l’aspetto",
+      "start.why": "Prima collegati a OBS",
+      "start.connected": "Collegato a OBS",
+      "nav.try": "Prova",
+      "nav.scenes": "Scene",
+      "nav.conn": "Connessioni",
+      "nav.settings": "Impostazioni",
+      "nav.tryOpen": "ancora {n} min",
+      "s.push": "Scrivi su OBS, poi prova",
+      "n.push": "Scrive su OBS tutto ciò che hai impostato finora (come Scrivi su OBS, in fondo alla colonna di sinistra). Poi, con il pulsante qui sotto, consenti gli scatti fuori diretta e controlla gli effetti.",
+      "s.try": "Prova",
+      "n.try": "Controlla che gli scatti funzionino e come appaiono gli effetti, senza essere in diretta.",
+      "n.tryShot": "Lo scatto di prova fa una foto di ciò che mostra la scena di cattura e la mette qui.",
+      "n.scenesWait": "Quando OBS è collegato, qui scegli la scena di cattura e le scene in cui il pulsante funziona. Prima collegati a OBS nella scheda Connessioni.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "Il tasto SHUTTER PARTY di uno Stream Deck associato dà il segnale dello streamer (solo Windows). Come installare il plugin è nella guida.",
+      "a.remote.guide": "Apri la guida",
+      "n.test.any": "Premilo dopo Scrivi su OBS. Serve a controllare gli effetti e torna da solo 30 minuti dopo il clic.",
       "nav.look": "Aspetto",
       "nav.save": "Salvataggio delle foto",
       "hdr.ready": "tutto pronto", "hdr.setup": "configurazione",
-      "nav.ok": "configurato",
       "nav.todo": "da fare",
       "lang.label": "Lingua",
       "lang.auto": "Come il browser",
@@ -4081,7 +4352,7 @@
       "login.revokeUnsure": "Twitch 쪽에서 로그인 취소를 확인하지 못했습니다. 연동은 끝났습니다(취소하지 못한 것은 약 4시간 뒤에 만료됩니다)",
       "login.nudge": "연동 코드로 하는 연동은 종료될 예정입니다. Twitch 로 로그인해서 다시 연동해 주세요.",
       "remote.cut": "Stream Deck 리모컨 모두 끊기",
-      "remote.note": "Stream Deck 리모컨: 채널에 연동된 리모컨을 모두 끊습니다. 끊을 때도 Twitch로 로그인합니다. 위의 연동(오버레이)은 그대로입니다.",
+      "remote.note": "채널에 연동된 리모컨을 모두 끊습니다. 끊을 때도 Twitch로 로그인합니다. 위의 연동(오버레이)은 그대로입니다.",
       "remote.as": "{n}의 리모컨을 모두 끊습니다. 계속하려면 \"모두 끊기\"를 누르세요.",
       "remote.go": "모두 끊기",
       "remote.cutting": "끊는 중…",
@@ -4255,12 +4526,34 @@
       "log.reset.kept": "설정은 지웠지만 저장된 비밀을 삭제하지 못했습니다. 초기화를 다시 눌러 주세요",
       "toast.saved": "설정을 저장했습니다",
       "toast.nosave": "설정을 저장하지 못했습니다(브라우저 설정을 확인해 주세요)",
-      "nav.obs": "OBS",
-      "nav.ext": "트위치 확장",
+      "view.toSettings": "설정 목록으로",
+      "view.toSetup": "처음 설정 (단계)",
+      "start.title": "처음 설정",
+      "start.next": "다음",
+      "start.back": "이전",
+      "start.left": "{n}단계 남음",
+      "start.last": "마지막 단계",
+      "start.done": "모양 설정하기",
+      "start.why": "먼저 OBS에 연결하세요",
+      "start.connected": "OBS에 연결되었습니다",
+      "nav.try": "시험",
+      "nav.scenes": "장면",
+      "nav.conn": "연결",
+      "nav.settings": "설정",
+      "nav.tryOpen": "{n}분 남음",
+      "s.push": "OBS 에 반영하고 시험하기",
+      "n.push": "지금까지의 설정을 OBS 에 씁니다 (왼쪽 열 맨 아래의 「OBS 에 반영」과 같습니다). 쓴 다음, 아래 버튼으로 방송 없이도 촬영할 수 있게 하고 연출을 확인합니다.",
+      "s.try": "시험",
+      "n.try": "방송하지 않아도 촬영되는지, 연출이 어떻게 보이는지 확인할 수 있습니다.",
+      "n.tryShot": "테스트 촬영은 촬영용 장면에 비치는 것을 한 장 찍어 여기에 보여 줍니다.",
+      "n.scenesWait": "OBS 에 연결되면 여기에서 촬영용 장면과 버튼이 작동하는 장면을 정할 수 있습니다. 먼저 「연결」 탭에서 OBS 에 연결하세요.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "연동한 Stream Deck 의 SHUTTER PARTY 키로 스트리머의 신호를 보낼 수 있습니다 (Windows 전용). 플러그인 설치 방법은 안내 페이지에 있습니다.",
+      "a.remote.guide": "안내 페이지 열기",
+      "n.test.any": "「OBS 에 반영」 다음에 누릅니다. 연출을 확인하기 위한 것으로, 누른 시점부터 30분 뒤에 자동으로 돌아갑니다.",
       "nav.look": "모양",
       "nav.save": "사진 저장",
       "hdr.ready": "설정 완료", "hdr.setup": "설정 중",
-      "nav.ok": "설정 완료",
       "nav.todo": "미설정",
       "lang.label": "표시 언어",
       "lang.auto": "브라우저에 맞춤",
@@ -4440,7 +4733,7 @@
       "login.revokeUnsure": "Twitch 那边没能确认登录已撤销。连接已经完成（没能撤销的部分约 4 小时后过期）",
       "login.nudge": "用连接码连接的方式将要停用。请用 Twitch 登录重新连接。",
       "remote.cut": "断开所有 Stream Deck 遥控器",
-      "remote.note": "Stream Deck 遥控器：断开与你的频道关联的所有遥控器。断开时也需要用 Twitch 登录。上面的关联（叠加层）保持不变。",
+      "remote.note": "断开与你的频道关联的所有遥控器。断开时也需要用 Twitch 登录。上面的关联（叠加层）保持不变。",
       "remote.as": "将断开 {n} 的所有遥控器。如要继续，请按“全部断开”。",
       "remote.go": "全部断开",
       "remote.cutting": "正在断开…",
@@ -4614,12 +4907,34 @@
       "log.reset.kept": "设置已清除，但已保存的机密未能删除。请再次点击重置",
       "toast.saved": "设置已保存",
       "toast.nosave": "设置保存失败（请检查浏览器的设置）",
-      "nav.obs": "OBS",
-      "nav.ext": "Twitch 扩展",
+      "view.toSettings": "全部设置",
+      "view.toSetup": "初次设置（步骤）",
+      "start.title": "初次设置",
+      "start.next": "下一步",
+      "start.back": "上一步",
+      "start.left": "还剩 {n} 步",
+      "start.last": "最后一步",
+      "start.done": "设置外观",
+      "start.why": "请先连接 OBS",
+      "start.connected": "已连接到 OBS",
+      "nav.try": "试用",
+      "nav.scenes": "场景",
+      "nav.conn": "连接",
+      "nav.settings": "设置",
+      "nav.tryOpen": "还剩 {n} 分钟",
+      "s.push": "写入 OBS，然后试用",
+      "n.push": "把到目前为止的设置写入 OBS（与左栏最下方的「写入 OBS」相同）。写入后，用下面的按钮让不直播也能拍，确认演出效果。",
+      "s.try": "试用",
+      "n.try": "不直播也能确认能否拍摄、演出效果看起来如何。",
+      "n.tryShot": "试拍会把拍摄用场景中显示的内容拍一张，显示在这里。",
+      "n.scenesWait": "连接 OBS 后，可以在这里决定拍摄用场景和按钮生效的场景。请先在「连接」标签页连接 OBS。",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "已关联的 Stream Deck 的 SHUTTER PARTY 键可以发出主播的信号（仅限 Windows）。插件的安装方法见指南页面。",
+      "a.remote.guide": "打开指南页面",
+      "n.test.any": "在「写入 OBS」之后按。用于确认演出效果，按下后 30 分钟会自动恢复。",
       "nav.look": "外观",
       "nav.save": "照片的保存",
       "hdr.ready": "设置完成", "hdr.setup": "设置中",
-      "nav.ok": "已设置",
       "nav.todo": "未设置",
       "lang.label": "显示语言",
       "lang.auto": "跟随浏览器",
@@ -4799,7 +5114,7 @@
       "login.revokeUnsure": "Twitch не подтвердил отзыв входа. Связь установлена (то, что не удалось отозвать, истечёт примерно через 4 часа)",
       "login.nudge": "Связь по коду связи будет отключена. Войдите через Twitch, чтобы связать заново.",
       "remote.cut": "Отключить все пульты Stream Deck",
-      "remote.note": "Пульт Stream Deck: отключает все пульты, привязанные к вашему каналу. Для этого нужно войти через Twitch. Привязка выше остаётся как есть.",
+      "remote.note": "Отключает все пульты, привязанные к вашему каналу. Для этого нужно войти через Twitch. Привязка выше остаётся как есть.",
       "remote.as": "Будут отключены все пульты {n}. Нажмите «Отключить все», чтобы продолжить.",
       "remote.go": "Отключить все",
       "remote.cutting": "отключаем…",
@@ -4973,12 +5288,34 @@
       "log.reset.kept": "настройки удалены, но сохранённые секреты убрать не удалось. Нажмите «Сброс» ещё раз",
       "toast.saved": "настройки сохранены",
       "toast.nosave": "настройки сохранить не удалось (проверьте настройки браузера)",
-      "nav.obs": "OBS",
-      "nav.ext": "Расширение Twitch",
+      "view.toSettings": "Все настройки",
+      "view.toSetup": "Шаги настройки",
+      "start.title": "Первые шаги",
+      "start.next": "Далее",
+      "start.back": "Назад",
+      "start.left": "Осталось: {n}",
+      "start.last": "Последний шаг",
+      "start.done": "Настроить вид",
+      "start.why": "Сначала подключитесь к OBS",
+      "start.connected": "Подключено к OBS",
+      "nav.try": "Проверить",
+      "nav.scenes": "Сцены",
+      "nav.conn": "Подключения",
+      "nav.settings": "Настройки",
+      "nav.tryOpen": "ещё {n} мин",
+      "s.push": "Записать в OBS и проверить",
+      "n.push": "Записывает в OBS всё, что настроено до сих пор (то же, что «Записать в OBS» внизу левой колонки). Затем кнопкой ниже разрешите съёмку вне эфира и проверьте эффекты.",
+      "s.try": "Проверить",
+      "n.try": "Проверьте, что съёмка работает и как выглядят эффекты, не выходя в эфир.",
+      "n.tryShot": "Пробный снимок снимает то, что показывает сцена для съёмки, и показывает здесь.",
+      "n.scenesWait": "Когда OBS подключён, здесь выбираются сцена для съёмки и сцены, где работает кнопка. Сначала подключитесь к OBS на вкладке «Подключения».",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "Клавиша SHUTTER PARTY привязанного Stream Deck подаёт сигнал стримера (только Windows). Как установить плагин — в руководстве.",
+      "a.remote.guide": "Открыть руководство",
+      "n.test.any": "Нажмите после «Записать в OBS». Это для проверки эффектов; отключится само через 30 минут после нажатия.",
       "nav.look": "Вид",
       "nav.save": "Сохранение фото",
       "hdr.ready": "всё готово", "hdr.setup": "настройка",
-      "nav.ok": "настроено",
       "nav.todo": "не настроено",
       "lang.label": "Язык",
       "lang.auto": "Как в браузере",
@@ -5158,7 +5495,7 @@
       "login.revokeUnsure": "Twitch nie potwierdził cofnięcia logowania. Parowanie jest gotowe (to, czego nie udało się cofnąć, wygaśnie za około 4 godziny)",
       "login.nudge": "Parowanie kodem parowania zostanie wyłączone. Zaloguj się przez Twitch, aby sparować ponownie.",
       "remote.cut": "Odłącz wszystkie piloty Stream Deck",
-      "remote.note": "Pilot Stream Deck: odłącza każdy pilot powiązany z twoim kanałem. Aby to zrobić, logujesz się przez Twitch. Powiązanie powyżej zostaje bez zmian.",
+      "remote.note": "Odłącza każdy pilot powiązany z twoim kanałem. Aby to zrobić, logujesz się przez Twitch. Powiązanie powyżej zostaje bez zmian.",
       "remote.as": "Wszystkie piloty {n} zostaną odłączone. Naciśnij Odłącz wszystkie, aby kontynuować.",
       "remote.go": "Odłącz wszystkie",
       "remote.cutting": "odłączanie…",
@@ -5332,12 +5669,34 @@
       "log.reset.kept": "ustawienia zostały usunięte, ale zapisanych sekretów nie udało się skasować. Naciśnij Reset jeszcze raz",
       "toast.saved": "ustawienia zapisane",
       "toast.nosave": "nie udało się zapisać ustawień (sprawdź ustawienia przeglądarki)",
-      "nav.obs": "OBS",
-      "nav.ext": "Rozszerzenie Twitcha",
+      "view.toSettings": "Wszystkie ustawienia",
+      "view.toSetup": "Kroki konfiguracji",
+      "start.title": "Pierwsze kroki",
+      "start.next": "Dalej",
+      "start.back": "Wstecz",
+      "start.left": "Zostało: {n}",
+      "start.last": "Ostatni krok",
+      "start.done": "Ustaw wygląd",
+      "start.why": "Najpierw połącz się z OBS",
+      "start.connected": "Połączono z OBS",
+      "nav.try": "Wypróbuj",
+      "nav.scenes": "Sceny",
+      "nav.conn": "Połączenia",
+      "nav.settings": "Ustawienia",
+      "nav.tryOpen": "jeszcze {n} min",
+      "s.push": "Zapisz do OBS i wypróbuj",
+      "n.push": "Zapisuje do OBS wszystko, co ustawiono do tej pory (to samo co Zapisz do OBS na dole lewej kolumny). Potem przyciskiem poniżej pozwól fotografować poza transmisją i sprawdź efekty.",
+      "s.try": "Wypróbuj",
+      "n.try": "Sprawdź, czy fotografowanie działa i jak wyglądają efekty, bez wchodzenia na żywo.",
+      "n.tryShot": "Zdjęcie próbne robi jedno ujęcie tego, co pokazuje scena do zdjęć, i pokazuje je tutaj.",
+      "n.scenesWait": "Po połączeniu z OBS wybierasz tutaj scenę do zdjęć i sceny, w których działa przycisk. Najpierw połącz się z OBS w karcie Połączenia.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "Klawisz SHUTTER PARTY sparowanego Stream Decka daje sygnał streamera (tylko Windows). Jak zainstalować wtyczkę — w przewodniku.",
+      "a.remote.guide": "Otwórz przewodnik",
+      "n.test.any": "Naciśnij po Zapisz do OBS. Do sprawdzenia efektów; wyłączy się samo 30 minut po kliknięciu.",
       "nav.look": "Wygląd",
       "nav.save": "Zapisywanie zdjęć",
       "hdr.ready": "wszystko gotowe", "hdr.setup": "konfiguracja",
-      "nav.ok": "gotowe",
       "nav.todo": "do zrobienia",
       "lang.label": "Język",
       "lang.auto": "Tak jak przeglądarka",
@@ -5517,7 +5876,7 @@
       "login.revokeUnsure": "Twitch, girişin iptal edildiğini doğrulamadı. Eşleştirme tamam (iptal edilemeyen kısım yaklaşık 4 saat içinde sona erer)",
       "login.nudge": "Eşleştirme koduyla eşleştirme kaldırılacak. Yeniden eşleştirmek için Twitch ile giriş yapın.",
       "remote.cut": "Tüm Stream Deck kumandalarını kes",
-      "remote.note": "Stream Deck kumandası: kanalınla eşlenen tüm kumandaları keser. Bunun için Twitch ile giriş yaparsın. Yukarıdaki eşleme olduğu gibi kalır.",
+      "remote.note": "Kanalınla eşlenen tüm kumandaları keser. Bunun için Twitch ile giriş yaparsın. Yukarıdaki eşleme olduğu gibi kalır.",
       "remote.as": "{n} hesabının tüm kumandaları kesilecek. Devam etmek için Hepsini kes'e bas.",
       "remote.go": "Hepsini kes",
       "remote.cutting": "kesiliyor…",
@@ -5691,12 +6050,34 @@
       "log.reset.kept": "ayarlar silindi, ama kayıtlı gizli bilgiler kaldırılamadı. Sıfırla’ya tekrar basın",
       "toast.saved": "ayarlar kaydedildi",
       "toast.nosave": "ayarlar kaydedilemedi (tarayıcı ayarlarınızı kontrol edin)",
-      "nav.obs": "OBS",
-      "nav.ext": "Twitch eklentisi",
+      "view.toSettings": "Tüm ayarlar",
+      "view.toSetup": "Kurulum adımları",
+      "start.title": "Başlarken",
+      "start.next": "İleri",
+      "start.back": "Geri",
+      "start.left": "{n} adım kaldı",
+      "start.last": "Son adım",
+      "start.done": "Görünümü ayarla",
+      "start.why": "Önce OBS’e bağlanın",
+      "start.connected": "OBS’e bağlanıldı",
+      "nav.try": "Dene",
+      "nav.scenes": "Sahneler",
+      "nav.conn": "Bağlantılar",
+      "nav.settings": "Ayarlar",
+      "nav.tryOpen": "{n} dk kaldı",
+      "s.push": "OBS'ye yaz, sonra dene",
+      "n.push": "Şimdiye kadarki ayarları OBS'ye yazar (sol sütunun en altındaki OBS'ye yaz ile aynı). Sonra aşağıdaki düğmeyle yayın dışı çekime izin verip efektleri kontrol edin.",
+      "s.try": "Dene",
+      "n.try": "Yayına çıkmadan çekimin çalıştığını ve efektlerin nasıl göründüğünü kontrol edin.",
+      "n.tryShot": "Deneme çekimi, çekim sahnesinin gösterdiğinden bir kare alır ve burada gösterir.",
+      "n.scenesWait": "OBS bağlanınca çekim sahnesini ve düğmenin çalıştığı sahneleri burada seçersiniz. Önce Bağlantılar sekmesinde OBS'ye bağlanın.",
+      "s.remote": "Stream Deck",
+      "n.remote.deck": "Eşleştirilmiş bir Stream Deck'in SHUTTER PARTY tuşu yayıncının işaretini verir (yalnızca Windows). Eklentinin kurulumu rehberde.",
+      "a.remote.guide": "Rehberi aç",
+      "n.test.any": "OBS'ye yaz'dan sonra basın. Efektleri kontrol etmek içindir; bastıktan 30 dakika sonra kendiliğinden geri döner.",
       "nav.look": "Görünüm",
       "nav.save": "Fotoğrafları kaydetme",
       "hdr.ready": "hazır", "hdr.setup": "ayarlanıyor",
-      "nav.ok": "ayarlandı",
       "nav.todo": "ayarlanmadı",
       "lang.label": "Dil",
       "lang.auto": "Tarayıcımla aynı",
@@ -5781,7 +6162,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-6e42cb173f6b";
+  var BUILD = "sp-7c392f873fd6";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -6540,13 +6921,18 @@
   var UI_KEY = "sp-setup-ui";
   // sealKid: the overlay key the last receipt came from — not a secret, and
   // what the "the key changed" question compares against (66-deliver.js).
-  var UI_DEFAULTS = { pane: "obs", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim", lang: "", sealKid: "",
+  var UI_DEFAULTS = { pane: "try", capName: "", srcName: "", hostScene: "", pushedSig: "", pushedAt: "", sampleBg: "dim", lang: "", sealKid: "",
     // "1" once the off-air test window has been opened: the setup is seen
     // working, and the header stops suggesting it (48-the-log.js renderReady).
     triedTest: "",
     // The name a Twitch login paired as, and the channel it was read for
     // (75-ebs-link.js: pairedAs). On this machine only.
-    pairAs: "", pairAsCh: "" };
+    pairAs: "", pairAsCh: "",
+    // Which way the page is shown (docs/setup-layout-plan.md). `view` is what
+    // the broadcaster last chose with the header button, "" when they never
+    // did; `setupDone` is "1" once setupNext() has been seen empty. A closed
+    // OBS on a later day does not take the page back to the setup.
+    view: "", setupDone: "" };
   // Set when the stored UI has no language yet: a page from before the two
   // languages were split, whose one choice has to become both (see pickLang).
   var uiLangUnset = true;
@@ -6870,7 +7256,10 @@
     chip: $("chip"), chipText: $("chipText"),
     uiLang: $("uiLang"),
     ovLang: $("ovLang"),
-    rail: $("rail"),
+    rail: $("rail"), view: $("btnView"), pushHere: $("btnPushHere"),
+    // The first-time setup's dialog (47-the-rail.js, docs/setup-layout-plan.md §7).
+    dlg: $("setupDlg"), dlgLeft: $("dlgLeft"), dlgWhy: $("dlgWhy"),
+    dlgExit: $("btnDlgExit"), dlgLog: $("btnDlgLog"), dlgBack: $("btnDlgBack"), dlgNext: $("btnDlgNext"), dlgDone: $("btnDlgDone"),
     host: $("host"), port: $("port"), pw: $("pw"),
     // The fold the three of them live in. Focusing a field inside a closed
     // <details> does nothing — the content is not rendered — so anything that
@@ -6960,10 +7349,20 @@
     setText("lOvLang", "ovLang.label");
     setText("nOvLang", "n.ovLang");
 
-    setText("rObs", "nav.obs");
-    setText("rExt", "nav.ext");
+    setText("rTry", "nav.try");
     setText("rLook", "nav.look");
+    setText("rScenes", "nav.scenes");
     setText("rSave", "nav.save");
+    setText("rConn", "nav.conn");
+    el.rail.setAttribute("aria-label", t("nav.settings"));
+    el.view.textContent = t("view.toSetup");
+    setText("dlgTitle", "start.title");
+    setText("connOk", "start.connected");
+    el.dlgExit.textContent = t("view.toSettings");
+    el.dlgBack.textContent = t("start.back");
+    el.dlgNext.textContent = t("start.next");
+    el.dlgDone.textContent = t("start.done");
+    el.dlgWhy.textContent = t("start.why");
 
     setStepHead("sObs", "s.obs");
     setText("nObs", "n.obs");
@@ -6995,6 +7394,19 @@
 
     setStepHead("sExt", "s.ext");
     setText("nExt", "n.ext");
+
+    setStepHead("sPush", "s.push");
+    setText("nPush", "n.push");
+    el.pushHere.textContent = t("push");
+    setText("sTry", "s.try");
+    setText("nTryPane", "n.try");
+    setText("nTryShot", "n.tryShot");
+    setText("scenesWait", "n.scenesWait");
+    setText("sRemote", "s.remote");
+    setText("nRemoteDeck", "n.remote.deck");
+    setText("aRemoteGuide", "a.remote.guide");
+    // The guide is in Japanese and English only; everybody else reads English.
+    $("aRemoteGuide").href = "https://shutterparty.app/start/" + (lang === "ja" ? "ja/" : "") + "#stream-deck";
     setText("lPair", "pair");
     setText("hPair", "h.pair");
 
@@ -7106,6 +7518,7 @@
     el.reset.textContent = t("reset");
 
     el.logBtn.textContent = t("logLabel");
+    el.dlgLog.textContent = t("logLabel");
     el.logTtl.textContent = t("logTitle");
     el.logClose.textContent = t("logCloseLabel");
     el.push.textContent = t("push");
@@ -7128,18 +7541,20 @@
     if (!identified) status("bad", t(failKey || "st.idle"), true);
   }
 
+  /** One row of a <select>. */
+  function addOption(sel, value, text) {
+    var o = document.createElement("option");
+    o.value = value;
+    o.textContent = text;
+    sel.appendChild(o);
+  }
+
   function renderLangPick() {
     el.uiLang.textContent = "";
-    var auto = document.createElement("option");
-    auto.value = "";
-    auto.textContent = t("lang.auto") + " (" + (LANG_NAMES[browserLang] || browserLang) + ")";
-    el.uiLang.appendChild(auto);
+    addOption(el.uiLang, "", t("lang.auto") + " (" + (LANG_NAMES[browserLang] || browserLang) + ")");
     Object.keys(LANG_NAMES).forEach(function (code) {
       if (!I18N[code]) return;
-      var o = document.createElement("option");
-      o.value = code;
-      o.textContent = LANG_NAMES[code];
-      el.uiLang.appendChild(o);
+      addOption(el.uiLang, code, LANG_NAMES[code]);
     });
     el.uiLang.value = ui.lang || "";
     el.uiLang.title = t("lang.note");
@@ -7151,16 +7566,10 @@
    * riddle the broadcaster has to solve by looking up at the header. */
   function renderOvLang() {
     el.ovLang.textContent = "";
-    var same = document.createElement("option");
-    same.value = "";
-    same.textContent = t("ovLang.same", { l: LANG_NAMES[lang] || lang });
-    el.ovLang.appendChild(same);
+    addOption(el.ovLang, "", t("ovLang.same", { l: LANG_NAMES[lang] || lang }));
     Object.keys(LANG_NAMES).forEach(function (code) {
       if (!I18N[code]) return;
-      var o = document.createElement("option");
-      o.value = code;
-      o.textContent = LANG_NAMES[code];
-      el.ovLang.appendChild(o);
+      addOption(el.ovLang, code, LANG_NAMES[code]);
     });
     el.ovLang.value = I18N[cfg.lang] ? cfg.lang : "";
   }
@@ -7188,7 +7597,9 @@
     // The row is cut to the column's width, so the untrimmed value goes where
     // it can still be read.
     $(id).title = whole || text;
-    $(id).parentNode.setAttribute("data-ok", ok ? "1" : "0");
+    // On the state, not on its row: one row can carry two (the connections
+    // tab says OBS and Twitch, and either can be done without the other).
+    $(id).setAttribute("data-ok", ok ? "1" : "0");
   }
 
   /**
@@ -7279,6 +7690,9 @@
     $("stepBuild").hidden = !identified;
     $("stepGate").hidden = !identified;
     $("stepTiers").hidden = !identified;
+    // The scenes tab without OBS has nothing to show but this: the three
+    // sections above are conversations with OBS.
+    $("scenesWait").hidden = identified;
     // Settled once there is a session; the button beneath it turns into
     // Disconnect, and the address is not the question any more.
     if (identified) el.dConn.open = false;
@@ -7351,9 +7765,282 @@
     if (h.foot) setText(id + "Foot", h.key + ".n");
   }
 
+  /* ================= the setup, over the settings =================
+
+     The settings by subject are always the page; the first-time setup is a
+     dialog over them, one step at a time (docs/setup-layout-plan.md §7, 本人
+     2026-10-19 — the shape of わーどどろっぷ's #startDlg). One set of
+     sections: the shell writes them in the setup's order inside the dialog,
+     and while it is shut the shared ones are moved into the tabs. appendChild
+     moves a node, so every id, listener and value goes with it — nothing is
+     drawn twice.
+
+     Each container lists what it holds, in order, appended at its end; an
+     entry [id, before] goes in front of `before` instead. A section not
+     listed for a view stays where it is (stepPush belongs to the dialog,
+     stepTry, stepTiers and stepRemote to the tabs). */
+  var VIEWS = {
+    setup: {
+      setupBody: ["stepConn", "stepBuild", "stepGate", "stepPair", "stepPush"],
+      buildBtns: ["btnShot"],
+      // The test shot's picture, back where it was: under what the scene holds.
+      stepBuild: [["preview", "dNames"]],
+      stepPush: ["tryWindow"]
+    },
+    settings: {
+      paneScenes: ["scenesWait", "stepBuild", "stepGate", "stepTiers"],
+      paneConn: ["stepConn", "stepPair", "stepRemote"],
+      tryWindowSlot: ["tryWindow"],
+      tryShotSlot: ["btnShot"],
+      // The picture the test shot fills goes with the button. The special
+      // scenes' pictures stay on their own rows, in the Scenes tab.
+      stepTry: [["preview", "nTryShot"]]
+    }
+  };
+  var SETTINGS_PANES = { try: "paneTry", look: "paneLook", scenes: "paneScenes", save: "paneSave", conn: "paneConn" };
+  // Where a tab saved by an earlier version of this page lives now.
+  var OLD_PANE = { obs: "scenes", ext: "conn" };
+
+  /** Set up once, on this machine: seen done here, or written and complete in an earlier version. */
+  function setupDoneOnce() {
+    if (ui.setupDone === "1") return true;
+    return !!(ui.pushedAt && cfg.src && String(cfg.gateSet || "") === "1" && cfg.ebs && cfg.ch && cfg.ebsToken);
+  }
+  function viewNow() {
+    if (ui.view === "setup" || ui.view === "settings") return ui.view;
+    return setupDoneOnce() ? "settings" : "setup";
+  }
+  var viewShown = "";
+  function place(layout) {
+    Object.keys(layout).forEach(function (box) {
+      var into = $(box);
+      layout[box].forEach(function (e) {
+        if (typeof e === "string") into.appendChild($(e));
+        else into.insertBefore($(e[0]), $(e[1]));
+      });
+    });
+  }
+  /* The toast, the overwrite question and the log are fixed panels in the
+   * page, and a modal dialog sits in the top layer above everything in it —
+   * so while the dialog is open they would be shown under its backdrop. They
+   * go into it, and back out when it shuts (the log to the end of .app, where
+   * the shell writes it). */
+  var logDock = document.querySelector(".logdock");
+  function lift(into) {
+    var box = into ? el.dlg : document.body;
+    if ($("toast").parentNode !== box) box.appendChild($("toast"));
+    if (el.modal.parentNode !== box) box.appendChild(el.modal);
+    var logBox = into ? el.dlg : document.querySelector(".app");
+    if (logDock.parentNode !== logBox) logBox.appendChild(logDock);
+  }
+  function applyView() {
+    var v = viewNow();
+    viewShown = v;
+    place(VIEWS[v]);
+    if (v === "setup") {
+      lift(true);
+      if (!el.dlg.open) {
+        dlgAt = firstUndone();
+        dlgTouched = false;
+        el.dlg.showModal();
+        // showModal() puts the cursor on the first thing it finds, which is
+        // in the foot: the way out. The thing to do on this step is better —
+        // and at boot it is not marked yet, so renderDlg() places it once it is.
+        dlgFocusDue = true;
+      }
+    } else {
+      if (el.dlg.open) el.dlg.close();
+      lift(false);
+    }
+    document.documentElement.dataset.view = v;
+    drawTestLeft();
+    renderDlg();
+  }
+  /** Out of the setup, into the settings: remembered, like the header's choice. */
+  function leaveSetup(pane) {
+    ui.view = "settings";
+    saveUi();
+    applyView();
+    showPane(pane || ui.pane);
+    el.view.focus();
+  }
+  el.view.addEventListener("click", function () {
+    ui.view = "setup";
+    saveUi();
+    applyView();
+  });
+  el.pushHere.addEventListener("click", function () { el.push.click(); });
+
+  /* One step on screen at a time.
+   *
+   * Only the first step holds the way forward shut: steps 4 and 5 are
+   * conversations with OBS and have nothing in them until it answers. Pairing
+   * and the write can be left for later, so Next goes past them. The reason
+   * Next will not go is said beside it — a button that is merely dead does
+   * not say what it is waiting for. */
+  var DLG = ["stepConn", "stepBuild", "stepGate", "stepPair", "stepPush"];
+  var STEP_ORDER = ["connect", "build", "gate", "pair", "push"];
+  var dlgAt = 0;
+  // Until the broadcaster moves or presses anything in it, the dialog follows
+  // the first step not yet done — OBS answering a second after the page opens
+  // should not leave a returning broadcaster standing on step 3.
+  var dlgTouched = false;
+  // The cursor still to be put on the step's next thing (see applyView).
+  var dlgFocusDue = false;
+  function firstUndone() {
+    var at = STEP_ORDER.indexOf(setupNext());
+    return at === -1 ? DLG.length - 1 : at;
+  }
+  /* Connected, said where it was asked for, then on to what is next.
+   *
+   * Following firstUndone() swapped step 3 for step 4 in the same repaint that
+   * the session came up in, so nobody saw that it had worked; and a
+   * broadcaster who typed a password had touched the dialog, so it did not
+   * follow at all — step 3 stayed, saying nothing, its button now Disconnect
+   * under the cursor. So step 3 holds for a moment with the line under its
+   * button, and then the dialog takes up following again from wherever the
+   * setup has got to.
+   *
+   * Pairing (7) is the same: done while the broadcaster watches, said on the
+   * step, and left there until Next. It holds the same moment and then goes
+   * one step on — not to firstUndone(), which after a skipped step 5 would go
+   * back. Only steps whose work ends with the press: building (4) is followed
+   * on the same step by filling the scene in OBS and the test shot, whose
+   * picture is read there; choosing in 5 is not finished by one choice. */
+  var HOLD_MS = 1500;
+  var hold = null;
+  var dlgSaw = [];
+  function stepDone(i) {
+    if (i === 0) return identified;
+    if (i === 3) return !!(cfg.ebs && cfg.ch && cfg.ebsToken);
+    return false;
+  }
+  function dropHold() { if (hold) { clearTimeout(hold.timer); hold = null; } }
+  function holdDone(at) {
+    dropHold();
+    // Enter on the button that was Connect would now disconnect — and if it
+    // was pressed, the cursor fell off it when it was disabled for the attempt.
+    // (Next is still marked disabled until further down this repaint.)
+    el.dlgNext.disabled = false;
+    var a = document.activeElement;
+    if (!a || a === document.body || a === el.dlg || a === el.connect) el.dlgNext.focus();
+    hold = { at: at, timer: setTimeout(function () {
+      hold = null;
+      if (viewShown !== "setup" || dlgAt !== at || !stepDone(at)) { renderDlg(); return; }
+      if (at === 0) {
+        dlgTouched = false;
+        dlgFocusDue = true;
+        renderDlg();
+        return;
+      }
+      // A pasted code still being tried waits for its answer, and one that
+      // did not get through stays where it can be replaced.
+      if (at === 3 && esState === "connecting") { holdDone(at); return; }
+      if (at === 3 && esState === "error") return;
+      dlgShow(DLG[at + 1]);
+      dlgFoot();
+    }, HOLD_MS) };
+  }
+  function renderDlg() {
+    $("connOk").hidden = !identified;
+    var done = DLG.map(function (id, i) { return stepDone(i); });
+    if (viewShown !== "setup") { dlgSaw = done; return; }
+    if (done[dlgAt] && !dlgSaw[dlgAt]) holdDone(dlgAt);
+    if (hold && !done[hold.at]) dropHold();
+    dlgSaw = done;
+    if (!dlgTouched && !hold && dlgAt !== firstUndone()) {
+      dlgAt = firstUndone();
+      // The step the cursor was on has just been put away with its section.
+      dlgFocusDue = true;
+    }
+    if (!identified && (dlgAt === 1 || dlgAt === 2)) dlgAt = 0;
+    DLG.forEach(function (id, i) { $(id).classList.toggle("on", i === dlgAt); });
+    var left = DLG.length - 1 - dlgAt;
+    el.dlgLeft.textContent = left ? t("start.left", { n: left }) : t("start.last");
+    el.dlgBack.disabled = dlgAt === 0;
+    var last = dlgAt === DLG.length - 1;
+    el.dlgNext.hidden = last;
+    el.dlgDone.hidden = !last;
+    el.dlgNext.disabled = dlgAt === 0 && !identified;
+    el.dlgWhy.hidden = last || !el.dlgNext.disabled;
+    // The same target the chip goes to (48-the-log.js goNext), when it is on
+    // this step; the write is pressed here through step 8's own button.
+    // Put back on every repaint until the broadcaster touches the dialog: a
+    // button disabled for a moment (Connect, while it connects) drops focus.
+    var f = dlgTarget();
+    if (dlgFocusDue && !dlgTouched && usable(f) && f !== document.activeElement) f.focus();
+    /* The cursor fell out of the dialog: the button it was on was disabled
+     * for the work it started (Build, Write, Pair) or went with the question
+     * it answered. Put on what to press next, not left on the page behind —
+     * Enter there did nothing. Not while this step's own target is only busy:
+     * it is about to come back, and is where the cursor belongs. */
+    var a = document.activeElement;
+    if (el.dlg.open && (!a || a === document.body) && !(f && !usable(f))) dlgFoot();
+  }
+  /** This step's next thing to press, when the next thing is on this step. */
+  function dlgTarget() {
+    var n = NEXT[nextNow];
+    if (!n || n.step !== DLG[dlgAt]) return null;
+    return n.ring === "btnPush" ? el.pushHere : $(n.focus || n.ring);
+  }
+  function usable(f) { return !!f && !f.disabled && f.getClientRects().length > 0; }
+  /** Where the cursor goes after a press in the foot or a press that vanished:
+   *  this step's next thing if it has one, else the way on. On the last step
+   *  with the write still to do that is the write, not the last button — Enter on
+   *  it there left the settings unwritten. */
+  function dlgFoot() {
+    var f = dlgTarget();
+    if (!usable(f)) f = usable(el.dlgNext) ? el.dlgNext : usable(el.dlgDone) ? el.dlgDone : el.dlgBack;
+    f.focus();
+  }
+  /** Show one step of the setup: the chip's next step, or Back and Next. */
+  function dlgShow(id) {
+    var i = DLG.indexOf(id);
+    if (i === -1 || viewShown !== "setup") return;
+    dlgAt = i;
+    dlgTouched = true;
+    renderDlg();
+    $("setupBody").scrollTop = 0;
+  }
+  function dlgStep(d) {
+    var to = Math.max(0, Math.min(DLG.length - 1, dlgAt + d));
+    dlgShow(DLG[to]);
+    // The pressed button can vanish (Next on the last step): keep the cursor
+    // in the dialog's foot rather than let it fall to the page behind. Next
+    // stays under the hand so the steps can be paged through; past it, the
+    // last step's own next thing (the write) comes before the last button.
+    if (usable(el.dlgNext)) el.dlgNext.focus();
+    else dlgFoot();
+  }
+  el.dlgNext.addEventListener("click", function () { dlgStep(1); });
+  el.dlgBack.addEventListener("click", function () { dlgStep(-1); });
+  el.dlgExit.addEventListener("click", function () { leaveSetup(); });
+  // Finished: on to the look, the one thing the setup leaves at its defaults
+  // (本人 2026-10-19「見た目を設定する」).
+  el.dlgDone.addEventListener("click", function () { leaveSetup("look"); });
+  // A press inside a step, or any key in the dialog, is the broadcaster at
+  // work; stop following, and stop putting the cursor anywhere.
+  $("setupBody").addEventListener("click", function () { dlgTouched = true; });
+  el.dlg.addEventListener("keydown", function () { dlgTouched = true; });
+  /* Esc does not shut it: it shows where the way out is. Shut silently, the
+   * setup was skipped without anyone deciding to (わーどどろっぷ §8.2b). */
+  el.dlg.addEventListener("cancel", function (e) {
+    e.preventDefault();
+    el.dlgExit.classList.add("look");
+    el.dlgExit.focus();
+    setTimeout(function () { el.dlgExit.classList.remove("look"); }, 1200);
+  });
+  /* Shut by the browser all the same (a second Esc, which Chrome does not let
+   * a page refuse): treated as the way out it was. The close event comes after
+   * the fact, so when this page shut it, viewShown already says settings. */
+  el.dlg.addEventListener("close", function () {
+    if (viewShown === "setup") leaveSetup();
+  });
+
   function showPane(name) {
-    var panes = { obs: "paneObs", ext: "paneExt", look: "paneLook", save: "paneSave" };
-    if (!panes[name]) name = "obs";
+    var panes = SETTINGS_PANES;
+    if (OLD_PANE[name]) name = OLD_PANE[name];
+    if (!panes[name]) name = "try";
     Object.keys(panes).forEach(function (k) { $(panes[k]).hidden = k !== name; });
     Array.prototype.forEach.call(el.rail.querySelectorAll(".railBtn"), function (b) {
       var on = b.getAttribute("data-pane") === name;
@@ -7478,22 +8165,28 @@
   function setLogOpen(open) {
     el.logPanel.hidden = !open;
     el.logBtn.setAttribute("aria-expanded", String(open));
+    el.dlgLog.setAttribute("aria-expanded", String(open));
     var h = open ? Math.round(el.logPanel.getBoundingClientRect().height) : 0;
     document.documentElement.style.setProperty("--logH", h + "px");
     if (open) el.logWrap.scrollTop = el.logWrap.scrollHeight;
   }
+  // The button that opened it: the rail's, or the setup dialog's copy while
+  // the dialog is open (the rail is behind it then, and cannot take focus).
+  function logOpener() { return el.dlg.open ? el.dlgLog : el.logBtn; }
 
   el.logBtn.addEventListener("click", function () { setLogOpen(el.logPanel.hidden); });
+  el.dlgLog.addEventListener("click", function () { setLogOpen(el.logPanel.hidden); });
   el.logClose.addEventListener("click", function () {
     setLogOpen(false);
     // Back to the control that opened it, so a keyboard is not left on a button
     // that has just been hidden.
-    el.logBtn.focus();
+    logOpener().focus();
   });
   // The panel covers the bottom of the screen without taking focus, so the key
-  // people try on anything that behaves like that should work.
+  // people try on anything that behaves like that should work. Taken here, so
+  // the same Esc does not also reach the setup dialog as a request to close.
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !el.logPanel.hidden) { setLogOpen(false); el.logBtn.focus(); }
+    if (e.key === "Escape" && !el.logPanel.hidden) { e.preventDefault(); setLogOpen(false); logOpener().focus(); }
   });
   // It grows as lines arrive, and each line moves where the foot has to stop.
   if (window.ResizeObserver) {
@@ -7552,6 +8245,14 @@
    */
   function renderReady() {
     var missing = setupNext();
+    // Seen done once: from now on the page opens as settings (47-the-rail.js
+    // viewNow). Not switched under the broadcaster now — the last thing the
+    // setup asks for, seeing it work, is below the write.
+    if (!missing && ui.setupDone !== "1") { ui.setupDone = "1"; saveUi(); }
+    // The scene photographed, by name: the one answer the Scenes tab exists
+    // for. Here rather than in renderRail, because building the scenes and
+    // answering the gate repaint the readiness and not the whole rail.
+    setRailState("rScenesSt", cfg.src ? cfg.src : t("nav.todo"), !!(cfg.src && String(cfg.gateSet || "") === "1"));
     // Done is not the end of what is worth pointing at: the first time, the
     // one thing left is to see it work — off air, with the thirty-minute
     // window. Suggested once; opening the window is what retires it (ui.triedTest).
@@ -7565,6 +8266,8 @@
     el.chip.title = el.chipText.textContent;
     el.chip.disabled = !next;
     markNext(next);
+    // After the mark: the dialog puts the cursor on the marked control.
+    renderDlg();
   }
 
   /* The one next step, and where it is.
@@ -7576,14 +8279,17 @@
    * step was shown, only computed from the state on every repaint, so a step
    * done in OBS or on Twitch moves the ring without anyone telling this page
    * (docs/onboarding-plan.md §4.H). */
+  // pane and tab are the settings'. While the setup's dialog is open, step is
+  // the section of it to show (docs/setup-layout-plan.md §7). The write's own
+  // section is the dialog's step 8, where it is pressed through btnPushHere.
   var NEXT = {
-    connect: { pane: "obs", tab: "tabObs", ring: "btnConnect" },
-    build:   { pane: "obs", tab: "tabObs", ring: "btnBuild" },
-    reload:  { pane: "obs", tab: "tabObs", ring: "btnRefresh" },
-    gate:    { pane: "obs", tab: "tabObs", ring: "stepGate", focus: "gateAll" },
-    pair:    { pane: "ext", tab: "tabExt", ring: "btnLogin" },
-    push:    { pane: "",    tab: "",       ring: "btnPush" },
-    test:    { pane: "obs", tab: "tabObs", ring: "btnTest" }
+    connect: { pane: "conn",   tab: "tabConn",   step: "stepConn",  ring: "btnConnect" },
+    build:   { pane: "scenes", tab: "tabScenes", step: "stepBuild", ring: "btnBuild" },
+    reload:  { pane: "scenes", tab: "tabScenes", step: "stepBuild", ring: "btnRefresh" },
+    gate:    { pane: "scenes", tab: "tabScenes", step: "stepGate",  ring: "stepGate", focus: "gateAll" },
+    pair:    { pane: "conn",   tab: "tabConn",   step: "stepPair",  ring: "btnLogin" },
+    push:    { pane: "",       tab: "",          step: "stepPush",  ring: "btnPush" },
+    test:    { pane: "try",    tab: "tabTry",    step: "stepPush",  ring: "btnTest" }
   };
   var nextNow = "";
   function markNext(k) {
@@ -7600,7 +8306,11 @@
   function goNext() {
     var n = NEXT[nextNow];
     if (!n) return;
-    if (n.pane) showPane(n.pane);
+    if (viewShown === "setup") {
+      dlgShow(n.step);
+      // Behind the backdrop in the dialog; the copy in its step 8 is the one in reach.
+      if (n.ring === "btnPush") { el.pushHere.focus(); return; }
+    } else if (n.pane) showPane(n.pane);
     var f = $(n.focus || n.ring);
     // Instant, not smooth: the page jumping is the answer to the press, and a
     // glide is motion somebody may have asked the system not to show them.
@@ -8031,7 +8741,8 @@
    * the content is not rendered — so the cursor would have gone nowhere and the
    * field it was pointing at would still have been out of sight. */
   function obsNoPassword() {
-    showPane("obs");
+    showPane("conn");
+    dlgShow("stepConn");
     el.dConn.open = true;
     el.pw.focus();
   }
@@ -8051,6 +8762,19 @@
     renderRail();
     renderBuildState();
     renderDock();
+    // A wrong password is answered in the field: the cursor goes back into it,
+    // selected, as it does when one is missing. Only from Connect (or from
+    // where it fell when Connect was disabled for the attempt) — not pulled
+    // out of whatever else somebody has moved on to.
+    var a = document.activeElement;
+    if (failKey === "st.authfail" && (!a || a === document.body || a === el.dlg || a === el.connect)) {
+      el.dConn.open = true;
+      el.pw.focus();
+      el.pw.select();
+    }
+    // The steps for OBS have just been put above the field (renderObsHelp)
+    // and pushed it down, out of a short dialog's sight, under the cursor.
+    if (document.activeElement === el.pw) el.pw.scrollIntoView({ block: "nearest" });
   }
 
   function obsOnIdentified() {
@@ -8379,7 +9103,7 @@
       // The saving card is this same file opened with #card, and it belongs
       // in a photographed scene whenever that scene is on air: it is parked
       // outside the canvas and draws nothing on the broadcast (overlay
-      // 60-capture.js). It is not the overlay being photographed.
+      // 60c-the-card-source.js). It is not the overlay being photographed.
       if (/#card(&|$)/.test(String(v))) continue;
       var norm = decodeURIComponent(String(v)).toLowerCase().split("?")[0].split("#")[0].replace(/\\/g, "/");
       if (!norm) continue;
@@ -8551,7 +9275,18 @@
         return want;
       });
     }
-    return ask(t("dlg.title"), t("dlg.scene", { n: want }), [
+    return askSceneName(want, t("dlg.scene", { n: want }), function (fresh) { el.capName.value = fresh; });
+  }
+
+  /**
+   * A scene of the name wanted is already there: use it untouched, make
+   * another beside it, or stop. The capture scene and the special scenes
+   * (87-special-scenes.js makeTierScene) ask this one question, each in its
+   * own words; `renamed` is told the new name, for a field that shows it.
+   * Resolves to the scene's name, or null for "stop".
+   */
+  function askSceneName(want, question, renamed) {
+    return ask(t("dlg.title"), question, [
       { label: "dlg.cancel", value: "cancel" },
       { label: "dlg.rename", value: "rename" },
       { label: "dlg.use", value: "use", primary: true }
@@ -8561,30 +9296,34 @@
       var fresh = uniqueName(want, scenes);
       return request("CreateScene", { sceneName: fresh }).then(function () {
         log(t("log.renamed", { a: want, b: fresh }), "warn");
-        el.capName.value = fresh;
+        if (renamed) renamed(fresh);
         return fresh;
       });
     });
   }
 
   /**
-   * Settle on a name for the overlay's browser source.
-   *
-   * Overwriting one of ours is the ordinary case and needs no question — it is
-   * how a returning broadcaster gets this release's settings. Overwriting
-   * something that is not ours is the case that needs asking, and the answer
-   * changes only where that source points; nothing about it is destroyed.
+   * Whose a browser source of this name is: "free" (no input of any kind
+   * wears it), "ours" (one of ours that `isOurs` accepts), or "other".
+   * inputNames is every input OBS has, of every kind, so "other" can be a
+   * text source or a camera as easily as a browser source.
    */
-  function resolveOverlayName() {
-    var want = srcNameWanted();
+  function sourceOwner(want, isOurs) {
     var existing = targets.filter(function (r) { return r.name === want; })[0];
-    var taken = inputNames.indexOf(want) !== -1;
-    if (!taken) return Promise.resolve({ name: want, overwrite: false });
-    // Already ours, already pointing at the overlay: this is the same setup
-    // being written again, which is exactly what the button is for.
-    if (existing && existing.match && !existing.isBar && !existing.isCard) {
-      return Promise.resolve({ name: want, overwrite: true });
-    }
+    if (inputNames.indexOf(want) === -1) return "free";
+    return existing && existing.match && isOurs(existing) ? "ours" : "other";
+  }
+
+  /**
+   * Settle on a name for a browser source this page makes: a free name is
+   * made, one of ours is written again without a question, and anything else
+   * is asked about — overwrite (which changes only where it points), another
+   * name, or stop. `renamed` as askSceneName() has it.
+   */
+  function resolveSourceName(want, isOurs, renamed) {
+    var owner = sourceOwner(want, isOurs);
+    if (owner === "free") return Promise.resolve({ name: want, overwrite: false });
+    if (owner === "ours") return Promise.resolve({ name: want, overwrite: true });
     return ask(t("dlg.title"), t("dlg.src", { n: want }), [
       { label: "dlg.cancel", value: "cancel" },
       { label: "dlg.rename", value: "rename" },
@@ -8597,9 +9336,24 @@
       }
       var fresh = uniqueName(want, inputNames);
       log(t("log.renamed", { a: want, b: fresh }), "warn");
-      el.newSrcName.value = fresh;
+      if (renamed) renamed(fresh);
       return { name: fresh, overwrite: false };
     });
+  }
+
+  /**
+   * Settle on a name for the overlay's browser source.
+   *
+   * Overwriting one of ours is the ordinary case and needs no question — it is
+   * how a returning broadcaster gets this release's settings. Overwriting
+   * something that is not ours is the case that needs asking, and the answer
+   * changes only where that source points; nothing about it is destroyed.
+   */
+  function resolveOverlayName() {
+    // Already ours, already pointing at the overlay: this is the same setup
+    // being written again, which is exactly what the button is for.
+    return resolveSourceName(srcNameWanted(), function (r) { return !r.isBar && !r.isCard; },
+      function (fresh) { el.newSrcName.value = fresh; });
   }
 
   /**
@@ -8613,26 +9367,7 @@
    * the overlay's name gets.
    */
   function resolveBarName(want) {
-    var existing = targets.filter(function (r) { return r.name === want; })[0];
-    var taken = inputNames.indexOf(want) !== -1;
-    if (!taken) return Promise.resolve({ name: want, overwrite: false });
-    if (existing && existing.match && existing.isBar) {
-      return Promise.resolve({ name: want, overwrite: true });
-    }
-    return ask(t("dlg.title"), t("dlg.src", { n: want }), [
-      { label: "dlg.cancel", value: "cancel" },
-      { label: "dlg.rename", value: "rename" },
-      { label: "dlg.overwrite", value: "overwrite", primary: true }
-    ]).then(function (answer) {
-      if (answer === "cancel") return null;
-      if (answer === "overwrite") {
-        log(t("log.overwrote", { n: want }), "warn");
-        return { name: want, overwrite: true };
-      }
-      var fresh = uniqueName(want, inputNames);
-      log(t("log.renamed", { a: want, b: fresh }), "warn");
-      return { name: fresh, overwrite: false };
-    });
+    return resolveSourceName(want, function (r) { return r.isBar; });
   }
 
   function buildAll() {
@@ -8728,10 +9463,7 @@
     el.newSrcScene.textContent = "";
     scenes.forEach(function (name) {
       if (isPhotographed(name)) return;
-      var o = document.createElement("option");
-      o.value = name;
-      o.textContent = name;
-      el.newSrcScene.appendChild(o);
+      addOption(el.newSrcScene, name, name);
     });
     renderBuildState();
     if (keep && scenes.indexOf(keep) !== -1 && !isPhotographed(keep)) {
@@ -9124,6 +9856,21 @@
     renderDock();
   }
 
+  /**
+   * The end of a delivery whose caller has nothing left to do with OBS:
+   * recorded when it reached everything (deliver() gave it a signature),
+   * otherwise only the dock is drawn again, still saying it has not.
+   */
+  function recordDelivered(res) {
+    if (res.sig) markPushed(res.sig);
+    else renderDock();
+  }
+
+  /** A delivery that failed outright (deliver() rejected). */
+  function sayPushFailed(e) {
+    log(t("log.pushfail", { m: e.message }), "bad");
+  }
+
   /** The build stamp OBS is actually carrying, or "" when there is no source. */
   function targetBuild() {
     var row = targets.filter(function (r) { return r.name === target; })[0];
@@ -9158,6 +9905,8 @@
     el.dock.dataset.state = state;
     var msg = { off: "dock.off", none: "dock.notarget", dirty: "dock.dirty", stale: "dock.stale", clean: "dock.clean" }[state];
     el.dockState.textContent = pushing ? t("dock.pushing") : t(msg);
+    $("pushSay").textContent = el.dockState.textContent;
+    $("pushSay").classList.toggle("good", state === "clean");
     // Said whether or not there is somewhere to write right now. When the page
     // is reopened this is the only thing it still knows for certain — it is
     // stored, and the target is not — and it is the one a broadcaster comes
@@ -9166,6 +9915,9 @@
     if (!ui.pushedAt) el.dockLast.textContent = t("dock.never");
     else el.dockLast.textContent = t("dock.last", { t: new Date(Number(ui.pushedAt)).toLocaleTimeString() });
     el.push.disabled = pushing || !identified || !target;
+    // Step 8's button presses this one, so it can be pressed exactly when this
+    // one can: enabled while this is not, it would be a press with no answer.
+    el.pushHere.disabled = el.push.disabled;
     renderReady();
   }
 
@@ -9193,7 +9945,7 @@
           .then(scanTargets)
           .then(function () { if (res.sig) markPushed(res.sig); });
       })
-      .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); })
+      .catch(sayPushFailed)
       .then(function () { pushing = false; renderDock(); });
   }
 
@@ -9220,10 +9972,9 @@
         // (overlay 30-configuration.js), so writing is delivering; no reload.
         var done = res.results.filter(function (x) { return x.written; }).map(function (x) { return x.name; });
         if (done.length) log(t("log.pushed", { n: done.join(", ") }), "ok");
-        if (res.sig) markPushed(res.sig);
-        else renderDock();
+        recordDelivered(res);
       })
-      .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); });
+      .catch(sayPushFailed);
   }
 
   /* ================= deliver: the one writer of the overlay's URL =================
@@ -9721,9 +10472,8 @@
       // Queued behind this job, which the callers are still waiting on.
       deliver({ kind: "retry", notKid: kid }).then(function (res) {
         sayUndelivered(res);
-        if (res.sig) markPushed(res.sig);
-        else renderDock();
-      }, function (e) { log(t("log.pushfail", { m: e.message }), "bad"); });
+        recordDelivered(res);
+      }, sayPushFailed);
     });
   }
 
@@ -9761,15 +10511,14 @@
   function makeVertical(scene, baseName, form) {
     // English on every channel, for the reason the bar's suffix is.
     var want = baseName + " vertical";
-    var existing = targets.filter(function (r) { return r.name === want; })[0];
-    var taken = inputNames.indexOf(want) !== -1;
-    if (taken && !(existing && existing.match && existing.isVertical)) {
+    var owner = sourceOwner(want, function (r) { return r.isVertical; });
+    if (owner === "other") {
       // Somebody else's source wears the name. Say so and leave it alone: the
       // landscape overlay is already written, and this one can be added later.
       log(t("log.verticalskipped", { n: want }), "warn");
       return Promise.resolve();
     }
-    return makeOrWrite(scene, want, taken, verticalUrl(form), 1080, 1920, false, false)
+    return makeOrWrite(scene, want, owner === "ours", verticalUrl(form), 1080, 1920, false, false)
       .then(function () { log(t("log.verticalcreated", { n: want }), "ok"); })
       .catch(function (e) { log(t("log.verticalfail", { m: e.message }), "warn"); });
   }
@@ -10562,6 +11311,52 @@
   // the next press comes out in the new language without a reload.
   if (window.ResizeObserver) new ResizeObserver(fitSample).observe(document.body);
   else window.addEventListener("resize", fitSample);
+  /* ================= the address the EBS socket is opened at =================
+
+     The pairing token is not put in it (docs/refactor2-plan.md §4-6). A
+     browser writes the address of a WebSocket that would not open to the
+     console — "WebSocket connection to 'wss://…/stream?ch=…&t=…' failed" — and
+     OBS copies a browser source's console into its log, which broadcasters
+     upload when they ask for help (実測 2026-10-17, Chrome). A WebSocket cannot
+     carry a header, and no page can stop that line being written.
+
+     So the token goes in the body of a POST to /stream/ticket, and the address
+     carries what comes back: a ticket for this channel that lasts a minute. A
+     failed POST is written down too, but its address holds no secret.
+
+     An EBS from before tickets answers 404, and only then does the token go in
+     the address the way it used to — the page works against it, and stops
+     writing the token anywhere the moment the EBS is deployed. A POST that got
+     no answer is not that: nothing is opened, and the caller tries again later.
+
+     Answers through a promise that never rejects:
+       { url }               the socket's address, ready to open
+       { url, legacy: true } the same, from an EBS that has no tickets yet
+       { cut: true }         401 — this token no longer opens this channel
+       null                  no answer worth acting on: unreachable, or one
+                             that was not understood */
+  function ebsSocketAddress(ebs, ch, token) {
+    var base = String(ebs || "").trim().replace(/\/+$/, "");
+    if (!base || !ch || !token) return Promise.resolve(null);
+    var secure = base.indexOf("http://") !== 0;
+    var host = base.replace(/^https?:\/\//, "");
+    var http = (secure ? "https://" : "http://") + host;
+    var sock = (secure ? "wss://" : "ws://") + host + "/stream?ch=" + encodeURIComponent(ch);
+    var asked;
+    // A string body is sent as text/plain, which keeps this a simple request:
+    // no preflight from a file:// page.
+    try { asked = fetch(http + "/stream/ticket?ch=" + encodeURIComponent(ch), { method: "POST", body: String(token) }); }
+    catch (e) { return Promise.resolve(null); }
+    return asked.then(function (res) {
+      if (res.status === 401) return { cut: true };
+      if (res.status === 404) return { url: sock + "&t=" + encodeURIComponent(token), legacy: true };
+      if (!res.ok) return null;
+      return res.json().then(function (b) {
+        var k = b && typeof b.k === "string" ? b.k : "";
+        return /^[A-Za-z0-9._-]{1,200}$/.test(k) ? { url: sock + "&k=" + encodeURIComponent(k) } : null;
+      }, function () { return null; });
+    }, function () { return null; });
+  }
   /* ================= the EBS link is checked here, not held open ================= */
 
   var esState = "off";
@@ -10652,7 +11447,8 @@
      first time a pairing was cut on Twitch).
 
      Asked the way the overlay asks why its socket closed (overlay:
-     ebsWhyClosed): a plain GET on the socket's address. 401 is the EBS saying
+     ebsWhyClosed): for a ticket (shared: ebs-ticket.js), and from an EBS
+     that has none, a plain GET on the socket's address. 401 is the EBS saying
      the token no longer opens the channel; anything else — the EBS out of
      reach included — says nothing, and the line is left as it was. No socket
      is opened, so the EBS does not take this for an overlay. */
@@ -10665,16 +11461,23 @@
     var mine = ++pairAsked;
     var ch = cfg.ch, token = cfg.ebsToken;
     pairAskedAt = Date.now();
-    try {
-      fetch(String(cfg.ebs).replace(/\/+$/, "") + "/stream?ch=" + encodeURIComponent(ch) +
-        "&t=" + encodeURIComponent(token), { method: "GET" }).then(function (res) {
-        // Only about the pairing it was asked for.
-        if (mine !== pairAsked || cfg.ch !== ch || cfg.ebsToken !== token) return;
-        if (pairCut === (res.status === 401)) return;
-        pairCut = res.status === 401;
-        showPairInfo();
-      }).catch(function () {});
-    } catch (e) {}
+    // Only about the pairing it was asked for.
+    var still = function () { return mine === pairAsked && cfg.ch === ch && cfg.ebsToken === token; };
+    var answer = function (cut) {
+      if (!still() || pairCut === cut) return;
+      pairCut = cut;
+      showPairInfo();
+    };
+    ebsSocketAddress(cfg.ebs, ch, token).then(function (a) {
+      if (!a || !still()) return;
+      if (!a.legacy) { answer(!!a.cut); return; }
+      try {
+        fetch(String(cfg.ebs).replace(/\/+$/, "") + "/stream?ch=" + encodeURIComponent(ch) +
+          "&t=" + encodeURIComponent(token), { method: "GET" }).then(function (res) {
+          answer(res.status === 401);
+        }).catch(function () {});
+      } catch (e) {}
+    });
   }
 
   /** A pairing just made or just removed is not the one that was asked about. */
@@ -10727,6 +11530,10 @@
        * takes the key as well as the ciphertext: leaving the key would leave
        * the tool that opens whatever copy is sitting in a backup. */
       if (cfg.pw) saveSecrets(); else secretsClear();
+      // A check still on its way was asked about the code just erased: it no
+      // longer speaks, or its answer would paint "live" beside an empty box
+      // (and carry the start dialog on from step 7).
+      ebsAttempt++;
       ebsSetState("off");
       showPairInfo();
       renderRail();
@@ -10751,6 +11558,10 @@
     ebsSetState("off");
     showPairInfo();
     renderRail();
+    // A new code is tried at once, so the line beside it is an answer: a code
+    // that no longer works says so here, rather than on the stream. checkEbs() reads the box again; the code is
+    // no longer new by then, so this does not run twice.
+    if (fresh) checkEbs();
   }
 
   /* ---- telling the EBS a code was pasted (docs/onboarding-plan.md §4.J, J-3) ----
@@ -10785,9 +11596,6 @@
 
     // Open it, see whether it is accepted, and let go. Holding it open here
     // would make the EBS believe an overlay is listening when none is.
-    var base = cfg.ebs.replace(/\/+$/, "");
-    var url = base.replace(/^http/, "ws") + "/stream?ch=" + encodeURIComponent(cfg.ch) +
-      "&t=" + encodeURIComponent(cfg.ebsToken);
     // Opened and closed without a word. The EBS counts an overlay from its
     // first report, so this check is not one connecting (onboarding-plan §4.J).
     ebsSetState("connecting");
@@ -10795,8 +11603,7 @@
     // socket exists: if the constructor throws, the previous attempt must not
     // stay the newest and later paint this "error" over with its own "live".
     var mine = ++ebsAttempt;
-    var sock;
-    try { sock = new WebSocket(url); } catch (e) { ebsSetState("error"); return; }
+    var sock = null;
     var done = false;
     /** Close this attempt; true when it is also the one allowed to report. */
     function settle() {
@@ -10805,31 +11612,46 @@
       clearTimeout(giveUp);
       return mine === ebsAttempt;
     }
+    function failed() {
+      if (!settle()) return;
+      ebsSetState("error");
+      log(t("log.ebs.fail"), "bad");
+    }
+    // Six seconds for the whole of it: the ticket, then the socket.
     var giveUp = setTimeout(function () {
       var speak = settle();
-      try { sock.close(); } catch (e) {}
+      try { if (sock) sock.close(); } catch (e) {}
       if (!speak) return;
       ebsSetState("error");
       log(t("log.ebs.fail"), "bad");
     }, 6000);
-    sock.onopen = function () {
-      var speak = settle();
-      try { sock.close(); } catch (e) {}
-      if (!speak) return;
-      ebsSetState("live");
-      log(t("log.ebs.ok"), "ok");
-    };
-    sock.onclose = function () {
-      if (!settle()) return;
-      ebsSetState("error");
-      log(t("log.ebs.fail"), "bad");
-    };
+    // The token goes in no address (shared: ebs-ticket.js).
+    ebsSocketAddress(cfg.ebs, cfg.ch, cfg.ebsToken).then(function (a) {
+      if (done) return;
+      if (!a || a.cut) { failed(); return; }
+      try { sock = new WebSocket(a.url); } catch (e) { if (settle()) ebsSetState("error"); return; }
+      listen();
+    });
+    function listen() {
+      sock.onopen = function () {
+        var speak = settle();
+        try { sock.close(); } catch (e) {}
+        if (!speak) return;
+        ebsSetState("live");
+        log(t("log.ebs.ok"), "ok");
+      };
+      sock.onclose = failed;
+    }
   }
 
   function renderEbs() {
     var m = { off: t("ebs.off"), connecting: t("ebs.connecting"), live: t("ebs.ok"), error: t("ebs.error") };
     el.ebsState.textContent = m[esState] || esState;
     el.ebsState.dataset.state = esState;
+    // "Not checked" said nothing anyone could act on, and beside a pairing
+    // that had just worked it read as a failure. Shown only once there is an
+    // answer, or one on its way.
+    el.ebsState.parentNode.hidden = esState === "off";
     el.ebsConnect.textContent = t("ebs.check");
   }
 
@@ -11317,16 +12139,10 @@
     // The picker offers only what is not already listed, so choosing is always
     // an addition and never a press that appears to do nothing.
     el.gate.textContent = "";
-    var add = document.createElement("option");
-    add.value = "";
-    add.textContent = t("gate.add");
-    el.gate.appendChild(add);
+    addOption(el.gate, "", t("gate.add"));
     for (var i = 0; i < scenes.length; i++) {
       if (chosen.indexOf(scenes[i]) !== -1) continue;
-      var o = document.createElement("option");
-      o.value = scenes[i];
-      o.textContent = scenes[i];
-      el.gate.appendChild(o);
+      addOption(el.gate, scenes[i], scenes[i]);
     }
     // Back to the invitation, so the control always reads as "add one more"
     // rather than as a field holding the last thing that was added.
@@ -11495,15 +12311,14 @@
       log(t("test.left", { n: 30 }), "ok");
       ui.triedTest = "1";
       saveUi();
-      if (res.sig) markPushed(res.sig);
-      else renderDock();
+      recordDelivered(res);
     }).catch(function (e) {
       // Undelivered is not open. The deadline is counted from the press, and a
       // page counting down a window OBS was never told about is the thing this
       // whole path exists to avoid.
       cfg.testUntil = was;
       saveCfg(cfg);
-      log(t("log.pushfail", { m: e.message }), "bad");
+      sayPushFailed(e);
     }).then(function () {
       testBusy = false;
       drawTestLeft();
@@ -11522,7 +12337,10 @@
   function drawTestLeft() {
     var left = Math.ceil((Number(cfg.testUntil || 0) - Date.now()) / 60000);
     var on = left > 0;
-    el.testNote.textContent = on ? t("test.left", { n: left }) : t("n.test");
+    // Under step 8 in the setup, where "after Write to OBS" is the next line
+    // up; in the Try tab there is no step to point at (docs/setup-layout-plan.md).
+    el.testNote.textContent = on ? t("test.left", { n: left }) : t(viewShown === "settings" ? "n.test.any" : "n.test");
+    setRailState("rTrySt", on ? t("nav.tryOpen", { n: left }) : "", on);
     el.test.textContent = on ? t("test.stop") : t("test");
     el.test.disabled = testBusy;
   }
@@ -11559,10 +12377,9 @@
         });
         res.unread.forEach(function (name) { log(t("log.testStillOpenMax", { n: name }), "warn"); });
         if (anyWritten(res)) log(t("log.testend"), "ok");
-        if (res.sig) markPushed(res.sig);
-        else renderDock();
+        recordDelivered(res);
       })
-      .catch(function (e) { log(t("log.pushfail", { m: e.message }), "bad"); })
+      .catch(sayPushFailed)
       .then(function () { testBusy = false; drawTestLeft(); });
   }
 
@@ -11631,15 +12448,9 @@
     if (!sel) return;
     var was = cfg.saveFrom || "0";
     sel.textContent = "";
-    var all = document.createElement("option");
-    all.value = "0";
-    all.textContent = t("saveFrom.all");
-    sel.appendChild(all);
+    addOption(sel, "0", t("saveFrom.all"));
     for (var i = 0; i < SAVE_TIERS.length; i++) {
-      var o = document.createElement("option");
-      o.value = String(SAVE_TIERS[i]);
-      o.textContent = t("saveFrom.at", { n: SAVE_TIERS[i] });
-      sel.appendChild(o);
+      addOption(sel, String(SAVE_TIERS[i]), t("saveFrom.at", { n: SAVE_TIERS[i] }));
     }
     sel.value = was;
     if (!sel.value) sel.value = "0";
@@ -12173,16 +12984,10 @@
       var floor = x === "C" ? tierFromValue("B") : 0;
       e.label.textContent = t("tier.name", { x: x });
       e.from.textContent = "";
-      var off = document.createElement("option");
-      off.value = "";
-      off.textContent = t("tier.off");
-      e.from.appendChild(off);
+      addOption(e.from, "", t("tier.off"));
       for (var i = 0; i < SAVE_TIERS.length; i++) {
         if (SAVE_TIERS[i] <= floor) continue;
-        var o = document.createElement("option");
-        o.value = String(SAVE_TIERS[i]);
-        o.textContent = t("saveFrom.at", { n: SAVE_TIERS[i] });
-        e.from.appendChild(o);
+        addOption(e.from, String(SAVE_TIERS[i]), t("saveFrom.at", { n: SAVE_TIERS[i] }));
       }
       e.from.value = was;
       if (e.from.value !== was) e.from.value = "";
@@ -12276,21 +13081,7 @@
     var settled;
     if (scenes.indexOf(want) === -1) settled = create(want);
     else if (want === cfg.src || want === other) settled = create(uniqueName(want, scenes));
-    else {
-      settled = ask(t("dlg.title"), t("dlg.tierScene", { n: want }), [
-        { label: "dlg.cancel", value: "cancel" },
-        { label: "dlg.rename", value: "rename" },
-        { label: "dlg.use", value: "use", primary: true }
-      ]).then(function (answer) {
-        if (answer === "cancel") return null;
-        if (answer === "use") { log(t("log.reuse", { n: want }), "ok"); return want; }
-        var fresh = uniqueName(want, scenes);
-        return request("CreateScene", { sceneName: fresh }).then(function () {
-          log(t("log.renamed", { a: want, b: fresh }), "warn");
-          return fresh;
-        });
-      });
-    }
+    else settled = askSceneName(want, t("dlg.tierScene", { n: want }));
     return settled.then(function (name) {
       if (!name) return;
       cfg[k.src] = name;
@@ -12446,6 +13237,21 @@
     if (identified) disconnect();
     else connect();
   });
+  // Enter in the address or the password connects, as it would in a form —
+  // typing the password and pressing Enter did nothing. Only to connect: a
+  // session already up is not ended by a key in a field. And not while Connect
+  // itself is unavailable: before the stored password lands (99-go.js) the box
+  // is empty for no reason of the broadcaster's, and the key would do exactly
+  // what the disabled button refuses to. A held key is one press: each
+  // connect() tears down the attempt before it, so auto-repeat would keep
+  // restarting the handshake for as long as the key stayed down.
+  [el.host, el.port, el.pw].forEach(function (f) {
+    f.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" || e.isComposing) return;
+      if (e.repeat) { e.preventDefault(); return; }
+      if (!identified && !el.connect.disabled) { e.preventDefault(); connect(); }
+    });
+  });
   el.build.addEventListener("click", buildAll);
   el.shot.addEventListener("click", testCapture);
   el.refresh.addEventListener("click", function () {
@@ -12515,6 +13321,33 @@
     if (Date.now() - pairAskedAt > 30000) askPairing();
   });
 
+  /**
+   * The fields that show a setting, from cfg and ui: when the page opens, and
+   * again after everything is erased (wipeEverything). The secrets are not
+   * here — the password, the pairing code and the webhook wait for the store
+   * at boot (99-go.js), and an erase empties them by hand.
+   *
+   * After an erase cfg and ui are the defaults, and every line below gives
+   * what the erase used to write by hand (docs/refactor2-plan.md C10). Read
+   * back by the controls the next time anything touches them, so a stale
+   * folder left on screen would put that folder back.
+   */
+  function fillForm() {
+    el.host.value = cfg.host;
+    el.port.value = cfg.port;
+    el.capName.value = ui.capName || cfg.src || "";
+    el.newSrcName.value = ui.srcName || "";
+    el.saveDir.value = cfg.saveDir || "";
+    el.saveMode.value = cfg.saveDir ? "dir" : "off";
+    // Widest reading when the stored value is unknown, matching the overlay.
+    paintSaveFrom();
+    el.saveFrom.value = cfg.saveFrom || "0";
+    if (!el.saveFrom.value) el.saveFrom.value = "0";
+    el.saveParty.value = cfg.saveParty === "0" ? "0" : "1";
+    el.saveSize.value = ({ std: 1, small: 1, min: 1 })[cfg.saveSize] ? cfg.saveSize : "std";
+    el.stampSave.value = ({ datetime: 1, date: 1, time: 1, off: 1 })[cfg.stampSave] ? cfg.stampSave : "datetime";
+  }
+
   function wipeEverything() {
     try { localStorage.removeItem(CFG_KEY); localStorage.removeItem(UI_KEY); } catch (e) {}
     /* The ciphertext AND the key, or "everything" is not what happened.
@@ -12548,20 +13381,11 @@
     cancelTry();
     el.themeCode.value = "";
     applyPack("", false);
-    el.host.value = cfg.host;
-    el.port.value = cfg.port;
-    el.pw.value = "";
-    el.capName.value = "";
-    el.newSrcName.value = "";
     // The saving controls too: they are read back out of the form the next time
     // anything touches them, so a cleared config with a stale folder still on
     // screen puts that folder back the moment the broadcaster changes anything.
-    el.saveDir.value = cfg.saveDir;
-    el.saveMode.value = "off";
-    el.saveFrom.value = cfg.saveFrom;
-    el.saveParty.value = cfg.saveParty;
-    el.saveSize.value = cfg.saveSize;
-    el.stampSave.value = cfg.stampSave;
+    fillForm();
+    el.pw.value = "";
     el.discordWebhook.value = "";
     el.hDiscordBad.hidden = true;
     el.hDiscordResult.hidden = true;
@@ -12581,6 +13405,7 @@
      * already saying "obs". The two only agreed
      * again at the next reload. It also scrolls to the top, which is the right
      * place to be standing after starting over. */
+    applyView();
     showPane(ui.pane);
     applySampleBg(ui.sampleBg);
     /* Said last, and said differently when it did not finish.
@@ -12595,19 +13420,7 @@
 
   /* ================= go ================= */
 
-  el.host.value = cfg.host;
-  el.port.value = cfg.port;
-  el.capName.value = ui.capName || cfg.src || "";
-  el.newSrcName.value = ui.srcName || "";
-  el.saveDir.value = cfg.saveDir || "";
-  el.saveMode.value = cfg.saveDir ? "dir" : "off";
-  // Widest reading when the stored value is unknown, matching the overlay.
-  paintSaveFrom();
-  el.saveFrom.value = cfg.saveFrom || "0";
-  if (!el.saveFrom.value) el.saveFrom.value = "0";
-  el.saveParty.value = cfg.saveParty === "0" ? "0" : "1";
-  el.saveSize.value = ({ std: 1, small: 1, min: 1 })[cfg.saveSize] ? cfg.saveSize : "std";
-  el.stampSave.value = ({ datetime: 1, date: 1, time: 1, off: 1 })[cfg.stampSave] ? cfg.stampSave : "datetime";
+  fillForm();
 
   /* One line, before anything is tried.
    *
@@ -12650,6 +13463,7 @@
   el.themeCode.value = themeCodeOf(cfg);
   applyPack(el.themeCode.value, false);
   applySaveMode();
+  applyView();
   showPane(ui.pane);
   applySampleBg(ui.sampleBg);
   paint();
@@ -12712,6 +13526,20 @@
     el.connect.disabled = false;
     el.ebsConnect.disabled = false;
     showPairInfo();
+    /* Asked again, now that the pairing token is here. A setup finished by an
+     * earlier version is only known by its token, which was in the store, so
+     * the first answer above said "setup" to a page that is set up. Not when
+     * the broadcaster chose a view: that is never overruled. */
+    if (!ui.view) {
+      var was = viewShown;
+      applyView();
+      if (viewShown !== was) {
+        showPane(ui.pane);
+        // Whatever had the cursor may have just been hidden with its pane.
+        var f = document.activeElement;
+        if (f && f !== document.body && !f.getClientRects().length) el.view.focus();
+      }
+    }
     renderRail();
     renderDock();
 

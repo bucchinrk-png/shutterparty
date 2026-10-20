@@ -1298,7 +1298,7 @@
         rgba(var(--acc-deep-rgb), calc(var(--la) + .16)) 100%);
   }
   /* The paid colour when an element has not been handed one (70-effects.js,
-     92-bar-and-party.js set it from the amount). Defined here, not as a var()
+     92-bar-and-party.js and 92a-sounds-and-gold.js set it from the amount). Defined here, not as a var()
      fallback: tools/overlay-invariants.mjs reads the #ovGold centre stop as
      rgba(<no comma>, .6), and a fallback puts a comma inside it. */
   :root { --glow-rgb: var(--b10); }
@@ -1751,7 +1751,7 @@
      animation away drops the transform, and the stars jumped back to their
      starting angle over the second the plate spends fading out (本人 2026-09-14).
      Paused, it holds the angle it reached and asks for no frames. The reset
-     is .pre, which the plate passes through on its way in (92-bar-and-party.js
+     is .pre, which the plate passes through on its way in (92b-last-hit.js
      forces a reflow there), so the angle never accumulates across showings.
 
      0s is the default and means no animation at all — the same switch shape
@@ -1830,7 +1830,7 @@
      product's font, which needs none.
 
      It moves with `top`, NOT with a transform, and that is not a preference:
-     92-bar-and-party.js runs the digit's spring with elCdNum.animate(), and a
+     92d-party-and-sheet.js runs the digit's spring with elCdNum.animate(), and a
      Web Animation writes transform from the animation origin, which outranks
      every author rule. A transform here computed correctly, matched the
      element, showed up active in the devtools protocol — and did nothing,
@@ -1880,7 +1880,7 @@
      Built from the glass parts (g-), so the two cannot drift apart. --u is
      the bar's own (a 1080p frame draws a 44px tube, the height of a 480x56
      bar source). The liquid's reach, --r, is set by the banner's clock
-     (92-bar-and-party.js) four times a second, and the width transition is
+     (92d-party-and-sheet.js) four times a second, and the width transition is
      that quarter second, linear, so the steps run together into one drain. */
   .banner {
     --u: calc(56 * min(1vw, 1vh) / 1080);
@@ -2511,7 +2511,7 @@
       top: calc(var(--safe-top) + 1%);
     }
     /* The counter and the queue toast are moved by the base too
-       (92-bar-and-party.js sets .counter's top under whatever is above it), so
+       (92d-party-and-sheet.js sets .counter's top under whatever is above it), so
        this is where they come from, not where they end up. */
     :root:not([data-baronly]):not([data-card]) .counter,
     :root:not([data-baronly]):not([data-card]) .queue-toast {
@@ -2828,7 +2828,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-6e42cb173f6b";
+  var BUILD = "sp-7c392f873fd6";
   /* @end build */
 
   /**
@@ -2952,7 +2952,7 @@
 
      WHERE THE IMAGES GO, and why it is a canvas. A file:// page may draw a
      file:// image and may never read the pixels back: toDataURL is a
-     SecurityError (measured — 60-capture.js carries the same note for the
+     SecurityError (measured — 60h-for-the-keeper.js carries the same note for the
      photographs). So a pack image cannot become a CSS background, a data: URI
      or a variable. It is drawn ONCE into a <canvas class="skin"> that sits at
      the bottom of the element it dresses, and that canvas is what is shown.
@@ -3329,7 +3329,7 @@
      worst sheet — nine 9:16 prints — inside a 1080-high screen. */
 
   /* The sheet's measurements, in the tray's unit u (shell.html .sheet). The
-     card source is sized from the same numbers (60-capture.js sheetSizeOf):
+     card source is sized from the same numbers (60f-the-sheet.js sheetSizeOf):
      change one side and not the other and the bottom of the saved sheet is
      cut off. */
   var SHEET_PAD = 40;          // the ground around the tray, px (card mode: 100vw - 80px)
@@ -3561,7 +3561,7 @@
    *
    * AND IT PROVES NOTHING ABOUT LATER. Quota runs out in the middle of a
    * party, not at boot. A put that fails after this answered is handled where
-   * it happens (60-capture.js: that frame goes to the screen and no further) —
+   * it happens (60h-for-the-keeper.js: that frame goes to the screen and no further) —
    * the mode is NOT changed underneath a run, because changing it mid-party is
    * exactly the mixture this decides once to avoid.
    */
@@ -3831,7 +3831,7 @@
    * failing for a while. Carrying on would grow the profile by a photograph a
    * press with no way to get any of them back — so the store stops taking new
    * ones, and frames go to the screen and no further (the same road as a put
-   * that fails, 60-capture.js). Said once: a broadcaster mid-party does not
+   * that fails, 60h-for-the-keeper.js). Said once: a broadcaster mid-party does not
    * need it every 150ms.
    */
   function photoJammed() {
@@ -3886,7 +3886,8 @@
   /* ================= card mode =================
 
      Loaded with #card, this file is not an overlay at all: it draws one saved
-     photo, at the size of its own source, and stops. OBS captures that source
+     photo (or, with sheet=1, the contact sheet), at the size of its own
+     source, and stops. OBS captures that source
      to write the framed file — the only way a page can put a border, a name and
      a badge into something on disk, since it cannot write to disk itself
      (docs/plan.md §6).
@@ -3912,11 +3913,10 @@
     /**
      * The contact sheet, drawn for the file rather than for the stream.
      *
-     * The pictures arrive as file:// addresses, which is the only shape they
-     * can take: this page cannot be handed pixels, because a file:// page is
-     * refused the pixels of a file:// image (measured, §6) — so the overlay
-     * cannot turn them into data. Drawing them is allowed, and drawing is all
-     * this needs.
+     * The pictures arrive as keys into the photo store (08-photo-store.js),
+     * one per print, and each is read out with the box it was measured with.
+     * Nine pictures themselves would not fit in the URL that is the only way
+     * in (60f-the-sheet.js saveSheet).
      */
     /**
      * The theme and the pack, the same way the overlay takes them.
@@ -4010,12 +4010,12 @@
       grid.textContent = "";
       // Read straight out of the hash rather than through URLSearchParams.
       //
-      // The addresses are escaped one at a time and then joined with "|", so
-      // decoding the whole field before the split decodes each address twice —
-      // and the second decode undoes exactly what fileUrl() went out of its way
-      // to do. A folder named with a "?" arrives as "%3F", comes back as a real
-      // "?", and the browser then reads the address as ending there: the sheet
-      // draws the wrong file, or nothing. Split first, decode each once.
+      // The entries are escaped one at a time and then joined with "|", so
+      // decoding the whole field before the split decodes each one twice. A
+      // key cannot be hurt by that, but a file:// address from an older
+      // overlay could: a folder named with a "?" arrives as "%3F", comes back
+      // as a real "?", and the browser then reads the address as ending
+      // there. Split first, decode each once.
       var imgsField = "";
       var hashParts = String(location.hash || "").replace(/^#/, "").split("&");
       for (var hp = 0; hp < hashParts.length; hp++) {
@@ -4306,10 +4306,7 @@
       "log.jank": "描画: 最悪 {ms}ms / {n} フレーム / 約 {fps}fps / {what}",
       "log.notready": "いまは撮影できません: {m}",
       "log.notidentified": "撮影の合図が来ましたが、OBS に接続できていないので撮れません",
-      "log.saveok": "保存できる状態に戻りました",
       "log.savedTo": "保存しました: {p}",
-      "log.savefail": "写真を保存できませんでした: {m}",
-      "log.savegaveup": "保存の失敗が続いたので、この配信では保存を止めます（撮影と演出は続きます）。設定ページで保存先を確認してください",
       "log.cardmade": "枠つきで保存するためのソース「{n}」を OBS に作りました。画面の外に置いてあるので配信にも写真にも出ません。消さないでください（消しても次の保存で作り直します）",
       "log.sheetsaved": "コンタクトシートを書き出しました: {p}",
       "log.sheetfail": "コンタクトシートを書き出せませんでした: {m}（配信画面には出ています）",
@@ -4395,10 +4392,7 @@
       "log.jank": "drawing: worst {ms}ms / {n} frames / about {fps}fps / {what}",
       "log.notready": "cannot capture right now: {m}",
       "log.notidentified": "a shot was requested but OBS is not connected, so nothing was captured",
-      "log.saveok": "saving is working again",
       "log.savedTo": "saved {p}",
-      "log.savefail": "could not save the photo: {m}",
-      "log.savegaveup": "saving kept failing, so it is switched off for this session (capture and effects continue); check the folder in the setup page",
       "log.shot": "received a {kb} KB image",
       "log.shotstale": "the target changed while this was being taken; the frame was dropped",
       "log.tier.lost": "cannot photograph the special scene “{n}”, so the usual capture scene is used instead",
@@ -4495,10 +4489,7 @@
       "log.jank": "绘制：最差 {ms}ms / {n} 帧 / 约 {fps}fps / {what}",
       "log.notready": "现在不能拍摄：{m}",
       "log.notidentified": "收到了拍摄信号，但 OBS 尚未连接，所以无法拍摄",
-      "log.saveok": "保存已恢复正常",
       "log.savedTo": "已保存：{p}",
-      "log.savefail": "写不出来：{m}",
-      "log.savegaveup": "保存连续失败，因此本次直播将停止保存（拍摄和演出会继续）。请在设置页面确认保存位置",
       "log.cardmade": "已在 OBS 中创建用于带框保存的源“{n}”。它放在画面外，所以不会出现在直播或照片中。请不要删除（删除后会在下次保存时重新创建）",
       "log.sheetsaved": "已导出联系表：{p}",
       "log.sheetfail": "无法导出联系表：{m}（直播画面中已经显示）",
@@ -4590,10 +4581,7 @@
       "log.jank": "dibujo: peor {ms} ms / {n} fotogramas / aprox. {fps} fps / {what}",
       "log.notready": "ahora no se puede capturar: {m}",
       "log.notidentified": "se pidió una foto, pero OBS no está conectado, así que no se capturó nada",
-      "log.saveok": "el guardado vuelve a funcionar",
       "log.savedTo": "guardado: {p}",
-      "log.savefail": "no se pudo escribir: {m}",
-      "log.savegaveup": "el guardado siguió fallando, así que queda desactivado durante esta sesión (la captura y los efectos continúan). Revisa la carpeta en la página de configuración",
       "log.cardmade": "se añadió en OBS la fuente “{n}” para guardar con marco. Está fuera del lienzo, así que no aparece ni en la transmisión ni en la foto. Déjala ahí; si se borra, se reconstruye en la próxima foto",
       "log.sheetsaved": "hoja de contacto escrita: {p}",
       "log.sheetfail": "no se pudo escribir la hoja de contacto: {m} (sí salió en la transmisión)",
@@ -4685,10 +4673,7 @@
       "log.jank": "desenho: pior {ms} ms / {n} quadros / cerca de {fps} fps / {what}",
       "log.notready": "não dá para capturar agora: {m}",
       "log.notidentified": "pediram uma foto, mas o OBS não está conectado, então nada foi capturado",
-      "log.saveok": "o salvamento voltou a funcionar",
       "log.savedTo": "gravado: {p}",
-      "log.savefail": "não foi possível gravar: {m}",
-      "log.savegaveup": "o salvamento continuou falhando, então foi desligado nesta sessão (a captura e os efeitos continuam). Confira a pasta na página de configuração",
       "log.cardmade": "a fonte «{n}» foi adicionada ao OBS para salvar com moldura. Ela fica fora da tela, então não aparece nem na live nem na foto. Deixe ali — se for apagada, é recriada na próxima foto",
       "log.sheetsaved": "folha de contato gravada: {p}",
       "log.sheetfail": "não foi possível gravar a folha de contato: {m} (ela apareceu na live)",
@@ -4780,10 +4765,7 @@
       "log.jank": "Zeichnen: schlechtester Wert {ms} ms / {n} Frames / ca. {fps} fps / {what}",
       "log.notready": "kann gerade nicht aufnehmen: {m}",
       "log.notidentified": "eine Aufnahme wurde angefordert, aber OBS ist nicht verbunden, also wurde nichts aufgenommen",
-      "log.saveok": "Speichern funktioniert wieder",
       "log.savedTo": "gespeichert: {p}",
-      "log.savefail": "konnte nicht geschrieben werden: {m}",
-      "log.savegaveup": "Speichern ist weiter fehlgeschlagen und wird deshalb für diese Sitzung abgeschaltet (Aufnahme und Effekte laufen weiter). Prüfe den Ordner auf der Einrichtungsseite",
       "log.cardmade": "die Quelle „{n}“ wurde in OBS für das Speichern mit Rahmen angelegt. Sie liegt außerhalb des Bildes und erscheint daher weder im Stream noch im Foto. Lass sie dort; wenn sie gelöscht wird, entsteht sie beim nächsten Foto neu",
       "log.sheetsaved": "Kontaktbogen geschrieben: {p}",
       "log.sheetfail": "Kontaktbogen konnte nicht geschrieben werden: {m} (im Stream war er zu sehen)",
@@ -4875,10 +4857,7 @@
       "log.jank": "rendu : pire {ms} ms / {n} images / environ {fps} fps / {what}",
       "log.notready": "capture impossible pour l’instant : {m}",
       "log.notidentified": "une photo a été demandée, mais OBS n’est pas connecté, donc rien n’a été capturé",
-      "log.saveok": "l’enregistrement fonctionne de nouveau",
       "log.savedTo": "enregistré : {p}",
-      "log.savefail": "écriture impossible : {m}",
-      "log.savegaveup": "l’enregistrement a continué à échouer ; il est donc désactivé pour cette session (la capture et les effets continuent). Vérifie le dossier sur la page de configuration",
       "log.cardmade": "la source « {n} » a été ajoutée dans OBS pour enregistrer avec cadre. Elle est hors du canevas, donc elle n’apparaît ni au stream ni sur la photo. Laisse-la là ; si elle est supprimée, elle sera recréée à la prochaine photo",
       "log.sheetsaved": "planche-contact écrite : {p}",
       "log.sheetfail": "planche-contact impossible à écrire : {m} (elle est bien sortie au stream)",
@@ -4970,10 +4949,7 @@
       "log.jank": "отрисовка: худшее {ms} мс / {n} кадров / около {fps} fps / {what}",
       "log.notready": "сейчас снять нельзя: {m}",
       "log.notidentified": "запрошена съёмка, но OBS не подключён, поэтому ничего не снято",
-      "log.saveok": "сохранение снова работает",
       "log.savedTo": "сохранено: {p}",
-      "log.savefail": "записать не удалось: {m}",
-      "log.savegaveup": "сохранение продолжало сбоить, поэтому в этой сессии оно отключено (съёмка и эффекты продолжаются). Проверьте папку на странице настроек",
       "log.cardmade": "в OBS создан источник «{n}» для сохранения с рамкой. Он находится за пределами холста, поэтому не появляется ни в эфире, ни на фото. Не удаляйте его; если удалить, он будет создан заново при следующем фото",
       "log.sheetsaved": "контактный лист записан: {p}",
       "log.sheetfail": "контактный лист записать не удалось: {m} (в эфир он вышел)",
@@ -5065,10 +5041,7 @@
       "log.jank": "그리기: 최악 {ms}ms / {n} 프레임 / 약 {fps}fps / {what}",
       "log.notready": "지금은 촬영할 수 없습니다: {m}",
       "log.notidentified": "촬영 신호가 왔지만 OBS 에 연결되어 있지 않아 촬영하지 못했습니다",
-      "log.saveok": "저장이 다시 작동합니다",
       "log.savedTo": "저장했습니다: {p}",
-      "log.savefail": "기록하지 못했습니다: {m}",
-      "log.savegaveup": "저장 실패가 계속되어 이 세션에서는 저장을 끕니다(촬영과 효과는 계속됩니다). 설정 페이지에서 저장 폴더를 확인해 주세요",
       "log.cardmade": "테두리 포함 저장을 위해 OBS 에 “{n}” 소스를 만들었습니다. 화면 밖에 있으므로 방송이나 사진에는 나오지 않습니다. 지우지 말아 주세요(지워도 다음 저장 때 다시 만듭니다)",
       "log.sheetsaved": "콘택트 시트를 내보냈습니다: {p}",
       "log.sheetfail": "콘택트 시트를 내보내지 못했습니다: {m}(방송 화면에는 나갔습니다)",
@@ -5160,10 +5133,7 @@
       "log.jank": "disegno: peggiore {ms} ms / {n} frame / circa {fps} fps / {what}",
       "log.notready": "impossibile catturare ora: {m}",
       "log.notidentified": "è stato richiesto uno scatto, ma OBS non è connesso, quindi non è stato catturato nulla",
-      "log.saveok": "il salvataggio funziona di nuovo",
       "log.savedTo": "salvato: {p}",
-      "log.savefail": "impossibile scrivere: {m}",
-      "log.savegaveup": "il salvataggio ha continuato a fallire, quindi è disattivato per questa sessione (cattura ed effetti continuano). Controlla la cartella nella pagina di configurazione",
       "log.cardmade": "aggiunta in OBS la fonte “{n}” per il salvataggio con cornice. Sta fuori dal canvas, quindi non appare né in diretta né nella foto. Lasciala lì; se viene rimossa, sarà ricreata al prossimo scatto",
       "log.sheetsaved": "provino a contatto scritto: {p}",
       "log.sheetfail": "impossibile scrivere il provino a contatto: {m} (è comunque uscito in diretta)",
@@ -5255,10 +5225,7 @@
       "log.jank": "rysowanie: najgorzej {ms} ms / {n} klatek / około {fps} fps / {what}",
       "log.notready": "teraz nie można przechwycić obrazu: {m}",
       "log.notidentified": "zażądano zdjęcia, ale OBS nie jest połączony, więc nic nie przechwycono",
-      "log.saveok": "zapisywanie znów działa",
       "log.savedTo": "zapisano: {p}",
-      "log.savefail": "nie udało się zapisać: {m}",
-      "log.savegaveup": "zapisywanie nadal się nie udawało, więc zostało wyłączone na tę sesję (zdjęcia i efekty działają dalej). Sprawdź folder na stronie konfiguracji",
       "log.cardmade": "dodano w OBS źródło „{n}” do zapisu w ramce. Leży poza ekranem, więc nie pojawia się ani na streamie, ani na zdjęciu. Zostaw je tam; jeśli zostanie usunięte, powstanie ponownie przy następnym zdjęciu",
       "log.sheetsaved": "zapisano stykówkę: {p}",
       "log.sheetfail": "nie udało się zapisać stykówki: {m} (pojawiła się na streamie)",
@@ -5350,10 +5317,7 @@
       "log.jank": "çizim: en kötü {ms} ms / {n} kare / yaklaşık {fps} fps / {what}",
       "log.notready": "şu anda çekim yapılamıyor: {m}",
       "log.notidentified": "çekim istendi ama OBS bağlı değil, bu yüzden hiçbir şey çekilmedi",
-      "log.saveok": "kaydetme yeniden çalışıyor",
       "log.savedTo": "kaydedildi: {p}",
-      "log.savefail": "yazılamadı: {m}",
-      "log.savegaveup": "kaydetme başarısız olmaya devam etti, bu yüzden bu oturumda kapatıldı (çekim ve efektler devam eder). Kurulum sayfasındaki klasörü kontrol edin",
       "log.cardmade": "çerçeveli kaydetme için OBS'ye “{n}” kaynağı eklendi. Tuvalin dışında durur, bu yüzden yayında ya da fotoğrafta görünmez. Orada bırakın; silinirse sonraki fotoğrafta yeniden oluşturulur",
       "log.sheetsaved": "kontakt sayfası yazıldı: {p}",
       "log.sheetfail": "kontakt sayfası yazılamadı: {m} (yayına çıktı)",
@@ -7227,7 +7191,7 @@
    * captureOk goes with it: a capture that worked on a scene which is now gone
    * proves nothing about the name it left behind. The EBS hears "not ready"
    * for the one round trip it takes to ask, and presses in flight meet the
-   * gate that re-asks srcIsScene (captureToScreen / captureToDisk).
+   * gate that re-asks srcIsScene (captureToScreen / captureForKeeper).
    */
   function reproveSceneTarget() {
     sceneProof++;                         // answers already in flight are stale
@@ -7338,9 +7302,20 @@
     scheduleTierProbe();
   }
 
+  /**
+   * The next wait on a retry ladder: `first` after a success (a wait of 0),
+   * then twice the last, up to `max`. Each ladder keeps its own wait and its
+   * own way of going back to the bottom — the special scenes' goes back only
+   * when a frame comes out, the others when they are cancelled
+   * (docs/refactor2-plan.md C10).
+   */
+  function backoff(wait, first, max) {
+    return Math.min(wait ? wait * 2 : first, max);
+  }
+
   function scheduleTierProbe() {
     clearTimeout(tierProbeTimer);
-    tierProbeWait = Math.min(tierProbeWait ? tierProbeWait * 2 : 5000, 60000);
+    tierProbeWait = backoff(tierProbeWait, 5000, 60000);
     tierProbeTimer = setTimeout(function () {
       tierProbeTimer = null;
       if (identified) reproveTierTargets();
@@ -7379,9 +7354,7 @@
           if (!n || asked[k] !== tiers[k].proof) return;
           if (names.indexOf(n) === -1) { tiers[k].shaky = false; setTier(k, false); return; }
           if (!tiers[k].shaky) { setTier(k, true); return; }
-          return request("GetSourceScreenshot", {
-            sourceName: n, imageFormat: "jpg", imageWidth: 64, imageCompressionQuality: 20
-          }).then(function (r) {
+          return tinyFrame(n).then(function (r) {
             if (asked[k] !== tiers[k].proof) return;
             if (!r || !r.imageData) throw new Error("empty imageData");
             tiers[k].shaky = false;
@@ -7494,7 +7467,12 @@
     if (!sceneOpen()) gateEpoch++;
   }
 
-  function sceneOpen() {
+  /**
+   * The gate's answer from what is known, and nothing else: { open, why },
+   * why being "" when open. It says nothing and changes nothing — sceneOpen()
+   * gathers the state, asks this, and does the saying (refactor2-plan C4).
+   */
+  function gateVerdict(s) {
     // Off air is closed, whatever the scenes say. The extension sits on the
     // channel page whether or not anybody is live, so without this a viewer
     // can photograph a machine whose owner believes nobody is watching.
@@ -7502,8 +7480,7 @@
     // without going live. It carries its own end (set on the setup page), so
     // nothing here has to remember to close it — and a stale config cannot hold
     // the shutter open, because the deadline is in the past by then.
-    var testing = Number(cfg.testUntil || 0) > Date.now();
-    if (!streaming && !testing) {
+    if (!s.streaming && !s.testing) {
       /* Shut either way, and three different things to say about it. Only the
        * first one means "start the stream": the other two mean OBS has not
        * answered the question, which is the broadcaster's machine failing at
@@ -7511,27 +7488,38 @@
        * streaming — a gate that opens itself while it is not looking is the
        * accident it exists to prevent — but it must not be reported as a fact
        * about the broadcast. */
-      noteClosed(streamKnown ? "notlive"
-        : streamProbeTries > STREAM_PROBE_TRIES ? "livegone"
-        : streamProbeTries ? "livelost" : "livecheck");
-      return false;
+      return { open: false, why: s.streamKnown ? "notlive"
+        : s.probeTries > STREAM_PROBE_TRIES ? "livegone"
+        : s.probeTries ? "livelost" : "livecheck" };
     }
-    // Nothing is said here for the test window itself: every way out below
-    // says its own reason, and clearing the last one first made each call
-    // inside a window say the same warning again (2026-10-06).
+    // Nothing is said for the test window itself: every way out below has
+    // its own reason, and clearing the last one first made each call inside
+    // a window say the same warning again (2026-10-06).
 
     // Nothing is photographed until the broadcaster has answered the question.
     // An empty list means "every scene" only once they have said so: before
     // that it means the setup page has not been finished, and the two are not
     // the same thing.
-    if (String(cfg.gateSet || "") !== "1") { noteClosed("nogate"); return false; }
+    if (!s.gateSet) return { open: false, why: "nogate" };
 
-    var list = allowedScenes();
-    if (!list.length) { noteClosed(""); return true; }   // decided: all allowed
-    if (!programScene) { noteClosed("unknown"); return false; }
-    var ok = list.indexOf(programScene) !== -1;
-    noteClosed(ok ? "" : "offscene");
-    return ok;
+    if (!s.scenes.length) return { open: true, why: "" };   // decided: all allowed
+    if (!s.programScene) return { open: false, why: "unknown" };
+    var ok = s.scenes.indexOf(s.programScene) !== -1;
+    return { open: ok, why: ok ? "" : "offscene" };
+  }
+
+  function sceneOpen() {
+    var v = gateVerdict({
+      streaming: streaming,
+      testing: Number(cfg.testUntil || 0) > Date.now(),
+      streamKnown: streamKnown,
+      probeTries: streamProbeTries,
+      gateSet: String(cfg.gateSet || "") === "1",
+      scenes: allowedScenes(),
+      programScene: programScene,
+    });
+    noteClosed(v.why);
+    return v.open;
   }
 
   /* ---- the test window closing ----
@@ -7593,7 +7581,7 @@
     streamProbeTimer = null;
     streamProbeTries++;
     if (streamProbeTries <= STREAM_PROBE_TRIES) {
-      streamProbeWait = Math.min(streamProbeWait ? streamProbeWait * 2 : 1000, 30000);
+      streamProbeWait = backoff(streamProbeWait, 1000, 30000);
       streamProbeTimer = setTimeout(function () {
         streamProbeTimer = null;
         if (identified) watchStreamState();
@@ -7657,7 +7645,7 @@
    */
   function scheduleSceneProbe() {
     clearTimeout(sceneProbeTimer);
-    sceneProbeWait = Math.min(sceneProbeWait ? sceneProbeWait * 2 : 1000, 30000);
+    sceneProbeWait = backoff(sceneProbeWait, 1000, 30000);
     sceneProbeTimer = setTimeout(function () {
       sceneProbeTimer = null;
       if (identified) watchProgramScene();
@@ -8044,30 +8032,34 @@
   /* ================= capture ================= */
 
   var DEDUPE_MS = 150;   // one capture per window, however many presses land in it
-  var pending = 0;
   var dedupeTimer = null;
 
-  // What else the window has collected besides the headcount. The EBS has
-  // already aggregated on its side, so these usually hold one message's worth;
-  // they matter when two pushes land inside the same local window.
-  var pendingPaid = null;      // the biggest single payment of the window
-  var pendingIgnition = null;
+  /* The window being collected, as one record that is emptied whole
+     (docs/refactor2-plan.md C8). The EBS has already aggregated on its side,
+     so it usually holds one message's worth; it matters when two pushes land
+     inside the same local window.
+
+       people       the headcount
+       paid         the biggest single payment of the window
+       ignition     the party it lights, if it does
+
+     and, for a window that is a second try (retryInNormal) — a purchase whose
+     special scene did not give it a photograph, coming round again for the
+     capture scene:
+
+       staged       how many of its presses were already counted and announced
+                    the first time
+       forceNormal  that it must not be sent to a special scene again
+       lit          whether it was the frame that lit the party */
+  var shotWindow = emptyWindow();
   var heldShots = [];          // paid windows waiting for a window of their own
-  /* A window that is a second try (retryInNormal): a purchase whose special
-     scene did not give it a photograph, coming round again for the capture
-     scene. How many of its presses were already counted and announced the
-     first time, that it must not be sent to a special scene again, and
-     whether it was the frame that lit the party. */
-  var pendingStaged = 0;
-  var pendingNormal = false;
-  var pendingLit = false;
   // Scene captures OBS is still holding the graphics lock for. One at a time —
   // see flush(). A count rather than a flag so a path that ever sends two knows
   // it, instead of the first answer clearing the second's guard.
   var shooting = 0;
   // The bought photograph being counted down to (65-shot-countdown.js), from
   // the first number until zero. While it is here it holds the paid seat the
-  // way pendingPaid does: another paid window waits in heldShots behind it.
+  // way the window's purchase does: another paid window waits in heldShots behind it.
   var shotCount = null;        // { people, paid, ignition }
   var ignitionShot = null;     // the frame that lit the party, held for the sheet
   var ignitionPaid = false;    // ...and whether it was bought, which the sheet ranks by
@@ -8111,6 +8103,18 @@
     }
   }
 
+  function emptyWindow() {
+    return { people: 0, paid: null, ignition: null, staged: 0, forceNormal: false, lit: false };
+  }
+
+  /* A held window (heldShots) as the window being collected. A held second
+     try carries how many of its presses were already counted, not just that
+     it is one: a free press that joined its window before it was sent back to
+     wait has not been counted yet (docs/refactor2-plan.md §4-7). */
+  function windowFrom(w) {
+    return { people: w.people, paid: w.paid, ignition: w.ignition, staged: w.staged || 0, forceNormal: !!w.forceNormal, lit: !!w.lit };
+  }
+
   function requestShot(n, extra) {
     // Owed from the press rather than from the capture, and before anything
     // below can send this one away to wait: the message that carries a paid
@@ -8135,7 +8139,7 @@
     // And behind a second try that is waiting for its window: that purchase
     // came first, and taking this one in the gap would print them out of
     // order (retryInNormal).
-    if (extra && extra.paid && (pendingPaid || shotCount || retryWaiting())) {
+    if (extra && extra.paid && (shotWindow.paid || shotCount || retryWaiting())) {
       heldShots.push({ people: n || 1, paid: extra.paid, ignition: extra.ignition || null });
       return;
     }
@@ -8147,12 +8151,12 @@
       beginShotCount({ people: n || 1, paid: extra.paid, ignition: extra.ignition || null });
       return;
     }
-    pending += n || 1;
+    shotWindow.people += n || 1;
     if (extra) {
-      if (extra.paid && (!pendingPaid || extra.paid.bits > pendingPaid.bits)) {
-        pendingPaid = extra.paid;
+      if (extra.paid && (!shotWindow.paid || extra.paid.bits > shotWindow.paid.bits)) {
+        shotWindow.paid = extra.paid;
       }
-      if (extra.ignition) pendingIgnition = extra.ignition;
+      if (extra.ignition) shotWindow.ignition = extra.ignition;
     }
     if (dedupeTimer === null) dedupeTimer = setTimeout(flush, DEDUPE_MS);
   }
@@ -8197,19 +8201,15 @@
     // A failure on a yes that still stood is news about the scene. One on a
     // yes already withdrawn is not: whoever withdrew it is asking again.
     if (failed && !shotStale(shot)) tierFailed(shot.tier);
-    if (pendingPaid) {
+    if (shotWindow.paid) {
+      var w = shotWindow;
       heldShots.unshift({
-        people: pending, paid: pendingPaid, ignition: pendingIgnition,
-        staged: pendingStaged > 0, forceNormal: pendingNormal, lit: pendingLit
+        people: w.people, paid: w.paid, ignition: w.ignition,
+        staged: w.staged, forceNormal: w.forceNormal, lit: w.lit
       });
-      pending = 0;
-      pendingPaid = null;
-      pendingIgnition = null;
-      pendingStaged = 0;
-      pendingNormal = false;
-      pendingLit = false;
+      shotWindow = emptyWindow();
     }
-    heldShots.unshift({ people: people, paid: paid, ignition: null, staged: true, forceNormal: true, lit: !!lit });
+    heldShots.unshift({ people: people, paid: paid, ignition: null, staged: people, forceNormal: true, lit: !!lit });
     if (dedupeTimer === null) dedupeTimer = setTimeout(flush, DEDUPE_MS);
     return true;
   }
@@ -8230,15 +8230,16 @@
     playShotCount(cdCount(w.paid) || leadCount(w.ignition), bitsTone(w.paid.bits), w.paid.name || "", function () {
       shotCount = null;
       setShotCounting(false);
-      pending += w.people;
-      pendingPaid = w.paid;
-      if (w.ignition) pendingIgnition = w.ignition;
+      shotWindow.people += w.people;
+      shotWindow.paid = w.paid;
+      if (w.ignition) shotWindow.ignition = w.ignition;
       clearTimeout(dedupeTimer);
       dedupeTimer = setTimeout(flush, 0);
     });
   }
 
-  /* The two requests that photograph the SCENE for a press go through here, so
+  /* Both captures that photograph the SCENE for a press (captureToScreen and
+     captureForKeeper, each a GetSourceScreenshot) go through here, so
      that flush() can see one is out. Both settle the count — a capture that
      failed released the lock just the same, and a window left waiting on a
      failure would be a party that stops taking photographs. The card and the
@@ -8263,26 +8264,22 @@
      * obs_enter_graphics(): the stream stops for the whole of one, and asking
      * twice in a row is what stops a broadcast, which is the reason the window
      * exists at all (CLAUDE.md「撮影リクエストは 150ms の区切りで集約してから 1 回
-     * だけ撮る」). The comment two screens down already said "this must never
-     * turn into a burst"; nothing made it true (Codex 2026-09-15 round 7).
+     * だけ撮る」). The comment at the top of this part already said "this must
+     * never turn into a burst"; nothing made it true (Codex 2026-09-15 round 7).
      *
      * Nothing is dropped — the window waits and is tried again. The wait is
      * bounded by the request's own ten seconds, after which shooting falls back
      * to zero whether OBS answered or not. */
     if (shooting) { dedupeTimer = setTimeout(flush, DEDUPE_MS); return; }
     dedupeTimer = null;
-    var people = pending;
-    var paid = pendingPaid;
-    var ignition = pendingIgnition;
-    var staged = pendingStaged;
-    var forceNormal = pendingNormal;
-    var lit = !!pendingIgnition || pendingLit;
-    pending = 0;
-    pendingPaid = null;
-    pendingIgnition = null;
-    pendingStaged = 0;
-    pendingNormal = false;
-    pendingLit = false;
+    var taken = shotWindow;
+    shotWindow = emptyWindow();
+    var people = taken.people;
+    var paid = taken.paid;
+    var ignition = taken.ignition;
+    var staged = taken.staged;
+    var forceNormal = taken.forceNormal;
+    var lit = !!taken.ignition || taken.lit;
 
     // Whatever had to stand aside becomes the next window, one full DEDUPE_MS
     // from this capture. Set up before the exits below: a window that turns out
@@ -8296,12 +8293,7 @@
       if (countsDown(next)) {
         beginShotCount(next);
       } else {
-        pending = next.people;
-        pendingPaid = next.paid;
-        pendingIgnition = next.ignition;
-        pendingStaged = next.staged ? next.people : 0;
-        pendingNormal = !!next.forceNormal;
-        pendingLit = !!next.lit;
+        shotWindow = windowFrom(next);
         dedupeTimer = setTimeout(flush, DEDUPE_MS);
       }
     }
@@ -8520,7 +8512,7 @@
   /**
    * The party is finished with its frames.
    *
-   * Called once the closing sheet's job is done (92-bar-and-party.js). The
+   * Called once the closing sheet's job is done (92d-party-and-sheet.js). The
    * sheet ON SCREEN took its own readers when it was drawn, synchronously, so
    * this cannot pull a picture out from under it.
    */
@@ -8600,7 +8592,7 @@
       if (url) fileShot(url, lit, paid);
     }, function (e) {
       // A special scene that failed is not the end of the purchase, and not
-      // a reason to call the capture scene broken (onCaptureFailed below).
+      // a reason to call the capture scene broken (onCaptureFailed above).
       if (retryInNormal(shot, people, paid, lit, true)) return;
       settlePaidShot(paid, false);
       // A failure on a withdrawn yes says nothing about the name now. Marking
@@ -8618,15 +8610,7 @@
 
      Saved at the source's own resolution: the broadcaster is keeping these, and
      the encode is outside the graphics lock, so a bigger file costs them
-     nothing on stream.
-
-     A folder OBS cannot write to would otherwise turn every press into two
-     captures — the failed save and the fallback — for as long as the stream
-     lasts. After a few in a row, saving stops being attempted at all. */
-
-  var saveFails = 0;
-  var saveGaveUp = false;
-  var SAVE_QUIET_AFTER = 3;
+     nothing on stream. */
 
   /* ---- the framed copy ----
 
@@ -8707,18 +8691,54 @@
    * broadcast.
    */
   function offCanvas(tf, canvas) {
-    if (!tf || !canvas) return false;
-    if (tf.rotation) return false;                     // could be anywhere
-    if (tf.boundsType && tf.boundsType !== "OBS_BOUNDS_NONE") return false;
+    if (!canvas) return false;
+    var r = itemRect(tf);
+    if (!r) return false;
+    return r.x >= canvas.w || r.y >= canvas.h || r.x + r.w <= 0 || r.y + r.h <= 0;
+  }
+
+  /**
+   * Where on the canvas OBS draws one scene item, or null when that cannot be
+   * said: rotated (it could be anywhere), refitted by a bounding box (which
+   * changes what the numbers mean after the crop), or drawn at no size.
+   *
+   * One answer for the two questions that need it — is the card outside the
+   * canvas (offCanvas), and what box holds the subject (subjectRect) — so the
+   * two cannot drift. They had: written twice, one took a missing crop as 0
+   * and the other gave up on it (refactor2-plan C2; the owner chose 0, which
+   * is what OBS means by no crop, 2026-10-16).
+   *
+   * width and height do NOT account for the crop — measured: with cropLeft 420
+   * and cropRight 420 on a 1920-wide source, width is still 1920. What is
+   * drawn has to be derived from the crop itself.
+   *
+   * alignment says which point of the item positionX/Y refers to — and a
+   * NEGATIVE scale mirrors the item about that point. The width is an absolute
+   * value, which is right for the size and wrong for the side: a source
+   * flipped horizontally and anchored at its left edge is drawn to the LEFT of
+   * that edge. **[実測 2026-09-14]** canvas 1920×1080, a 600×400 source at
+   * (900,600), top-left aligned, scaleX -1: the box should start at x 298
+   * (with the 2px margin) and taking the positive width and subtracting the
+   * anchor offset returned 898 — the photograph cropped to a rectangle the
+   * subject was never in. Centre-anchored flips agreed, which is why it went
+   * unnoticed — mirroring about the middle lands in the same place.
+   *
+   * offX is the distance from the item's left edge to its anchor. Unflipped
+   * the box starts one offX left of the position; flipped it ENDS there, so
+   * it starts a width earlier.
+   */
+  function itemRect(tf) {
+    if (!tf || tf.rotation) return null;
+    if (tf.boundsType && tf.boundsType !== "OBS_BOUNDS_NONE") return null;
     var w = Math.abs((tf.sourceWidth - (tf.cropLeft || 0) - (tf.cropRight || 0)) * tf.scaleX);
     var h = Math.abs((tf.sourceHeight - (tf.cropTop || 0) - (tf.cropBottom || 0)) * tf.scaleY);
-    if (!(w > 0 && h > 0)) return false;
+    if (!(w > 0 && h > 0)) return null;
     var a = tf.alignment || 0;
     var offX = (a & 1) ? 0 : ((a & 2) ? w : w / 2);
     var offY = (a & 4) ? 0 : ((a & 8) ? h : h / 2);
     var x = tf.scaleX < 0 ? tf.positionX + offX - w : tf.positionX - offX;
     var y = tf.scaleY < 0 ? tf.positionY + offY - h : tf.positionY - offY;
-    return x >= canvas.w || y >= canvas.h || x + w <= 0 || y + h <= 0;
+    return { x: x, y: y, w: w, h: h };
   }
 
   /**
@@ -8848,6 +8868,16 @@
       .catch(function () { /* not in that scene, which is the point */ });
   }
 
+  /** Out of every scene OBS lists, one at a time, but `keep` (when given). */
+  function dropCardEverywhere(card, keep) {
+    return request("GetSceneList").then(function (d) {
+      return (d.scenes || []).reduce(function (chain, sc) {
+        if (keep && sc.sceneName === keep) return chain;
+        return chain.then(function () { return dropCardFrom(card, sc.sceneName); });
+      }, Promise.resolve());
+    });
+  }
+
   /**
    * Leave exactly one of this card behind.
    *
@@ -8869,12 +8899,7 @@
       return dropCardFrom(card, prev);
     }
     card.swept = true;
-    return request("GetSceneList").then(function (d) {
-      return (d.scenes || []).reduce(function (chain, sc) {
-        if (sc.sceneName === keep) return chain;
-        return chain.then(function () { return dropCardFrom(card, sc.sceneName); });
-      }, Promise.resolve());
-    });
+    return dropCardEverywhere(card, keep);
   }
 
   /**
@@ -8916,11 +8941,7 @@
     var was = card.scene;
     forgetCard(card);
     if (known) return was ? dropCardFrom(card, was) : Promise.resolve();
-    return request("GetSceneList").then(function (d) {
-      return (d.scenes || []).reduce(function (chain, sc) {
-        return chain.then(function () { return dropCardFrom(card, sc.sceneName); });
-      }, Promise.resolve());
-    }).catch(function () { /* untidy, not fatal */ });
+    return dropCardEverywhere(card).catch(function () { /* untidy, not fatal */ });
   }
 
   /**
@@ -9264,46 +9285,15 @@
       })).then(function (list) {
         var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
         for (var k = 0; k < list.length; k++) {
-          var tf = list[k];
-          if (!tf || tf.rotation) return null;          // rotated: give up
-          // A bounding box refits the item after cropping and changes what the
-          // numbers mean again; not worth guessing at for the sake of a margin.
-          if (tf.boundsType && tf.boundsType !== "OBS_BOUNDS_NONE") return null;
-          // width and height do NOT account for the crop — measured: with
-          // cropLeft 420 and cropRight 420 on a 1920-wide source, width is
-          // still 1920. What is drawn has to be derived from the crop itself.
-          var w = Math.abs((tf.sourceWidth - tf.cropLeft - tf.cropRight) * tf.scaleX);
-          var h = Math.abs((tf.sourceHeight - tf.cropTop - tf.cropBottom) * tf.scaleY);
-          if (!(w > 0 && h > 0)) return null;
-          /* alignment says which point of the item positionX/Y refers to — and
-           * a NEGATIVE scale mirrors the item about that point.
-           *
-           * The width above is an absolute value, which is right for the size
-           * and wrong for the side: a source flipped horizontally and anchored
-           * at its left edge is drawn to the LEFT of that edge. Taking the
-           * positive width and subtracting the anchor offset put the box on
-           * the opposite side of the position, and the photograph was cropped
-           * to a rectangle the subject was never in.
-           *
-           * **[実測 2026-09-14]** canvas 1920×1080, a 600×400 source at
-           * (900,600), top-left aligned, scaleX -1: the box should start at
-           * x 298 (with the 2px margin) and this returned 898. Centre-anchored
-           * flips agreed, which is why it went unnoticed — mirroring about the
-           * middle lands in the same place.
-           *
-           * offX is the distance from the item's left edge to its anchor.
-           * Unflipped the box starts one offX left of the position; flipped it
-           * ENDS there, so it starts a width earlier.
-           */
-          var a = tf.alignment || 0;
-          var offX = (a & 1) ? 0 : ((a & 2) ? w : w / 2);
-          var offY = (a & 4) ? 0 : ((a & 8) ? h : h / 2);
-          var x = tf.scaleX < 0 ? tf.positionX + offX - w : tf.positionX - offX;
-          var y = tf.scaleY < 0 ? tf.positionY + offY - h : tf.positionY - offY;
-          if (x < x0) x0 = x;
-          if (y < y0) y0 = y;
-          if (x + w > x1) x1 = x + w;
-          if (y + h > y1) y1 = y + h;
+          // Rotated, refitted by a bounding box or drawn at no size: give up on
+          // the box, it is not worth guessing at for the sake of a margin. The
+          // arithmetic, and what was measured to get it right, is itemRect's.
+          var r = itemRect(list[k]);
+          if (!r) return null;
+          if (r.x < x0) x0 = r.x;
+          if (r.y < y0) y0 = r.y;
+          if (r.x + r.w > x1) x1 = r.x + r.w;
+          if (r.y + r.h > y1) y1 = r.y + r.h;
         }
         if (!isFinite(x0) || !isFinite(y0)) return null;
 
@@ -9507,6 +9497,10 @@
    */
   function spread(list, n) {
     if (list.length <= n) return list.slice();
+    // One out of several has no two ends to stretch between (the step below
+    // would be 0 / 0): take the middle. pickSheet asks for exactly one when a
+    // party has eight paid shots and free ones besides.
+    if (n === 1) return [list[Math.round((list.length - 1) / 2)]];
     var out = [];
     for (var i = 0; i < n; i++) {
       out.push(list[Math.round(i * (list.length - 1) / (n - 1))]);
@@ -9523,9 +9517,9 @@
    * left, spread across the party as before.
    *
    * Kept in the order they were taken: the sheet still reads left to right as
-   * the party happened, rather than sorting the payers to the front. Positions
-   * rather than addresses, because the scratch filenames cycle and the same
-   * address can appear twice in one party.
+   * the party happened, rather than sorting the payers to the front. Paid ones
+   * are named by position in the party rather than by key, so the answer does
+   * not depend on every frame having a key of its own.
    */
   function pickSheet(shots, paidAt, n) {
     if (shots.length <= n) return shots.slice();
@@ -9590,13 +9584,10 @@
    * Write the contact sheet to the folder, once per party.
    *
    * The same trick as a framed photo — the card source draws it and OBS
-   * captures that — because the page still cannot write a file itself. What it
-   * cannot do this time is hand over pixels: the shots are file:// addresses
-   * and a file:// page may not read the pixels of a file:// image, so the sheet
-   * is rebuilt from the same addresses inside the card and drawn there.
-   *
-   * Which is why the scratch names run twelve deep rather than two: by the time
-   * a party ends, the nine on the sheet have to still be on disk.
+   * captures that — because the page still cannot write a file itself. The
+   * card is handed the nine as keys into the photo store (08-photo-store.js),
+   * not as pictures: nine in one URL do not fit (below), and the card reads
+   * each frame and its own box out of the store and draws the sheet there.
    */
   function saveSheet(done) {
     if (!isKeeper) return Promise.resolve();
@@ -9606,7 +9597,7 @@
     // be shrunk, and shrinking nine frames of possibly different sizes is the
     // whole per-frame-box problem this plan was trying to stop carrying. The
     // sheet still goes out on the broadcast — that one is drawn from memory
-    // (92-bar-and-party.js) and never touches the card. Said once at startup,
+    // (92d-party-and-sheet.js) and never touches the card. Said once at startup,
     // not once per party (log.photostore.off).
     if (photoMode !== "store") return Promise.resolve();
     // Only frames this page took as a keeper can be in the file. A party can
@@ -9624,7 +9615,7 @@
     });
     var picks = pickSheet(mine, minePaid, 9);
     if (!picks.length) return Promise.resolve();
-    var keep = !!cfg.saveDir && !saveGaveUp;
+    var keep = !!cfg.saveDir;
     // Asked now, at the close, while the party's own yes is the current one —
     // and asked again below, just before the sheet is written (§4.4).
     var permit = permitNow();
@@ -9937,12 +9928,11 @@
     var subject = subjectOf(source);
     /* Whether a FILE is written, which is now only ever the framed card.
      *
-     * Three things have to be true, and they used to be spread across the
+     * Two things have to be true, and they used to be spread across the
      * fork, the scratch decision and the folder check at the top of this
-     * function. A folder is still needed to write into, saving may have been
-     * given up on after repeated failures, and the broadcaster's own floor
-     * still decides which photographs are worth keeping. */
-    var keep = keepThisShot(paid) && !!cfg.saveDir && !saveGaveUp;
+     * function. A folder is still needed to write into, and the broadcaster's
+     * own floor still decides which photographs are worth keeping. */
+    var keep = keepThisShot(paid) && !!cfg.saveDir;
     /* The full canvas, not the wall's 960.
      *
      * The card and the sheet both draw FROM this, so a frame shrunk here would
@@ -10125,8 +10115,15 @@
    */
   function scheduleCaptureProbe() {
     clearTimeout(captureProbeTimer);
-    captureProbeWait = Math.min(captureProbeWait ? captureProbeWait * 2 : 5000, 60000);
+    captureProbeWait = backoff(captureProbeWait, 5000, 60000);
     captureProbeTimer = setTimeout(probeCapture, captureProbeWait);
+  }
+
+  /** One small, rough frame of a scene: enough to learn that frames come out. */
+  function tinyFrame(name) {
+    return request("GetSourceScreenshot", {
+      sourceName: name, imageFormat: "jpg", imageWidth: 64, imageCompressionQuality: 20
+    });
   }
 
   /**
@@ -10144,9 +10141,7 @@
       // would only race it, and its "ready" would be about the old target.
       if (proof !== sceneProof) return;
       if (!ok) { scheduleCaptureProbe(); return; }
-      return request("GetSourceScreenshot", {
-        sourceName: cfg.src, imageFormat: "jpg", imageWidth: 64, imageCompressionQuality: 20
-      }).then(function (d) {
+      return tinyFrame(cfg.src).then(function (d) {
         if (proof !== sceneProof) return;
         if (!d.imageData) throw new Error("empty imageData");
         log(t("log.ready"), "ok");
@@ -10199,7 +10194,7 @@
      What is sent is the same card the folder gets. This page cannot read the
      pixels of a file:// image, so the card source is photographed once more
      with GetSourceScreenshot, inside the same card job that drew it
-     (60-capture.js: framedRun, saveSheet), and the answer is the bytes.
+     (60g-the-framed-copy.js framedRun, 60f-the-sheet.js saveSheet), and the answer is the bytes.
 
      Three rules carry the weight, and each has a test (tools/discord-check.mjs):
 
@@ -10259,28 +10254,48 @@
     return m ? m[1] : "";
   }
 
+  /** Whether either kind is asked for at all. */
+  function discordAsked() {
+    return cfg.discordSheet === "1" || cfg.discordPaid === "1";
+  }
+
   /**
-   * The webhook this page may post to right now, or null.
+   * The webhook's standing, whatever is asked for — the one place this is
+   * decided. discordState() puts "off" in front of it for the log line, and
+   * discordTarget() acts on it (refactor2-plan C5).
+   *
+   *   -        this page never sends (the sample, the bar, or not the keeper)
+   *   nohook   no webhook here that the settings name
+   *   held     a webhook, and no answer to the current rules (§4.6 ③)
+   *   on       the webhook may be used
    *
    * The stored URL is used only while its ID is the one the setup page last
    * sent as discordHook. Emptying the box on the setup page sends no URL at
    * all (an empty secret means "say nothing"), so the ID is what carries
    * "stop" (§4.1).
    */
-  function discordTarget() {
-    if (DEMO || BAR_ONLY || !isKeeper) return null;
+  function discordHookState() {
+    if (DEMO || BAR_ONLY || !isKeeper) return "-";
     var id = discordHookId(cfg.discordWebhook);
-    if (!id || id !== cfg.discordHook) {
+    if (!id || id !== cfg.discordHook) return "nohook";
+    if (String(cfg.discordSet || "") !== "1") return "held";
+    return "on";
+  }
+
+  /** The webhook this page may post to right now, or null. */
+  function discordTarget() {
+    var hook = discordHookState();
+    if (hook === "-") return null;
+    if (hook === "nohook") {
       /* Not sent, and that is right — an empty ID is the box emptied. But a
        * broadcaster who asked for photographs and is getting none was told
        * nothing here, and on 2026-09-23 that silence cost a live test: the
        * setup page had lost the ID, not the broadcaster their mind. Once,
        * and only to somebody it is costing something. */
-      if (cfg.discordSheet === "1" || cfg.discordPaid === "1") {
-        discordOnce("nohook", t("log.discord.nohook"));
-      }
+      if (discordAsked()) discordOnce("nohook", t("log.discord.nohook"));
       return null;
     }
+    var id = discordHookId(cfg.discordWebhook);
     if (discordStopped[id]) return null;
     /* THE UPDATE MUST NOT START SENDING BY ITSELF (§4.6 ③).
      *
@@ -10297,12 +10312,10 @@
      * older config does not carry it, and until it does, nothing is sent —
      * not by opening the setup page, not by closing the notice, not by
      * restarting OBS. */
-    if (String(cfg.discordSet || "") !== "1") {
+    if (hook === "held") {
       // Said only to somebody it is costing something: with both kinds off,
       // nothing was going to be sent anyway.
-      if (cfg.discordSheet === "1" || cfg.discordPaid === "1") {
-        discordOnce("migrate", t("log.discord.migrate"));
-      }
+      if (discordAsked()) discordOnce("migrate", t("log.discord.migrate"));
       return null;
     }
     /* A SAVE FOLDER USED TO BE REQUIRED HERE, and the comment said why: cards
@@ -10329,14 +10342,14 @@
    *   held     a webhook, and no answer to the current rules (§4.6 ③)
    *   on       will send — from this page if it is the keeper
    *   -        this page never sends (the sample, the bar, or not the keeper)
+   *
+   * Everything but "off" is discordHookState()'s answer, so the word in the
+   * log and what the senders do cannot be worked out two ways.
    */
   function discordState() {
-    if (DEMO || BAR_ONLY || !isKeeper) return "-";
-    if (cfg.discordSheet !== "1" && cfg.discordPaid !== "1") return "off";
-    var id = discordHookId(cfg.discordWebhook);
-    if (!id || id !== cfg.discordHook) return "nohook";
-    if (String(cfg.discordSet || "") !== "1") return "held";
-    return "on";
+    var hook = discordHookState();
+    if (hook !== "-" && !discordAsked()) return "off";
+    return hook;
   }
 
   /**
@@ -10379,7 +10392,7 @@
    * Take one of the thirty places, or say no.
    *
    * Taken the moment "send this" is decided, before the card job is even
-   * queued: that queue has no end of its own (60-capture.js: onCard), so a
+   * queued: that queue has no end of its own (60e-the-card-shape.js: onCard), so a
    * place taken later would not bound anything (§4.2, Codex 13巡目). A shot
    * that gets no place is still kept if the broadcaster keeps it.
    */
@@ -10420,12 +10433,12 @@
    * Photograph the card as it stands, and queue it.
    *
    * Called from inside a card job, after the card has been drawn and waited
-   * for, so nothing else can repaint it in between (60-capture.js: onCard).
+   * for, so nothing else can repaint it in between (60e-the-card-shape.js: onCard).
    * This is one more trip through OBS's graphics lock, which is the cost the
    * plan measures on the real machine (§6).
    *
    * `source` is the card that job drew — there is one per tier
-   * (60-capture.js: cardName), and the job is the only one who knows which.
+   * (60c-the-card-source.js: cardName), and the job is the only one who knows which.
    */
   function discordGrab(slot, shot, source) {
     if (!slot || slot.done) return Promise.resolve();
@@ -10512,6 +10525,26 @@
         scope: res.headers.get("X-RateLimit-Scope") || "-"
       }), "ok");
     }
+  }
+
+  /**
+   * What an answer from Discord means, and nothing done about it
+   * (refactor2-plan C5). `attempt` is which try this was, from 1.
+   *
+   *   sent     landed: an OK with the message's id
+   *   unsure   OK but no id — it may have landed, so it is not sent again
+   *   stop     400 / 401 / 403 / 404: this webhook is used no more
+   *   retry    429, or a server error that answered, with tries left
+   *   gaveup   the same, on the last try
+   *   fail     anything else: said, and not sent again
+   */
+  function discordAnswer(res, body, attempt) {
+    if (res.ok && body && body.id) return "sent";
+    if (res.ok) return "unsure";
+    var s = res.status;
+    if (s === 400 || s === 401 || s === 403 || s === 404) return "stop";
+    if (s === 429 || s >= 500) return attempt >= DISCORD_TRIES ? "gaveup" : "retry";
+    return "fail";
   }
 
   /** Discord's own words, short, with nothing of the URL in them. */
@@ -10605,27 +10638,28 @@
             if (job.over) return;                // ...the body was the slow half
             clearTimeout(job.timer);
             job.over = true;
-            if (res.ok && body && body.id) {
+            var said = discordAnswer(res, body, attempt);
+            if (said === "sent") {
               // Not logShot(): its five-second hush would swallow the one
               // line that says a post landed, and posts are few (batched).
               log(t("log.discord.sent", { n: live.length }), "ok");
               return;
             }
-            if (res.ok) {
+            if (said === "unsure") {
               discordOnce("nobody", t("log.discord.unsure", { n: live.length }));
               return;
             }
-            if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
+            if (said === "stop") {
               discordStopped[target.id] = true;
               log(t(res.status === 400 ? "log.discord.bad" : "log.discord.gone", { m: discordWhy(res, body) }), "bad");
               discordPrune();
               return;
             }
-            if (res.status === 429 || res.status >= 500) {
-              if (attempt >= DISCORD_TRIES) {
-                log(t("log.discord.gaveup", { n: live.length, m: discordWhy(res, body) }), "warn");
-                return;
-              }
+            if (said === "gaveup") {
+              log(t("log.discord.gaveup", { n: live.length, m: discordWhy(res, body) }), "warn");
+              return;
+            }
+            if (said === "retry") {
               var wait = discordSecs(body && body.retry_after) ||
                 discordSecs(res.headers.get("Retry-After")) || 1000 * attempt;
               log(t("log.discord.wait", {
@@ -10962,9 +10996,10 @@
   }
   /* ================= effects =================
 
-     Ported from docs/prototype/overlay.html, which is where these numbers were
-     decided by hand. The prototype drew over a fake canvas; here the frame comes
-     from OBS, but the presentation is identical. */
+     Started from docs/prototype/overlay.html, which is where the look was first
+     decided by hand. The two have parted since: the prototype's presets are not
+     what runs here (CLAUDE.md), so its numbers are not a source for these — the
+     numbers that run are in src/shared/look.json. */
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -11079,7 +11114,7 @@
   //
   // The ceiling is measured on the SCREEN, not per layer, and that is why the
   // claim below is split out of the paint. There are two whole-frame surfaces —
-  // #ovFlash here and #ovGold (92-bar-and-party.js) — and a 250 Bits purchase
+  // #ovFlash here and #ovGold (92a-sounds-and-gold.js) — and a 250 Bits purchase
   // draws both. Each was under 0.35 on its own while the two together
   // composited to about 0.49, and only #ovFlash was on the clock, so a run of
   // queued purchases restarted the wash every 150ms: 6.7Hz on a layer whose
@@ -11519,21 +11554,6 @@
     if (stack.length) layoutStack();
   }
 
-  /**
-   * The goal bar's own size, 0.7 to 2.5 of the drawn default.
-   *
-   * Separate from applyScale because the two answer different questions: how
-   * big the photos should be, and how big a number has to be to be read from
-   * where the audience sits. A channel with a busy layout wants a small bar and
-   * large photos as readily as the other way round.
-   */
-  /**
-   * Whether the bar is drawn at all.
-   *
-   * A channel that has no Bits coming in, or a layout with no room, is better
-   * off without it — and the SHUTTER PARTY still happens either way, because the
-   * threshold lives in the EBS rather than in what is on screen.
-   */
   function applyPlace(side) {
     stackSide = side === "br" ? "br" : "bl";
     cfg.place = stackSide;
@@ -11588,11 +11608,11 @@
    *
    * Nothing was using the precision. The window releases up to seven prints a
    * second, so consecutive captures shared a second anyway; the file keeps a
-   * full stamp of its own (captureToDisk names it to the hundredth); and what
+   * full stamp of its own (fileStamp() names it to the hundredth); and what
    * this is here to say — the moment the shutter went off, rather than the
    * moment the print reached its spot — survives at minute resolution.
    *
-   * The saved card had already decided this: captureToDisk writes its caption
+   * The saved card had already decided this: savedStamp() writes its caption
    * as a date and an hour and a minute, and has since it was written. The print
    * on the stream was the one place still carrying seconds, and it was the one
    * place with no room for them.
@@ -11628,7 +11648,7 @@
    * of the name, because the clock is the item that will not shrink. Measured
    * on the real page: at the size setting M, a name is already an ellipsis at
    * 152px and has nothing at all left by 90px, which is the floor the wall is
-   * allowed to draw at (PAID_MIN_W). Without the clock the same name reads at
+   * allowed to draw at (paidMinW()). Without the clock the same name reads at
    * 83px, so the whole ladder of tiers stays legible instead of the top two.
    *
    * So the two things in the caption are ranked rather than shared. The name is
@@ -12255,6 +12275,19 @@
   }
 
   /**
+   * The wall at c columns: how wide each column is, how tall a cell of the
+   * subject's shape is at that width, and how many such rows the region holds
+   * (at least one). choosePaidCols asks it for every count it tries and
+   * layoutPaid for the one it lays out — one copy, so the count chosen and
+   * the wall drawn cannot be worked out two ways (refactor2-plan C3).
+   */
+  function wallGrid(c, aspect, wallW, regionH, gap) {
+    var colW = (wallW - (c - 1) * gap) / c;
+    var cellH = colW * aspect;
+    return { colW: colW, cellH: cellH, rows: Math.max(1, Math.floor((regionH + gap) / (cellH + gap))) };
+  }
+
+  /**
    * Pick the wall density from two separate promises: keep every paid print on
    * screen, and when a queue exists, drain it inside the same budget that the
    * party and EBS use for closing the door.
@@ -12267,7 +12300,7 @@
    * failure is remembered.
    */
   function choosePaidCols(rest, standingCount, waitingCount, currentCols, aspect, wallW, regionH, gap, budgetMs, dwellMs) {
-    var cols = WALL_COLS_MAX, colW = 0, cellH = 0, rows = 1, capC = WALL_COLS_MAX;
+    var cols = WALL_COLS_MAX, rows = 1, capC = WALL_COLS_MAX;
     var restCount = rest.length;
     if (restCount <= 0) return 2;
     // The fewest columns that hold the non-hero prints already standing. More
@@ -12278,9 +12311,7 @@
     // ten columns before that, and the upright cases that still do not fit are
     // handed to layoutPaid()'s row-shrinking block after this function returns.
     for (var c = 2; c <= WALL_COLS_MAX; c++) {
-      colW = (wallW - (c - 1) * gap) / c;
-      cellH = colW * aspect;
-      rows = Math.max(1, Math.floor((regionH + gap) / (cellH + gap)));
+      rows = wallGrid(c, aspect, wallW, regionH, gap).rows;
       if (c * rows >= restCount) { capC = c; break; }
       capC = c;
     }
@@ -12292,9 +12323,7 @@
     // 19.8s in the measured standard/default case fell from 451px to 78px even
     // though no queued purchase could be helped by that.
     if (waitingCount > 0) {
-      colW = (wallW - (currentCols - 1) * gap) / currentCols;
-      cellH = colW * aspect;
-      rows = Math.max(1, Math.floor((regionH + gap) / (cellH + gap)));
+      rows = wallGrid(currentCols, aspect, wallW, regionH, gap).rows;
       // Seats are not columns and not just grid cells. layoutPaid() places the
       // hero as plan[0] outside the wall and only spreads rest across the grid,
       // so the number that drains the overlay is one hero seat plus cols*rows.
@@ -12311,9 +12340,7 @@
       var found = false;
       cols = WALL_COLS_MAX;
       for (c = capC; c <= WALL_COLS_MAX; c++) {
-        colW = (wallW - (c - 1) * gap) / c;
-        cellH = colW * aspect;
-        rows = Math.max(1, Math.floor((regionH + gap) / (cellH + gap)));
+        rows = wallGrid(c, aspect, wallW, regionH, gap).rows;
         var seats = 1 + c * rows;
         if (seats < minSeats) continue;
         // dwellMs is the maximum dwell, not the tier's exact dwell. The queued
@@ -12332,9 +12359,7 @@
         // layoutPaid() opens the last gate with ceil(rest.length/cols), making
         // the prints smaller rather than hiding paid cards underneath others.
         for (c = capC; c <= WALL_COLS_MAX; c++) {
-          colW = (wallW - (c - 1) * gap) / c;
-          cellH = colW * aspect;
-          rows = Math.max(1, Math.floor((regionH + gap) / (cellH + gap)));
+          rows = wallGrid(c, aspect, wallW, regionH, gap).rows;
           if (1 + c * rows >= minSeats) { cols = c; break; }
         }
       }
@@ -12483,9 +12508,10 @@
       DWELL_MS * 4.0
     );
     paidCols = cols;
-    var colW = (wallW - (cols - 1) * gap) / cols;
-    var cellH = colW * paidAspect;
-    var rows = Math.max(1, Math.floor((reg.h + gap) / (cellH + gap)));
+    var grid = wallGrid(cols, paidAspect, wallW, reg.h, gap);
+    var colW = grid.colW;
+    var cellH = grid.cellH;
+    var rows = grid.rows;
     // One row of cells taller than the wall is still one row, but the print
     // drawn in it is sized off the cell — so without this a wall holding two or
     // three upright prints draws them at full tier width and hangs them off the
@@ -12927,7 +12953,7 @@
    *
    * The overlay hides the bar by setting `party`, and `party` is only ever set
    * from openParty() — reached from requestShot(), which is the one path the
-   * bar source skips (94-ebs-link.js: the bar has no camera, so it takes the
+   * bar source skips (94a-the-socket.js: the bar has no camera, so it takes the
    * number out of `shoot` and ignores the rest). So the source that actually
    * DRAWS the bar never learned a party had started, and left the goal frozen
    * on the broadcast for the whole twenty seconds — the one moment the number
@@ -13306,7 +13332,7 @@
     // paidAt for the same reason shots is empty: what already played belongs to
     // the sequence that played it, and what arrives from here on has to have
     // somewhere to go. Without it a paid press after a rejoin threw on
-    // party.paidAt.push (60-capture.js fileShot) — and the throw took the frame
+    // party.paidAt.push (60a-what-to-keep.js fileShot) — and the throw took the frame
     // with it, so the contact sheet lost every photograph after the first
     // purchase rather than just its ordering.
     // A rejoin takes over from here: `party` hides the bar on its own, and a
@@ -13695,8 +13721,6 @@
   function openParty(name) {
     party = { name: name, shots: [], paidAt: [], people: 0, endsAt: Date.now() + TIMELINE.partyMs };
     updatePhaseState("party");
-    // From zero again: the last party's frames are what this one overwrites, so
-    // the folder stops growing at the size of the biggest one.
     // The frame whose press lit the party leads the sheet (§4.3). It was
     // captured moments ago, while the name was still on screen.
     if (ignitionShot) {
@@ -13788,6 +13812,52 @@
     saveSheet(done).then(letGo, letGo);
   }
 
+  /* ================= the address the EBS socket is opened at =================
+
+     The pairing token is not put in it (docs/refactor2-plan.md §4-6). A
+     browser writes the address of a WebSocket that would not open to the
+     console — "WebSocket connection to 'wss://…/stream?ch=…&t=…' failed" — and
+     OBS copies a browser source's console into its log, which broadcasters
+     upload when they ask for help (実測 2026-10-17, Chrome). A WebSocket cannot
+     carry a header, and no page can stop that line being written.
+
+     So the token goes in the body of a POST to /stream/ticket, and the address
+     carries what comes back: a ticket for this channel that lasts a minute. A
+     failed POST is written down too, but its address holds no secret.
+
+     An EBS from before tickets answers 404, and only then does the token go in
+     the address the way it used to — the page works against it, and stops
+     writing the token anywhere the moment the EBS is deployed. A POST that got
+     no answer is not that: nothing is opened, and the caller tries again later.
+
+     Answers through a promise that never rejects:
+       { url }               the socket's address, ready to open
+       { url, legacy: true } the same, from an EBS that has no tickets yet
+       { cut: true }         401 — this token no longer opens this channel
+       null                  no answer worth acting on: unreachable, or one
+                             that was not understood */
+  function ebsSocketAddress(ebs, ch, token) {
+    var base = String(ebs || "").trim().replace(/\/+$/, "");
+    if (!base || !ch || !token) return Promise.resolve(null);
+    var secure = base.indexOf("http://") !== 0;
+    var host = base.replace(/^https?:\/\//, "");
+    var http = (secure ? "https://" : "http://") + host;
+    var sock = (secure ? "wss://" : "ws://") + host + "/stream?ch=" + encodeURIComponent(ch);
+    var asked;
+    // A string body is sent as text/plain, which keeps this a simple request:
+    // no preflight from a file:// page.
+    try { asked = fetch(http + "/stream/ticket?ch=" + encodeURIComponent(ch), { method: "POST", body: String(token) }); }
+    catch (e) { return Promise.resolve(null); }
+    return asked.then(function (res) {
+      if (res.status === 401) return { cut: true };
+      if (res.status === 404) return { url: sock + "&t=" + encodeURIComponent(token), legacy: true };
+      if (!res.ok) return null;
+      return res.json().then(function (b) {
+        var k = b && typeof b.k === "string" ? b.k : "";
+        return /^[A-Za-z0-9._-]{1,200}$/.test(k) ? { url: sock + "&k=" + encodeURIComponent(k) } : null;
+      }, function () { return null; });
+    }, function () { return null; });
+  }
   /* ================= EBS link =================
 
      The extension button reaches the overlay through the EBS. Only the press
@@ -13799,7 +13869,7 @@
      is hand-written here, with backoff. */
 
   var ebsWs = null;
-  var esState = "off";       // off | connecting | live | error
+  var esState = "off";       // off | connecting | live | error | dead
   var ebsRetry = 0;
   var ebsRetryTimer = null;
   var ebsManualClose = false;
@@ -13938,16 +14008,11 @@
     return cfg.ebsToken || storedSecret("ebsToken");
   }
 
-  function ebsSocketUrl() {
-    var base = String(cfg.ebs || "").trim().replace(/\/+$/, "");
-    if (!base) return "";
-    var scheme = base.indexOf("https://") === 0 ? "wss://"
-      : base.indexOf("http://") === 0 ? "ws://"
-      : "wss://";
-    var host = base.replace(/^https?:\/\//, "");
-    return scheme + host + "/stream?ch=" + encodeURIComponent(cfg.ch) +
-      "&t=" + encodeURIComponent(ebsTokenNow());
-  }
+  /* Which connection attempt is the current one. The address is asked for
+   * before the socket is opened (shared: ebs-ticket.js), and a reconnect, a
+   * disconnect or a new code can land while that is on its way — an answer
+   * for an attempt that has been replaced opens nothing. */
+  var ebsAttempt = 0;
 
   function ebsSetState(s) {
     esState = s;
@@ -13958,6 +14023,7 @@
   }
 
   function ebsTeardown() {
+    ebsAttempt++;
     if (ebsWs) {
       ebsWs.onopen = ebsWs.onclose = ebsWs.onerror = ebsWs.onmessage = null;
       try { ebsWs.close(); } catch (e) {}
@@ -14007,10 +14073,18 @@
     }
     tokenWaitSaid = false;
 
-    var url = ebsSocketUrl();
     ebsSetState("connecting");
     log(t("log.ebs.connecting", { u: cfg.ebs }));
+    var mine = ebsAttempt;
+    ebsSocketAddress(cfg.ebs, cfg.ch, ebsTokenNow()).then(function (a) {
+      if (mine !== ebsAttempt || ebsManualClose) return;
+      // Turned away, or no answer: what the closed socket would have led to.
+      if (!a || a.cut) { ebsClosedBecause(a); return; }
+      ebsOpen(a.url);
+    });
+  }
 
+  function ebsOpen(url) {
     var sock;
     try { sock = new WebSocket(url); ebsWs = sock; }
     catch (e) { ebsSetState("error"); log(t("log.ebs.failed", { m: e.message }), "bad"); return; }
@@ -14111,29 +14185,52 @@
    *
    * A browser never tells a page the HTTP status behind a failed WebSocket
    * handshake — a revoked code and an unplugged network are the same event here.
-   * So the same address is asked again as a plain GET, where the status is
-   * readable: 401 means the code is dead, and anything else means the code was
-   * fine and something below it was not.
+   * So the ticket is asked for again, where the status is readable: 401 means
+   * the code is dead, and anything else means the code was fine and something
+   * below it was not.
    *
    * A dead code is not worth retrying every thirty seconds. Nothing will change
    * until the broadcaster pastes a new one, and pasting one reconnects on its
    * own, so the retry backs off to a slow heartbeat instead.
    */
   function ebsWhyClosed() {
+    var mine = ebsAttempt;
+    ebsSocketAddress(cfg.ebs, cfg.ch, ebsTokenNow()).then(function (a) {
+      if (mine !== ebsAttempt || ebsManualClose) return;
+      if (a && a.cut) { ebsCut(); return; }
+      if (a && a.legacy) { ebsLegacyProbe(mine); return; }
+      // The EBS is unreachable, which is what an ordinary drop looks like.
+      ebsScheduleRetry();
+    });
+  }
+
+  /** The attempt ended before a socket was opened: said as a dropped one is. */
+  function ebsClosedBecause(a) {
+    ebsSetState("error");
+    log(t("log.ebs.lost"), "warn");
+    if (a && a.cut) ebsCut();
+    else ebsScheduleRetry();
+  }
+
+  function ebsCut() {
+    ebsSetState("dead");
+    log(t("log.ebs.dead"), "bad");
+    ebsScheduleRetry(EBS_DEAD_RETRY_MS);
+  }
+
+  /* An EBS from before tickets has no /stream/ticket to ask, so it is asked
+   * the old way: a plain GET on the socket's own address, token and all. Only
+   * ever against that EBS, and gone once it is deployed. */
+  function ebsLegacyProbe(mine) {
     var base = String(cfg.ebs || "").trim().replace(/\/+$/, "");
-    if (!base) return ebsScheduleRetry();
     var probe = base + "/stream?ch=" + encodeURIComponent(cfg.ch) +
       "&t=" + encodeURIComponent(ebsTokenNow());
     fetch(probe, { method: "GET" }).then(function (res) {
-      if (res.status === 401) {
-        ebsSetState("dead");
-        log(t("log.ebs.dead"), "bad");
-        ebsScheduleRetry(EBS_DEAD_RETRY_MS);
-        return;
-      }
+      if (mine !== ebsAttempt || ebsManualClose) return;
+      if (res.status === 401) { ebsCut(); return; }
       ebsScheduleRetry();
     }).catch(function () {
-      // The EBS is unreachable, which is what an ordinary drop looks like.
+      if (mine !== ebsAttempt || ebsManualClose) return;
       ebsScheduleRetry();
     });
   }
@@ -14239,8 +14336,8 @@
      bring: presses. So the sample makes its own.
 
      WHY IT DRIVES showPhoto() RATHER THAN DRAWING ANYTHING. showPhoto() is the
-     single door every real press comes through (60-capture.js is the only
-     caller). Going in there means the sample gets the flash, the sparks, the
+     single door every real press comes through (60b-to-the-screen.js and
+     60h-for-the-keeper.js are its only callers). Going in there means the sample gets the flash, the sparks, the
      sound routing, the wall, the widths, the caption and the paid frame from
      the code that draws them for viewers — and gets them wrong the moment that
      code is wrong, which is the point of showing it at all.
@@ -14329,7 +14426,7 @@
     var people = 1 + (demoSeq % 3);
     demoSeq++;
     showPhoto(DEMO_SUBJECT, people, paid);
-    // Filed into the running party the way a real capture is (60-capture.js
+    // Filed into the running party the way a real capture is (60a-what-to-keep.js
     // fileShot), so the contact sheet at the end has the nine to show. Without
     // this the sample's party ended on an empty sheet, which is not what a
     // party looks like — and the theme's tray and papers were never seen.
@@ -14552,7 +14649,6 @@
   // broadcaster can size and place it against their own layout in the OBS
   // preview without waiting for a viewer to press anything. Like #debug, it is
   // a URL flag and never a default — the setup page removes it when finished.
-  // It overrides "off" on purpose: the setting is what is being adjusted.
   if (hashFlag("preview")) {
     bar.pool = 320;
     bar.goal = 1000;
@@ -14610,8 +14706,8 @@
     if (!DEMO && !BAR_ONLY) connect();
   });
 
-  // The bar source stops here. It has nothing to photograph with, nothing to
-  // play, and no reason to hold a socket open to OBS.
+  // The bar source takes neither branch below (BAR_ONLY). It has nothing to
+  // photograph with, nothing to play, and no reason to hold a socket open to OBS.
   if (DEMO) {
     // The sample is not connected to anything, so the status light would sit
     // on "waiting" for ever with nothing to wait for.
@@ -14626,7 +14722,7 @@
      * press per visit. Here it cost the product: this is the ONLY call to
      * connect() on this page, so a broadcaster running OBS with authentication
      * switched off had an overlay that never opened a socket and could never
-     * photograph anything. The EBS was told as much — 94-ebs-link.js reports
+     * photograph anything. The EBS was told as much — 94b-reporting-state.js reports
      * `connected: identified` — so the viewers' button reads "not shooting
      * right now" for ever, and the only trace is a log line inside a browser
      * source nobody opens.
