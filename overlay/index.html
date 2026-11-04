@@ -2828,7 +2828,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-7c392f873fd6";
+  var BUILD = "sp-994a0906bbf8";
   /* @end build */
 
   /**
@@ -14450,6 +14450,32 @@
     demoStep++;
   }
 
+  /* ---- the answer to "are you there?" ----
+
+     The setup page writes ./overlay/index.html into every overlay source in
+     OBS, relative to wherever the setup page itself was opened. Opened from
+     the wrong place — the zip, an old folder — that address names a file that
+     is not there, and one press of "Write to OBS" blanks every overlay on the
+     air (docs/update-safety-plan.md §1). So before it writes, the setup page
+     loads this file in a hidden frame with ?probe=<nonce>#demo and waits for
+     this one message. Arriving means the file is there; `build` says whether
+     it is the same release as the page asking.
+
+     Only the release hash and the nonce the address carried: nothing a page
+     that read it could use. Not from OBS (no #demo), and not from the visible
+     sample (no probe), which has no question to answer. */
+
+  /** The nonce in ?probe=, or "" when this load is not a probe. */
+  function demoProbe() {
+    var m = /[?&]probe=([^&#]*)/.exec(String(location.search || ""));
+    try { return m ? decodeURIComponent(m[1]) : ""; } catch (e) { return ""; }
+  }
+
+  function sayHello(probe) {
+    if (window.parent === window) return;
+    window.parent.postMessage({ from: "shutterparty-demo", act: "hello", build: BUILD, probe: probe }, "*");
+  }
+
   function startDemo() {
     stopDemoLoop();
     // Before the first press, so the bar is on screen empty rather than
@@ -14712,7 +14738,11 @@
     // The sample is not connected to anything, so the status light would sit
     // on "waiting" for ever with nothing to wait for.
     document.documentElement.setAttribute("data-demo", "");
-    startDemo();
+    // A probe from the setup page is asking one question and is never seen,
+    // so it answers and draws nothing (96-demo.js sayHello).
+    var probe = demoProbe();
+    if (probe) sayHello(probe);
+    else startDemo();
   } else if (!BAR_ONLY) {
     ensureAudio();        // decode the shutter samples before the first press
     status("wait", t("st.idle"), true);

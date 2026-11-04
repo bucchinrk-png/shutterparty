@@ -677,6 +677,12 @@
   /* Nothing to report yet, the same as having nowhere to write: the dot
      carries urgency, and not being connected is not urgent. */
   #dock[data-state="off"]   .dockDot { background: var(--dim); }
+  /* The overlay beside this page is missing or another release
+     (67-the-overlay-beside.js): nothing can be written until it is fixed. */
+  #dock[data-state="missing"] .dockDot, #dock[data-state="mismatch"] .dockDot { background: var(--bad); }
+  #dock[data-state="missing"] #dockState, #dock[data-state="mismatch"] #dockState { color: var(--bad); }
+  #dock[data-state="checking"] .dockDot { background: var(--dim); }
+  .besideSay { color: var(--bad); }
   .dockText { display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto; min-width: 0; }
   #dockState { font-size: 12.5px; line-height: 1.45; }
   #dock[data-state="dirty"] #dockState, #dock[data-state="stale"] #dockState { color: var(--warn); }
@@ -1398,6 +1404,7 @@
             <button type="button" data-shape="wide" aria-pressed="true" id="bShapeWide"></button>
             <button type="button" data-shape="tall" aria-pressed="false" id="bShapeTall"></button>
           </div>
+          <p class="note besideSay" id="besideSay" role="alert" hidden></p>
           <div class="sampleBox" id="sampleBox" data-bg="dim">
             <div class="sampleScale" id="sample"></div>
           </div>
@@ -1653,7 +1660,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "シーン {n} 件",
       "log.selfinscene": "警告: シーン「{n}」にはオーバーレイのソース「{s}」が入っています。OBS で「{s}」をこのシーンから外してください。撮った写真にカウントダウンや演出、過去の写真が写り込みます",
-      "log.sceneok": "シーン「{n}」にこのオーバーレイは入っていません",
       "log.wasSource": "前の設定「{n}」はソースなので選べなくなりました。ソースを直接撮ると、OBS で隠した部分が写真に残ります。撮影用のシーンを選び直してください",
       "s.ext": "Twitch 拡張機能につなぐ",
       "n.ext": "Twitch でログインして「許可」を押すと、このページがあなたのチャンネルの拡張機能につながります。Twitch から読むのはチャンネルの ID だけで、ログインの情報は保存しません。",
@@ -1942,6 +1948,9 @@
       "log.overwrote": "「{n}」を上書きしました",
       "log.renamed": "「{a}」があったので「{b}」を作りました",
       "dock.pushing": "書き込み中…",
+      "beside.checking": "overlay フォルダを確かめています…",
+      "beside.missing": "この設定ページと同じフォルダに overlay フォルダがありません。zip を展開したフォルダの中の SHUTTERPARTY-setup.html を開いてください",
+      "beside.mismatch": "この設定ページと overlay フォルダの版が違います。ダウンロードした zip を同じ場所にもう一度展開（上書き）してください",
       "dock.dirty": "まだ反映していない変更があります",
       "dock.clean": "反映済み",
       "dock.never": "まだ一度も書き込んでいません",
@@ -2034,7 +2043,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} scene(s)",
       "log.selfinscene": "warning: the scene “{n}” contains this overlay (the source “{s}”). In OBS, take “{s}” out of this scene. The countdown, effects and older photos will show up in the photos it takes",
-      "log.sceneok": "the scene “{n}” does not contain this overlay",
       "log.wasSource": "the previous setting “{n}” was a source, and sources can no longer be chosen. Photographing one keeps whatever OBS covered over in the picture. Choose a capture scene instead",
       "s.ext": "Connect to the Twitch extension",
       "n.ext": "Log in with Twitch and press Authorize, and this page is paired with the extension on your channel. All it reads from Twitch is your channel id, and nothing from the login is kept.",
@@ -2323,6 +2331,9 @@
       "log.overwrote": "overwrote “{n}”",
       "log.renamed": "“{a}” was taken, so “{b}” was made instead",
       "dock.pushing": "Writing…",
+      "beside.checking": "Checking the overlay folder…",
+      "beside.missing": "The folder this setup page is in has no overlay folder. Open SHUTTERPARTY-setup.html inside the folder you unzipped.",
+      "beside.mismatch": "This setup page and the overlay folder are from different releases. Unzip the downloaded zip into the same place again, replacing the files.",
       "dock.dirty": "Changes not written yet",
       "dock.clean": "Written",
       "dock.never": "Nothing has been written yet",
@@ -2415,7 +2426,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} escena(s)",
       "log.selfinscene": "aviso: la escena «{n}» contiene este overlay (la fuente «{s}»). En OBS, saca «{s}» de esta escena. La cuenta atrás, los efectos y las fotos anteriores saldrán en las fotos que tome",
-      "log.sceneok": "la escena «{n}» no contiene este overlay",
       "log.wasSource": "lo anterior, «{n}», era una fuente, y ya no se pueden elegir fuentes. Al fotografiar una, lo que OBS tapó queda en la imagen. Elige una escena de captura",
       "s.ext": "Conectar con la extensión de Twitch",
       "n.ext": "Inicia sesión con Twitch y pulsa Autorizar: esta página queda vinculada con la extensión de tu canal. De Twitch solo lee el ID de tu canal, y no se guarda nada del inicio de sesión.",
@@ -2704,6 +2714,9 @@
       "log.overwrote": "se sobrescribió «{n}»",
       "log.renamed": "«{a}» estaba ocupado, así que se creó «{b}»",
       "dock.pushing": "Escribiendo…",
+      "beside.checking": "Comprobando la carpeta overlay…",
+      "beside.missing": "La carpeta donde está esta página de configuración no tiene una carpeta overlay. Abre SHUTTERPARTY-setup.html dentro de la carpeta que descomprimiste.",
+      "beside.mismatch": "Esta página de configuración y la carpeta overlay son de versiones distintas. Vuelve a descomprimir el zip descargado en el mismo sitio, reemplazando los archivos.",
       "dock.dirty": "Hay cambios sin aplicar",
       "dock.clean": "Aplicado",
       "dock.never": "Todavía no se ha escrito nada",
@@ -2796,7 +2809,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} cena(s)",
       "log.selfinscene": "aviso: a cena «{n}» contém este overlay (a fonte «{s}»). No OBS, tire «{s}» desta cena. A contagem regressiva, os efeitos e as fotos anteriores vão aparecer nas fotos que ela tirar",
-      "log.sceneok": "a cena «{n}» não contém este overlay",
       "log.wasSource": "o anterior, «{n}», era uma fonte, e fontes não podem mais ser escolhidas. Fotografar uma deixa na imagem o que o OBS cobriu. Escolha uma cena de captura",
       "s.ext": "Conectar à extensão da Twitch",
       "n.ext": "Entre com a Twitch e clique em Autorizar: esta página fica pareada com a extensão do seu canal. Da Twitch ela só lê o ID do seu canal, e nada do login é guardado.",
@@ -3085,6 +3097,9 @@
       "log.overwrote": "substituiu “{n}”",
       "log.renamed": "“{a}” já estava ocupado, então criou-se “{b}”",
       "dock.pushing": "A escrever…",
+      "beside.checking": "A verificar a pasta overlay…",
+      "beside.missing": "A pasta onde está esta página de configuração não tem uma pasta overlay. Abra o SHUTTERPARTY-setup.html dentro da pasta que extraiu.",
+      "beside.mismatch": "Esta página de configuração e a pasta overlay são de versões diferentes. Extraia o zip transferido de novo para o mesmo sítio, substituindo os ficheiros.",
       "dock.dirty": "Há alterações por aplicar",
       "dock.clean": "Aplicado",
       "dock.never": "Ainda não foi escrito nada",
@@ -3177,7 +3192,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} Szene(n)",
       "log.selfinscene": "Warnung: Die Szene „{n}“ enthält dieses Overlay (die Quelle „{s}“). Nimm „{s}“ in OBS aus dieser Szene. Countdown, Effekte und ältere Fotos landen auf den Fotos, die sie macht",
-      "log.sceneok": "die Szene „{n}“ enthält dieses Overlay nicht",
       "log.wasSource": "das bisherige „{n}“ war eine Quelle, und Quellen sind nicht mehr wählbar. Fotografiert man eine, bleibt im Bild, was OBS überdeckt hat. Wähle stattdessen eine Aufnahmeszene",
       "s.ext": "Mit der Twitch-Erweiterung verbinden",
       "n.ext": "Melde dich mit Twitch an und klicke auf Autorisieren, dann ist diese Seite mit der Erweiterung auf deinem Kanal gekoppelt. Von Twitch liest sie nur deine Kanal-ID, und von der Anmeldung wird nichts gespeichert.",
@@ -3466,6 +3480,9 @@
       "log.overwrote": "„{n}“ überschrieben",
       "log.renamed": "„{a}“ war belegt, also wurde „{b}“ angelegt",
       "dock.pushing": "Wird geschrieben…",
+      "beside.checking": "Der overlay-Ordner wird geprüft…",
+      "beside.missing": "Im Ordner dieser Einrichtungsseite gibt es keinen overlay-Ordner. Öffne SHUTTERPARTY-setup.html in dem Ordner, den du entpackt hast.",
+      "beside.mismatch": "Diese Einrichtungsseite und der overlay-Ordner stammen aus verschiedenen Versionen. Entpacke die heruntergeladene ZIP-Datei noch einmal an denselben Ort und ersetze die Dateien.",
       "dock.dirty": "Änderungen sind noch nicht übernommen",
       "dock.clean": "Übernommen",
       "dock.never": "Es wurde noch nichts geschrieben",
@@ -3558,7 +3575,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} scène(s)",
       "log.selfinscene": "attention : la scène « {n} » contient cet overlay (la source « {s} »). Dans OBS, retire « {s} » de cette scène. Le compte à rebours, les effets et les photos précédentes se retrouveront sur les photos qu'elle prend",
-      "log.sceneok": "la scène « {n} » ne contient pas cet overlay",
       "log.wasSource": "le réglage précédent « {n} » était une source, et les sources ne sont plus proposées. En photographier une garde sur l'image ce qu'OBS avait masqué. Choisis plutôt une scène de capture",
       "s.ext": "Se connecter à l'extension Twitch",
       "n.ext": "Connecte-toi avec Twitch et clique sur Autoriser : cette page est alors associée à l'extension de ta chaîne. Elle ne lit de Twitch que l'ID de ta chaîne, et rien de la connexion n'est conservé.",
@@ -3847,6 +3863,9 @@
       "log.overwrote": "« {n} » a été écrasée",
       "log.renamed": "« {a} » était pris, « {b} » a donc été créé",
       "dock.pushing": "Écriture…",
+      "beside.checking": "Vérification du dossier overlay…",
+      "beside.missing": "Le dossier de cette page de configuration ne contient pas de dossier overlay. Ouvrez SHUTTERPARTY-setup.html dans le dossier que vous avez extrait.",
+      "beside.mismatch": "Cette page de configuration et le dossier overlay ne sont pas de la même version. Extrayez à nouveau le zip téléchargé au même endroit, en remplaçant les fichiers.",
       "dock.dirty": "Des changements ne sont pas encore appliqués",
       "dock.clean": "Appliqué",
       "dock.never": "Rien n’a encore été écrit",
@@ -3939,7 +3958,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} scena/e",
       "log.selfinscene": "attenzione: la scena «{n}» contiene questo overlay (la fonte «{s}»). In OBS, togli «{s}» da questa scena. Il conto alla rovescia, gli effetti e le foto precedenti finiranno nelle foto che scatta",
-      "log.sceneok": "la scena «{n}» non contiene questo overlay",
       "log.wasSource": "l'impostazione precedente «{n}» era una fonte, e le fonti non sono più selezionabili. Fotografarne una lascia nell'immagine ciò che OBS aveva coperto. Scegli invece una scena di ripresa",
       "s.ext": "Collegarsi all'estensione Twitch",
       "n.ext": "Accedi con Twitch e premi Autorizza: questa pagina viene collegata all'estensione del tuo canale. Da Twitch legge solo l'ID del tuo canale, e dell'accesso non viene conservato nulla.",
@@ -4228,6 +4246,9 @@
       "log.overwrote": "«{n}» sovrascritta",
       "log.renamed": "«{a}» era occupato, quindi è stata creata «{b}»",
       "dock.pushing": "Scrittura…",
+      "beside.checking": "Controllo della cartella overlay…",
+      "beside.missing": "Nella cartella di questa pagina di configurazione non c’è nessuna cartella overlay. Apri SHUTTERPARTY-setup.html nella cartella che hai estratto.",
+      "beside.mismatch": "Questa pagina di configurazione e la cartella overlay sono di versioni diverse. Estrai di nuovo lo zip scaricato nello stesso punto, sostituendo i file.",
       "dock.dirty": "Ci sono modifiche non ancora applicate",
       "dock.clean": "Applicato",
       "dock.never": "Non è ancora stato scritto niente",
@@ -4320,7 +4341,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "장면 {n} 개",
       "log.selfinscene": "경고: 장면 「{n}」에는 이 오버레이(소스 「{s}」)가 들어 있습니다. OBS 에서 이 장면의 「{s}」 소스를 빼 주세요. 찍은 사진에 카운트다운과 연출, 지난 사진이 함께 찍힙니다",
-      "log.sceneok": "장면 「{n}」에는 이 오버레이가 없습니다",
       "log.wasSource": "이전 설정 「{n}」은 소스라서 더 이상 고를 수 없습니다. 소스를 찍으면 OBS 에서 가린 부분이 사진에 남습니다. 촬영용 장면을 다시 골라 주세요",
       "s.ext": "Twitch 확장 프로그램에 연결하기",
       "n.ext": "Twitch 로 로그인하고 「승인」을 누르면, 이 페이지가 내 채널의 확장 프로그램과 연동됩니다. Twitch 에서 읽는 것은 채널 ID 뿐이며, 로그인 정보는 저장하지 않습니다.",
@@ -4609,6 +4629,9 @@
       "log.overwrote": "“{n}”을(를) 덮어썼습니다",
       "log.renamed": "“{a}”이(가) 있어서 “{b}”을(를) 만들었습니다",
       "dock.pushing": "쓰는 중…",
+      "beside.checking": "overlay 폴더를 확인하는 중…",
+      "beside.missing": "이 설정 페이지와 같은 폴더에 overlay 폴더가 없습니다. 압축을 푼 폴더 안의 SHUTTERPARTY-setup.html을 여세요.",
+      "beside.mismatch": "이 설정 페이지와 overlay 폴더의 버전이 다릅니다. 내려받은 zip을 같은 위치에 다시 압축 해제(덮어쓰기)하세요.",
       "dock.dirty": "아직 반영되지 않은 변경이 있습니다",
       "dock.clean": "반영됨",
       "dock.never": "아직 한 번도 쓰지 않았습니다",
@@ -4701,7 +4724,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "场景 {n} 个",
       "log.selfinscene": "警告：场景「{n}」里有这个叠加层（来源「{s}」）。请在 OBS 中把「{s}」从这个场景里移出。拍出来的照片会混进倒计时、特效和之前的照片",
-      "log.sceneok": "场景「{n}」里没有这个叠加层",
       "log.wasSource": "之前设的「{n}」是来源，现在已经不能选来源了。拍来源会把 OBS 里遮住的部分留在图里。请重新选一个拍摄用的场景",
       "s.ext": "连接 Twitch 扩展",
       "n.ext": "用 Twitch 登录并点击「授权」，本页面就会与你频道的扩展连接。从 Twitch 读取的只有频道 ID，登录信息不会保存。",
@@ -4990,6 +5012,9 @@
       "log.overwrote": "已覆盖“{n}”",
       "log.renamed": "“{a}”已被占用，改为创建了“{b}”",
       "dock.pushing": "写入中…",
+      "beside.checking": "正在检查 overlay 文件夹…",
+      "beside.missing": "此设置页面所在的文件夹中没有 overlay 文件夹。请打开解压后的文件夹中的 SHUTTERPARTY-setup.html。",
+      "beside.mismatch": "此设置页面与 overlay 文件夹版本不同。请将下载的 zip 再次解压到同一位置（覆盖文件）。",
       "dock.dirty": "有改动尚未写入",
       "dock.clean": "已写入",
       "dock.never": "还没有写入过",
@@ -5082,7 +5107,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "сцен: {n}",
       "log.selfinscene": "внимание: в сцене «{n}» лежит этот оверлей (источник «{s}»). Уберите «{s}» из этой сцены в OBS. На снимках окажутся обратный отсчёт, эффекты и прежние фотографии",
-      "log.sceneok": "в сцене «{n}» этого оверлея нет",
       "log.wasSource": "прежняя настройка «{n}» была источником, а источники больше не предлагаются. При съёмке источника то, что OBS закрыл, остаётся на картинке. Выберите сцену для съёмки",
       "s.ext": "Подключиться к расширению Twitch",
       "n.ext": "Войдите через Twitch и нажмите «Авторизовать» — эта страница свяжется с расширением на вашем канале. Из Twitch читается только ID канала, и от входа ничего не сохраняется.",
@@ -5371,6 +5395,9 @@
       "log.overwrote": "«{n}» перезаписан",
       "log.renamed": "«{a}» было занято, поэтому создано «{b}»",
       "dock.pushing": "Записываем…",
+      "beside.checking": "Проверяем папку overlay…",
+      "beside.missing": "В папке с этой страницей настройки нет папки overlay. Откройте SHUTTERPARTY-setup.html в папке, куда вы распаковали архив.",
+      "beside.mismatch": "Эта страница настройки и папка overlay — из разных версий. Распакуйте скачанный zip ещё раз в то же место с заменой файлов.",
       "dock.dirty": "Есть изменения, которые ещё не записаны",
       "dock.clean": "Записано",
       "dock.never": "Ещё ничего не записано",
@@ -5463,7 +5490,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "sceny: {n}",
       "log.selfinscene": "uwaga: scena „{n}” zawiera ten overlay (źródło „{s}”). W OBS usuń „{s}” z tej sceny. Na zdjęciach znajdą się odliczanie, efekty i wcześniejsze zdjęcia",
-      "log.sceneok": "scena „{n}” nie zawiera tego overlaya",
       "log.wasSource": "poprzednie ustawienie „{n}” było źródłem, a źródeł nie da się już wybrać. Fotografowanie źródła zostawia na obrazku to, co OBS zasłonił. Wybierz scenę do zdjęć",
       "s.ext": "Połącz z rozszerzeniem Twitcha",
       "n.ext": "Zaloguj się przez Twitch i kliknij Autoryzuj — ta strona zostanie sparowana z rozszerzeniem na twoim kanale. Z Twitcha odczytuje tylko ID kanału, a z logowania nic nie jest zapisywane.",
@@ -5752,6 +5778,9 @@
       "log.overwrote": "nadpisano „{n}”",
       "log.renamed": "„{a}” było zajęte, więc utworzono „{b}”",
       "dock.pushing": "Zapisywanie…",
+      "beside.checking": "Sprawdzanie folderu overlay…",
+      "beside.missing": "W folderze tej strony konfiguracji nie ma folderu overlay. Otwórz SHUTTERPARTY-setup.html w folderze, do którego rozpakowano zip.",
+      "beside.mismatch": "Ta strona konfiguracji i folder overlay pochodzą z różnych wersji. Rozpakuj pobrany zip ponownie w to samo miejsce, zastępując pliki.",
       "dock.dirty": "Są zmiany, których jeszcze nie zapisano",
       "dock.clean": "Zapisane",
       "dock.never": "Nic jeszcze nie zostało zapisane",
@@ -5844,7 +5873,6 @@
       "log.connecting": "→ {u}",
       "log.scenes": "{n} sahne",
       "log.selfinscene": "uyarı: «{n}» sahnesi bu yayın katmanını içeriyor («{s}» kaynağı). OBS'de «{s}» kaynağını bu sahneden çıkar. Çektiği fotoğraflara geri sayım, efektler ve önceki fotoğraflar karışır",
-      "log.sceneok": "«{n}» sahnesi bu yayın katmanını içermiyor",
       "log.wasSource": "önceki ayar «{n}» bir kaynaktı ve artık kaynaklar seçilemiyor. Bir kaynağı fotoğraflamak, OBS'de üstünü kapattığınız şeyleri görüntüde bırakır. Bunun yerine bir çekim sahnesi seçin",
       "s.ext": "Twitch uzantısına bağlan",
       "n.ext": "Twitch ile giriş yapıp Yetkilendir'e bastığınızda bu sayfa kanalınızdaki uzantıyla eşleşir. Twitch'ten yalnızca kanal kimliğiniz okunur ve girişten hiçbir şey saklanmaz.",
@@ -6133,6 +6161,9 @@
       "log.overwrote": "“{n}” üzerine yazıldı",
       "log.renamed": "“{a}” doluydu, bunun yerine “{b}” oluşturuldu",
       "dock.pushing": "Yazılıyor…",
+      "beside.checking": "overlay klasörü denetleniyor…",
+      "beside.missing": "Bu kurulum sayfasının bulunduğu klasörde overlay klasörü yok. Zip'i çıkardığınız klasörün içindeki SHUTTERPARTY-setup.html dosyasını açın.",
+      "beside.mismatch": "Bu kurulum sayfası ile overlay klasörü farklı sürümlerden. İndirdiğiniz zip'i dosyaların üzerine yazarak aynı yere yeniden çıkarın.",
       "dock.dirty": "Henüz uygulanmamış değişiklikler var",
       "dock.clean": "Uygulandı",
       "dock.never": "Henüz hiçbir şey yazılmadı",
@@ -6162,7 +6193,7 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-7c392f873fd6";
+  var BUILD = "sp-994a0906bbf8";
   /* @end build */
 
   /* The languages, in their own names. A list of translated language names
@@ -9220,9 +9251,11 @@
         at.notice.textContent = role ? t("tier.self", which) : t("warn.self", which);
         at.notice.hidden = false;
         log(role ? t("tier.self", which) : t("log.selfinscene", which), "warn");
-      } else if (!role) {
-        log(t("log.sceneok", { n: name }), "ok");
       }
+      /* Nothing is said when the overlay is NOT in the scene. That is the
+       * good answer, and the sentence for it ("… does not contain this
+       * overlay") was read as an error by a broadcaster mid-update
+       * (docs/update-safety-plan.md §3, 本人 2026-11-03). */
     }).then(function () {
       // Named, not counted. "7 sources" tells a broadcaster nothing; the name
       // of the one they forgot tells them everything.
@@ -9379,7 +9412,12 @@
 
     var hostScene = "";
 
-    resolveCaptureScene()
+    /* Asked before the capture scene, not only in deliver(): resolveCaptureScene()
+     * sends CreateScene when there is none, and a scene made for an overlay
+     * that is then refused is half a build left behind (docs/update-safety-plan.md
+     * §2.2). deliver() asks again, as the last stop for every other way in. */
+    besideAllows()
+      .then(function (ok) { return ok ? resolveCaptureScene() : null; })
       .then(function (capture) {
         if (!capture) return null;                   // the broadcaster said no
         cfg.src = capture;
@@ -9901,10 +9939,17 @@
   }
 
   function renderDock() {
-    var state = pushing ? "dirty" : dockState();
+    /* The overlay beside this page comes before everything else (67-the-overlay-beside.js):
+     * while it is missing or another release, no write can land, so "not yet
+     * written" or "Writing…" would be telling the broadcaster to press the
+     * button that cannot help. "checking" is said only for the check made when
+     * the page opened; a job's own check runs under "Writing…". */
+    var blocked = besideBlocks();
+    var checking = !blocked && !pushing && besideOpening && beside === "checking";
+    var state = blocked || (checking ? "checking" : pushing ? "dirty" : dockState());
     el.dock.dataset.state = state;
-    var msg = { off: "dock.off", none: "dock.notarget", dirty: "dock.dirty", stale: "dock.stale", clean: "dock.clean" }[state];
-    el.dockState.textContent = pushing ? t("dock.pushing") : t(msg);
+    var msg = { off: "dock.off", none: "dock.notarget", dirty: "dock.dirty", stale: "dock.stale", clean: "dock.clean", missing: "beside.missing", mismatch: "beside.mismatch", checking: "beside.checking" }[state];
+    el.dockState.textContent = pushing && !blocked ? t("dock.pushing") : t(msg);
     $("pushSay").textContent = el.dockState.textContent;
     $("pushSay").classList.toggle("good", state === "clean");
     // Said whether or not there is somewhere to write right now. When the page
@@ -10043,12 +10088,16 @@
     if (deliverRunning || !deliverQueue.length) return;
     var job = deliverQueue.shift();
     deliverRunning = true;
-    var run;
-    try {
-      run = job.kind === "build" ? deliverBuild(job)
+    /* The overlay beside this page is asked first, every job (67-the-overlay-beside.js).
+     * Not there, or another release: nothing is written, and the sources OBS
+     * has go on pointing wherever they pointed — at a folder that works, if
+     * they did (docs/update-safety-plan.md §2.2). */
+    var run = besideAllows().then(function (ok) {
+      if (!ok) return deliverRefused();
+      return job.kind === "build" ? deliverBuild(job)
         : job.kind === "retry" ? deliverRetry(job)
         : deliverWrite(job);
-    } catch (e) { run = Promise.reject(e); }
+    });
     run.then(function (res) {
       job.waiters.forEach(function (w) { w.resolve(res); });
     }, function (e) {
@@ -10572,6 +10621,149 @@
       sceneName: scene, inputName: name, inputKind: "browser_source",
       inputSettings: settings, sceneItemEnabled: enabled !== false
     }).then(function () { log(t("log.created", { n: name, s: scene }), "ok"); });
+  }
+  /* ================= the overlay beside this page =================
+
+     Every overlay source in OBS is pointed at OVERLAY_URL — ./overlay/index.html
+     next to wherever THIS page was opened — and nothing used to look at that
+     file before writing it. A broadcaster who opened the page from the zip, or
+     from last month's folder, pressed "Write to OBS" once and every overlay on
+     the air pointed at a file that is not there: the overlays vanished, the
+     sample went blank, and the receipt never came, so the resend question
+     came back however often it was answered (docs/update-safety-plan.md §0–§1,
+     2026-11-02).
+
+     So before any job writes, the file is asked. It is loaded in a hidden
+     frame with ?probe=<nonce>#demo, and the overlay answers with one message
+     naming its release (overlay 96-demo.js sayHello). Three answers:
+
+       ok        it answered, and it is the release this page was built with
+       mismatch  it answered with another release (a half-finished overwrite,
+                 two folders mixed) — writing would hand it settings it may
+                 silently drop, so this stops too (§2.2, 本人 2026-11-03)
+       missing   nothing answered in 5 s, nor in 5 s more after one reload
+
+     ASKED AGAIN FOR EVERY JOB, never remembered. A broadcaster who fixes the
+     folder only has to press again, and a file removed after the page opened
+     is not written to on the strength of an old answer (§2.2).
+
+     WHO MAY ANSWER. The answer decides whether OBS is written, so unlike the
+     sample's messages it is checked: it must come from the very frame being
+     asked (event.source), carry the nonce that frame was given, and have the
+     exact shape. Origin cannot be checked — both pages are file://, which is
+     "null" — but those three can. The answer opens nothing and loads nothing;
+     the most it can do is let a write go ahead. */
+
+  var BESIDE_WAIT_MS = 5000;
+  // "checking" | "ok" | "missing" | "mismatch". Not stored: a page opened again
+  // asks again.
+  var beside = "checking";
+  // True only while the check made when the page opened is running: that is
+  // the one the dock says "checking" for. A job's check runs under "Writing…".
+  var besideOpening = false;
+  var besideRun = null;
+
+  function besideNonce() {
+    var b = new Uint8Array(12);
+    crypto.getRandomValues(b);
+    return Array.prototype.map.call(b, function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+  }
+
+  /**
+   * Ask the overlay beside this page which release it is.
+   *
+   * One at a time: a check asked for while one runs gets that one's answer,
+   * so there is never a second frame. The frame is removed when it is done.
+   * The frame's load event is not used — a missing file may still "load" an
+   * error page — only the answer counts.
+   */
+  function checkBeside() {
+    if (besideRun) return besideRun;
+    beside = "checking";
+    renderBeside();
+    var began = Date.now(), tries = 0;
+    besideRun = new Promise(function (resolve) {
+      var frame = null, timer = 0, nonce = "";
+      function drop() {
+        clearTimeout(timer);
+        if (frame && frame.parentNode) frame.parentNode.removeChild(frame);
+        frame = null;
+      }
+      function finish(v) {
+        window.removeEventListener("message", onAnswer);
+        drop();
+        resolve(v);
+      }
+      function onAnswer(e) {
+        if (!frame || e.source !== frame.contentWindow) return;
+        var m = e.data;
+        if (!m || typeof m !== "object") return;
+        if (m.from !== "shutterparty-demo" || m.act !== "hello") return;
+        if (m.probe !== nonce || typeof m.build !== "string") return;
+        finish(m.build === BUILD ? "ok" : "mismatch");
+      }
+      function load() {
+        drop();
+        tries++;
+        nonce = besideNonce();
+        frame = document.createElement("iframe");
+        // The sample's terms (72-the-sample.js): an origin of its own, so the
+        // overlay cannot read this page's storage, and #demo, so it opens no
+        // socket to OBS or the EBS.
+        frame.setAttribute("sandbox", "allow-scripts");
+        frame.setAttribute("aria-hidden", "true");
+        frame.tabIndex = -1;
+        frame.style.cssText = "position:absolute;left:-10000px;top:0;width:16px;height:9px;border:0;visibility:hidden";
+        frame.src = OVERLAY_URL + "?v=" + encodeURIComponent(BUILD) + "&probe=" + nonce + "#demo";
+        document.body.appendChild(frame);
+        timer = setTimeout(function () {
+          if (tries < 2) load();
+          else finish("missing");
+        }, BESIDE_WAIT_MS);
+      }
+      window.addEventListener("message", onAnswer);
+      load();
+    }).then(function (v) {
+      besideRun = null;
+      beside = v;
+      // How long, and whether it took the reload: the first thing to ask when
+      // a broadcaster says the page refused a folder that was right.
+      log("beside " + v + " " + (Date.now() - began) + "ms tries=" + tries);
+      if (v !== "ok") log(t("beside." + v), "warn");
+      renderBeside();
+      return v;
+    });
+    return besideRun;
+  }
+
+  /** The check a job makes before it writes: true when it may go ahead. */
+  function besideAllows() {
+    return checkBeside().then(function (v) { return v === "ok"; });
+  }
+
+  /** The check made once when the page opens — to say so before anything is pressed. */
+  function checkBesideOnOpen() {
+    besideOpening = true;
+    return checkBeside().then(function (v) {
+      besideOpening = false;
+      renderBeside();
+      return v;
+    });
+  }
+
+  /** "missing" or "mismatch" when the dock has to say so first; "" otherwise. */
+  function besideBlocks() {
+    return beside === "missing" || beside === "mismatch" ? beside : "";
+  }
+
+  function renderBeside() {
+    var say = $("besideSay");
+    var bad = besideBlocks();
+    if (say) {
+      say.hidden = !bad;
+      say.textContent = bad ? t("beside." + bad) : "";
+    }
+    if (el.dock) renderDock();
   }
   /* ================= the sounds, as both pages make them =================
 
@@ -13467,6 +13659,9 @@
   showPane(ui.pane);
   applySampleBg(ui.sampleBg);
   paint();
+  // Before anything is pressed, so a page opened from the wrong place says so
+  // at once (67-the-overlay-beside.js). Each write asks again for itself.
+  checkBesideOnOpen();
   /* Always, and not `if (cfg.pw)`.
    *
    * The condition that used to be here was guarding against a failure that does
