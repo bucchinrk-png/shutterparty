@@ -59,7 +59,7 @@
        base-uri / form-action
                             Neither page has a <base> or a <form>; naming them
                             'none' is what keeps that true. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:* https://discord.com https://id.twitch.tv; base-uri 'none'; form-action 'none'; frame-src file:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src file: data:; connect-src ws: https://*.workers.dev wss://*.workers.dev http://127.0.0.1:* http://localhost:* https://discord.com https://id.twitch.tv https://shutterparty.app; base-uri 'none'; form-action 'none'; frame-src file:">
 <title>SHUTTERPARTY — setup</title>
 <!--
   The broadcaster's setup page.
@@ -83,6 +83,7 @@
 <style>
   :root {
     --acc-rgb: 176, 62, 52;
+    --acc-ink-rgb: 211, 113, 105; /* the accent as text (fills keep --acc-rgb) */
     --pre-rgb: 224, 176, 96;
     --ink: #e7eaf0;
     --dim: #97a1b1;
@@ -104,20 +105,20 @@
      background. Values are the desaturated set from the prototype; a broadcast
      overlay at full chroma is fatiguing to watch. */
   /* @generated accents — src/shared/accents.json。手で書き換えない */
-  :root, :root[data-accent="safelight"] { --acc-rgb: 176,62,52;  --pre-rgb: 224,176,96; }
-  :root[data-accent="neon"]             { --acc-rgb: 198,72,140; --pre-rgb: 116,202,218; }
-  :root[data-accent="ocean"]            { --acc-rgb: 44,118,142; --pre-rgb: 226,178,102; }
-  :root[data-accent="forest"]           { --acc-rgb: 64,118,80;  --pre-rgb: 206,172,104; }
-  :root[data-accent="violet"]           { --acc-rgb: 120,90,188; --pre-rgb: 230,196,124; }
-  :root[data-accent="mono"]             { --acc-rgb: 88,94,106;  --pre-rgb: 226,186,108; }
-  :root[data-accent="pink"]             { --acc-rgb: 122,46,69;  --pre-rgb: 240,135,159; }
-  :root[data-accent="peach"]            { --acc-rgb: 122,74,30;  --pre-rgb: 242,172,104; }
-  :root[data-accent="lemon"]            { --acc-rgb: 119,102,26; --pre-rgb: 239,215,102; }
-  :root[data-accent="mint"]             { --acc-rgb: 38,96,60;   --pre-rgb: 132,206,153; }
-  :root[data-accent="sky"]              { --acc-rgb: 31,86,112;  --pre-rgb: 117,190,218; }
-  :root[data-accent="lavender"]         { --acc-rgb: 69,49,114;  --pre-rgb: 162,148,218; }
-  :root[data-accent="rose"]             { --acc-rgb: 110,43,87;  --pre-rgb: 226,148,198; }
-  :root[data-accent="apricot"]          { --acc-rgb: 122,59,38;  --pre-rgb: 241,156,124; }
+  :root, :root[data-accent="safelight"] { --acc-rgb: 176,62,52;  --pre-rgb: 224,176,96; --acc-ink-rgb: 211,113,105; }
+  :root[data-accent="neon"]             { --acc-rgb: 198,72,140; --pre-rgb: 116,202,218; --acc-ink-rgb: 209,107,162; }
+  :root[data-accent="ocean"]            { --acc-rgb: 44,118,142; --pre-rgb: 226,178,102; --acc-ink-rgb: 56,151,182; }
+  :root[data-accent="forest"]           { --acc-rgb: 64,118,80;  --pre-rgb: 206,172,104; --acc-ink-rgb: 85,156,106; }
+  :root[data-accent="violet"]           { --acc-rgb: 120,90,188; --pre-rgb: 230,196,124; --acc-ink-rgb: 151,128,203; }
+  :root[data-accent="mono"]             { --acc-rgb: 88,94,106;  --pre-rgb: 226,186,108; --acc-ink-rgb: 134,141,155; }
+  :root[data-accent="pink"]             { --acc-rgb: 122,46,69;  --pre-rgb: 240,135,159; --acc-ink-rgb: 202,113,140; }
+  :root[data-accent="peach"]            { --acc-rgb: 122,74,30;  --pre-rgb: 242,172,104; --acc-ink-rgb: 200,121,49; }
+  :root[data-accent="lemon"]            { --acc-rgb: 119,102,26; --pre-rgb: 239,215,102; --acc-ink-rgb: 164,141,36; }
+  :root[data-accent="mint"]             { --acc-rgb: 38,96,60;   --pre-rgb: 132,206,153; --acc-ink-rgb: 63,158,99; }
+  :root[data-accent="sky"]              { --acc-rgb: 31,86,112;  --pre-rgb: 117,190,218; --acc-ink-rgb: 54,150,195; }
+  :root[data-accent="lavender"]         { --acc-rgb: 69,49,114;  --pre-rgb: 162,148,218; --acc-ink-rgb: 151,129,201; }
+  :root[data-accent="rose"]             { --acc-rgb: 110,43,87;  --pre-rgb: 226,148,198; --acc-ink-rgb: 199,111,169; }
+  :root[data-accent="apricot"]          { --acc-rgb: 122,59,38;  --pre-rgb: 241,156,124; --acc-ink-rgb: 203,118,90; }
   /* @end accents */
 
   * { box-sizing: border-box; }
@@ -142,13 +143,25 @@
   .top {
     position: sticky; top: 0; z-index: 6;
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    padding: 13px 24px;
+    padding: 12px 24px;
     background: rgba(11, 14, 19, .96);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line);
   }
-  .top h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: .01em; }
+  .top h1 { margin: 0; font-size: 18px; font-weight: 600; }
   .top .grow { flex: 1 1 auto; }
+  .upd {
+    flex: 1 0 100%;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 7px 12px;
+    border: 1px solid rgba(217, 160, 62, .45);
+    border-radius: var(--r);
+    background: rgba(217, 160, 62, .1);
+    font-size: 14px;
+  }
+  .upd[hidden] { display: none; }
+  .upd a { color: var(--warn); font-weight: 600; }
+  .upd button { margin-left: auto; }
   /* Below the header rather than inside it: the header is sticky, and a
      paragraph that never scrolls away costs the same two lines on every
      screen for a sentence that is read once. */
@@ -160,7 +173,7 @@
   .lede {
     margin: 0 0 18px;
     padding: 0;
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.55;
     color: var(--dim);
     max-width: 1080px;
@@ -168,12 +181,11 @@
 
   /* ---------- connection chip ---------- */
   .chip {
-    display: inline-flex; align-items: center; gap: 7px;
+    display: inline-flex; align-items: center; gap: 8px;
     padding: 5px 12px;
     border-radius: 999px;
     background: var(--bg3);
     border: 1px solid var(--line);
-    font-family: var(--mono);
     font-size: 12px;
     white-space: nowrap;
   }
@@ -240,7 +252,7 @@
   .railFoot .dockRow { padding: 0 2px 2px; }
   .railFoot button { width: 100%; }
   .railBtn {
-    display: flex; flex-direction: column; gap: 1px;
+    display: flex; flex-direction: column; gap: 2px;
     width: 100%; text-align: left;
     padding: 9px 12px;
     border: 1px solid transparent;
@@ -252,13 +264,13 @@
   }
   .railBtn:hover { background: #151b23; }
   .railBtn[aria-selected="true"] { background: var(--bg2); border-color: var(--line); }
-  .railBtn[aria-selected="true"] .rTitle { color: rgb(var(--acc-rgb)); }
+  .railBtn[aria-selected="true"] .rTitle { color: rgb(var(--acc-ink-rgb)); }
   .rTitle { font-size: 14px; font-weight: 640; }
   /* A row can now carry a value rather than a word — a host name, a preset
      and a colour — and the column is 200px wide. Cut it rather than let it
      wrap: the rail is read at a glance, and a title carries the whole. */
   .rState {
-    font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: .02em;
+    font-size: 12px; color: var(--dim);
     display: block; max-width: 100%;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
@@ -297,19 +309,19 @@
     #paneLook > #stepSample { position: static; }
   }
 
-  .step { padding: 20px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 11px; }
+  .step { padding: 20px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
   .step:first-child { border-top: 0; padding-top: 4px; }
-  .step > h2 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: .01em; }
+  .step > h2 { margin: 0; font-size: 16px; font-weight: 600; }
   /* The number of this step in the whole setup, the same number on the Twitch
      Config panel and the guide page (src/shared/steps.json). Beside the words,
      never in them: the panel quotes the heading words as they are. */
-  .stepNo { color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+  .stepNo { color: var(--dim); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .step > h2 .stepNo { margin-right: .7em; vertical-align: 1px; }
-  #dockStep { font-size: 11px; }
+  #dockStep { font-size: 12px; }
 
   .note { margin: 0; color: var(--dim); font-size: 13px; line-height: 1.6; max-width: 78ch; }
   .note.warn { color: var(--warn); border-left: 2px solid var(--warn); padding-left: 10px; }
-  .note.good { color: var(--ok); border-left: 2px solid var(--ok); padding-left: 10px; font-family: var(--mono); font-size: 12.5px; }
+  .note.good { color: var(--ok); border-left: 2px solid var(--ok); padding-left: 10px; font-size: 13px; }
   /* Not background information: the one line that says what a photograph will
      actually show. */
   .note.contents { color: var(--ink); border-left: 2px solid rgb(var(--acc-rgb)); padding-left: 10px; overflow-wrap: anywhere; }
@@ -326,8 +338,8 @@
   }
   .howto > p { margin: 0; color: var(--warn); }
   /* a, b, c: the parts of one step. Numbers belong to the whole setup. */
-  .howto > ol { margin: 6px 0 0; padding-left: 1.6em; color: var(--ink); list-style-type: lower-alpha; }
-  .howto > ol > li + li { margin-top: 3px; }
+  .howto > ol { margin: 6px 0 0; padding-left: 20px; color: var(--ink); list-style-type: lower-alpha; }
+  .howto > ol > li + li { margin-top: 4px; }
   .howto > .howtoFoot { margin-top: 8px; color: var(--dim); }
   /* Not a failure: where something comes from, before it is there. */
   .howto.plain { border-color: var(--line); background: var(--bg2); }
@@ -335,8 +347,8 @@
   /* The code Twitch shows on its own page, to be compared with this one. */
   .howto > .loginCode { margin-top: 8px; font-family: var(--mono); font-size: 20px; letter-spacing: .18em; }
   .howto > #loginLinkRow { margin-top: 6px; }
-  .howto > #loginLinkRow a { color: rgb(var(--acc-rgb)); }
-  #aRemoteGuide { color: rgb(var(--acc-rgb)); }
+  .howto > #loginLinkRow a { color: rgb(var(--acc-ink-rgb)); }
+  #aRemoteGuide { color: rgb(var(--acc-ink-rgb)); }
   .howto.plain > .loginWarn { margin-top: 8px; color: var(--warn); }
   .howto.plain > p.ok { color: var(--ok); }
   .howto.plain > p.warn { color: var(--warn); }
@@ -361,13 +373,11 @@
   /* ---------- fields ---------- */
   .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
   .row .wide { grid-column: 1 / -1; }
-  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .field.port { max-width: 130px; }
   .field > label {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    letter-spacing: .13em;
-    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--dim);
   }
   .field input, .field select {
@@ -386,7 +396,7 @@
      One row per allowed scene, each carrying the way to take it back. The
      list is short by nature — a channel has a handful of scenes — so it is
      laid out to be counted at a glance rather than scrolled. */
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chips:empty { display: none; }
   .gchip {
     display: inline-flex; align-items: center; gap: 4px;
@@ -394,8 +404,7 @@
     border-radius: 999px;
     border: 1px solid rgba(var(--acc-rgb), .55);
     background: rgba(var(--acc-rgb), .12);
-    font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--ink);
     max-width: 100%;
   }
@@ -419,15 +428,17 @@
     opacity: .7;
   }
   .gchip .gx:hover { opacity: 1; background: rgba(var(--acc-rgb), .25); }
+  /* The box that is not an address (obsBeforeConnect). */
+  .field input[aria-invalid="true"] { border-color: var(--bad); }
   .field input:focus-visible, .field select:focus-visible,
   .langpick select:focus-visible {
-    outline: 2px solid rgb(var(--acc-rgb));
+    outline: 2px solid rgb(var(--acc-ink-rgb));
     outline-offset: 1px;
   }
   /* A checkbox is not a labelled field: the words sit beside it and are part
      of the target, and it must not take the width a text input would. */
   label.check {
-    display: inline-flex; align-items: center; gap: 9px;
+    display: inline-flex; align-items: center; gap: 8px; min-height: 24px;
     font-size: 14px; color: var(--ink); cursor: pointer;
   }
   label.check input { width: 17px; height: 17px; flex: none; accent-color: rgb(var(--acc-rgb)); }
@@ -487,9 +498,9 @@
      and nothing about the overlay changes when they press it. */
 
   /* ---------- buttons ---------- */
-  .btns { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   /* The pasted theme code and the button that empties it, on one line. */
-  .packRow { display: flex; gap: 9px; align-items: stretch; }
+  .packRow { display: flex; gap: 8px; align-items: stretch; }
   .packRow .field { flex: 1 1 auto; }
   .packRow .field input { width: 100%; box-sizing: border-box; }
   button {
@@ -509,7 +520,7 @@
   button.ghost { background: transparent; }
   button.ghost:hover { background: #151b23; }
   button.big { font-size: 15px; padding: 12px 26px; }
-  button.mini { font-family: var(--mono); font-size: 11.5px; font-weight: 500; padding: 6px 11px; }
+  button.mini { font-size: 12px; font-weight: 500; padding: 6px 11px; }
   /* Dim until it is looked at. The colour is the second thing holding this
      button back — the first is that it is nowhere near what it erases. */
   /* Pinned right at every width. `.grow` pushes it there while the header is
@@ -527,7 +538,6 @@
   button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
   .ebs-badge {
-    font-family: var(--mono);
     font-size: 12px;
     padding: 6px 12px;
     border-radius: 999px;
@@ -542,8 +552,7 @@
   details.more { border: 1px solid var(--line); border-radius: var(--r); background: #0f141a; }
   details.more > summary {
     cursor: pointer;
-    padding: 9px 13px;
-    font-family: var(--mono);
+    padding: 8px 12px;
     font-size: 12px;
     color: var(--dim);
     list-style: none;
@@ -552,7 +561,7 @@
   details.more > summary::before { content: "\25B8  "; }
   details.more[open] > summary::before { content: "\25BE  "; }
   details.more > summary:hover { color: var(--ink); }
-  details.more .inner { padding: 0 13px 13px; }
+  details.more .inner { padding: 0 12px 12px; }
   /* One special scene's row, and the things it says about itself under it. */
   .tier { margin-top: 12px; }
   .tier .row { align-items: end; }
@@ -568,18 +577,16 @@
   }
   .grp { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .grp > label {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    letter-spacing: .13em;
-    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--dim);
   }
-  .opts { display: flex; gap: 7px; flex-wrap: wrap; }
+  .opts { display: flex; gap: 8px; flex-wrap: wrap; }
   /* The one slider on the page. The filled part of the track is the accent,
      like a pressed button; --fill is written beside the value (paintLook). */
   .grp.wide { grid-column: 1 / -1; }
   .volRow { display: flex; align-items: center; gap: 10px; min-height: 34px; }
-  .volRow output { font-family: var(--mono); font-size: 12.5px; color: var(--ink); min-width: 3.4em; text-align: right; }
+  .volRow output { font-family: var(--mono); font-size: 13px; color: var(--ink); min-width: 3.4em; text-align: right; }
   .vol { -webkit-appearance: none; appearance: none; flex: 1 1 120px; min-width: 110px; max-width: 420px; height: 22px; background: transparent; margin: 0; cursor: pointer; }
   .vol::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, rgb(var(--acc-rgb)) var(--fill, 55%), rgba(255, 255, 255, .16) var(--fill, 55%)); }
   .vol::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%; background: #fff; border: 2px solid rgb(var(--acc-rgb)); }
@@ -587,10 +594,10 @@
   .vol::-moz-range-progress { height: 4px; border-radius: 2px; background: rgb(var(--acc-rgb)); }
   .vol::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid rgb(var(--acc-rgb)); }
   .vol:focus-visible { outline: 2px solid rgb(var(--pre-rgb)); outline-offset: 3px; border-radius: 4px; }
-  .tryRow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-  .tryRow span { font-size: 12px; color: var(--dim); margin-right: 3px; }
+  .tryRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tryRow span { font-size: 12px; color: var(--dim); margin-right: 4px; }
   .note.small { font-size: 12px; line-height: 1.55; }
-  .opts button { font-family: var(--mono); font-size: 12.5px; font-weight: 500; padding: 7px 13px; }
+  .opts button { font-size: 13px; font-weight: 500; padding: 7px 13px; }
 
   /* The canvas in small, for choosing where the 3-2-1 stands. 16:9 because
      that is the shape the choice is made against; the vertical canvas keeps
@@ -683,10 +690,10 @@
   #dock[data-state="missing"] #dockState, #dock[data-state="mismatch"] #dockState { color: var(--bad); }
   #dock[data-state="checking"] .dockDot { background: var(--dim); }
   .besideSay { color: var(--bad); }
-  .dockText { display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto; min-width: 0; }
-  #dockState { font-size: 12.5px; line-height: 1.45; }
+  .dockText { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+  #dockState { font-size: 13px; line-height: 1.45; }
   #dock[data-state="dirty"] #dockState, #dock[data-state="stale"] #dockState { color: var(--warn); }
-  #dockLast { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+  #dockLast { font-size: 12px; color: var(--dim); }
   /* The way out, and the label that says what this is. Outside the scroller so
      it cannot scroll away from the person looking for it. */
   .logbar {
@@ -694,7 +701,7 @@
     padding: 7px 24px;
     border-top: 1px solid var(--line);
   }
-  .logbarTtl { font-family: var(--mono); font-size: 11.5px; color: var(--dim); }
+  .logbarTtl { font-size: 12px; color: var(--dim); }
   .logwrap { max-height: 34vh; overflow: auto; border-top: 1px solid var(--line); }
   .log {
     padding: 12px 24px;
@@ -746,8 +753,8 @@
   .setupDlg[open] { display: flex; flex-direction: column; }
   .setupDlg::backdrop { background: rgba(4, 6, 9, .74); }
   .dlgHead { display: flex; align-items: baseline; gap: 12px; padding: 18px 24px 0; }
-  .dlgHead h2 { margin: 0; font-size: 17px; font-weight: 650; }
-  .dlgLeft { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+  .dlgHead h2 { margin: 0; font-size: 17px; font-weight: 600; }
+  .dlgLeft { font-size: 12px; color: var(--dim); }
   .setupBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 24px 18px; }
   .setupBody > .step:not(.on) { display: none; }
   .setupBody > .step { border-top: 0; }
@@ -757,7 +764,7 @@
     border-top: 1px solid var(--line);
   }
   .dlgFoot .grow { flex: 1 1 auto; }
-  .dlgWhy { font-size: 12.5px; color: var(--warn); }
+  .dlgWhy { font-size: 13px; color: var(--warn); }
   /* Esc pressed: where the way out is, for a moment. */
   .dlgFoot .look { outline: 2px solid rgb(var(--pre-rgb)); outline-offset: 2px; }
 
@@ -856,6 +863,14 @@
          it is the reason to put it there — and the name carries the scope, so
          distance is not the only thing holding it. -->
     <button class="ghost mini danger" id="btnReset"></button>
+    <!-- A newer version is out (93-new-version.js, docs/update-notice-plan.md).
+         Its own line under the header's controls, so it moves nothing in them.
+         Closed, it stays closed until the version after. -->
+    <div class="upd" id="upd" role="status" hidden>
+      <span id="updText"></span>
+      <a id="updHow" target="_blank" rel="noopener noreferrer"></a>
+      <button class="ghost mini" id="updClose" type="button">&times;</button>
+    </div>
   </header>
 
   <div class="body">
@@ -937,9 +952,9 @@
           <details class="more" id="dConn">
             <summary id="sConn"></summary>
             <div class="inner row">
-              <div class="field"><label for="host" id="lHost"></label><input id="host" value="127.0.0.1" spellcheck="false"></div>
-              <div class="field port"><label for="port" id="lPort"></label><input id="port" value="4455" inputmode="numeric" spellcheck="false"></div>
-              <div class="field"><label for="pw" id="lPw"></label><input id="pw" type="password" spellcheck="false"></div>
+              <div class="field"><label for="host" id="lHost"></label><input id="host" value="127.0.0.1" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="253" data-1p-ignore data-lpignore="true" data-bwignore></div>
+              <div class="field port"><label for="port" id="lPort"></label><input id="port" value="4455" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" data-1p-ignore data-lpignore="true" data-bwignore></div>
+              <div class="field"><label for="pw" id="lPw"></label><input id="pw" type="password" autocomplete="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore></div>
             </div>
           </details>
           <div class="btns"><button class="primary" id="btnConnect"></button></div>
@@ -1034,6 +1049,11 @@
           <div class="btns">
             <button id="btnLogin"></button>
           </div>
+          <!-- Asked with the login, not saved: ticked, the login also asks
+               Twitch for leave to write in the chat, and the notices go in the
+               broadcaster's name (docs/chat-as-broadcaster-plan.md §4 の 1). -->
+          <label class="check"><input id="loginChat" type="checkbox" checked> <span id="lLoginChat"></span></label>
+          <p class="note" id="nLoginChat"></p>
           <!-- One attempt at logging in, from the code Twitch hands out to the
                answer. The name in loginSay is the account that pressed
                Authorize — shown so a wrong one can be stopped here, and kept
@@ -1049,6 +1069,9 @@
             </div>
           </div>
           <p class="note" id="pairInfo" hidden></p>
+          <!-- Which name the chat notices go in, when they are on — as the EBS
+               says it (§4 の 6, 8). -->
+          <p class="note" id="chatWay" hidden></p>
           <details class="more" id="pairMore">
           <summary id="pairMoreSum"></summary>
           <div class="inner">
@@ -1603,7 +1626,13 @@
       "help.srv.2": "メニューの「ツール」→「WebSocket サーバー設定」を開く",
       "help.srv.3": "「WebSocketサーバーを有効にする」にチェックを入れる。「サーバーポート」を 4455 から変えているなら、下の「接続の詳細」のポートも同じ数字にする",
       "help.srv.4": "「OK」で閉じる。このページが 30 秒以内に自動でつなぎます（待たずに「接続」を押しても構いません）",
-      "help.srv.n": "「ツール」に「WebSocket サーバー設定」が無いときは、OBS が 28 より前の版です。OBS を最新にしてください。Streamlabs Desktop にはこの設定が無く、使えません。",
+      "help.srv.n": "「ツール」に「WebSocket サーバー設定」が無いときは、OBS が 28 より前のバージョンです。OBS を最新にしてください。Streamlabs Desktop にはこの設定が無く、使えません。",
+      "st.badhost": "ホストの形が違います",
+      "st.badport": "ポートの形が違います",
+      "help.addr.h": "「接続の詳細」のホストかポートに、OBS の接続先ではない値が入っています。次の値に直してから「接続」を押してください。",
+      "help.addr.1": "ホスト: OBS と同じ PC なら 127.0.0.1。別の PC の OBS なら、その PC の IP アドレス",
+      "help.addr.2": "ポート: OBS のメニューの「ツール」→「WebSocket サーバー設定」にある「サーバーポート」と同じ数字（ふつうは 4455）",
+      "log.badaddr": "接続しませんでした: ホスト「{h}」・ポート「{p}」は OBS の接続先の形ではありません",
       "help.pw.h": "OBS のパスワードを、このページに貼り付けてください。ステップ 2 を OBS で、次の順に確かめてください。",
       "help.pw.1": "OBS の「ツール」→「WebSocket サーバー設定」で「接続情報を表示」を押す",
       "help.pw.2": "「サーバーパスワード」の横の「コピー」を押す",
@@ -1690,6 +1719,11 @@
       "login.notYet": "ログインでの連携は、まだ使えません。下の連携コードを使ってください",
       "login.revokeUnsure": "Twitch 側でログインの取り消しを確かめられませんでした。連携は済んでいます（取り消せなかった分は約 4 時間で切れます）",
       "login.nudge": "連携コードでの連携は終わる予定です。Twitch でログインして連携し直してください。",
+      "login.chat": "チャットの通知を自分の名前で送る",
+      "login.chatNote": "付けたままログインすると、チャットに書き込む許可も Twitch で求めます。撮影の通知が [SHUTTERPARTY] 付きであなたの名前で出て、読み上げソフトや配信に重ねるチャットにも届きます。外すと書き込みの許可なしで連携し、通知は拡張の名前で出ます。やめるときは、外してログインし直してください。許可そのものは Twitch の設定の「接続」で外せます（ログインでの連携も切れます）。",
+      "chat.as": "チャットの通知は、あなたの名前で出ています（[SHUTTERPARTY] 付き）",
+      "chat.ext": "チャットの通知は拡張の名前で出ています。「チャットの通知を自分の名前で送る」を付けて Twitch でログインし直すと、あなたの名前で出せます（読み上げにも届きます）",
+      "chat.code": "Twitch でログインして連携し直すと、チャットの通知を自分の名前で出せます（読み上げにも届きます）",
       "remote.cut": "Stream Deck の連携を全て切る",
       "remote.note": "このチャンネルに連携した Stream Deck を全て切ります。切るときも Twitch でログインします。上の連携（オーバーレイ）はそのままです。",
       "remote.as": "{n} の Stream Deck の連携を全て切ります。よければ「全て切る」を押してください。",
@@ -1950,7 +1984,11 @@
       "dock.pushing": "書き込み中…",
       "beside.checking": "overlay フォルダを確かめています…",
       "beside.missing": "この設定ページと同じフォルダに overlay フォルダがありません。zip を展開したフォルダの中の SHUTTERPARTY-setup.html を開いてください",
-      "beside.mismatch": "この設定ページと overlay フォルダの版が違います。ダウンロードした zip を同じ場所にもう一度展開（上書き）してください",
+      "beside.mismatch": "この設定ページと overlay フォルダのバージョンが違います。ダウンロードした zip を同じ場所にもう一度展開（上書き）してください",
+      "upd.new": "新しいバージョン（v{v}）があります",
+      "upd.how": "更新のしかた",
+      "upd.close": "閉じる",
+      "log.upd.fail": "新しいバージョンがあるか確かめられませんでした",
       "dock.dirty": "まだ反映していない変更があります",
       "dock.clean": "反映済み",
       "dock.never": "まだ一度も書き込んでいません",
@@ -1987,6 +2025,12 @@
       "help.srv.3": "Tick Enable WebSocket server. If you changed Server Port from 4455, put the same number in Port under Connection details below",
       "help.srv.4": "Close it with OK. This page connects on its own within 30 seconds (or press Connect)",
       "help.srv.n": "No WebSocket Server Settings under Tools means OBS is older than version 28 — update OBS. Streamlabs Desktop does not have this setting and cannot be used.",
+      "st.badhost": "invalid host",
+      "st.badport": "invalid port",
+      "help.addr.h": "Host or Port under Connection details holds something that is not an OBS address. Change it to the values below, then press Connect.",
+      "help.addr.1": "Host: 127.0.0.1 if OBS runs on this PC. If OBS runs on another PC, that PC's IP address",
+      "help.addr.2": "Port: the same number as Server Port in OBS under Tools → WebSocket Server Settings (usually 4455)",
+      "log.badaddr": "did not connect: host “{h}” and port “{p}” are not an OBS address",
       "help.pw.h": "Paste OBS's password into this page. Go through Step 2 in OBS, in this order.",
       "help.pw.1": "In OBS, open Tools → WebSocket Server Settings and press Show Connect Info",
       "help.pw.2": "Press Copy next to Server Password",
@@ -2073,6 +2117,11 @@
       "login.notYet": "pairing by login is not available yet. Use the pairing code below",
       "login.revokeUnsure": "Twitch did not confirm that the login was revoked. You are paired (what could not be revoked expires in about 4 hours)",
       "login.nudge": "Pairing by pairing code is going away. Log in with Twitch to pair again.",
+      "login.chat": "Send chat notices in my name",
+      "login.chatNote": "Logging in with this ticked also asks Twitch for permission to write in your chat. Photo notices then appear in your name, marked [SHUTTERPARTY], and reach text-to-speech tools and chat overlays too. Untick it to pair without that permission; notices then appear under the extension's name. To stop, untick it and log in again. You can remove the permission itself under Connections in your Twitch settings (this also ends a pairing made by logging in).",
+      "chat.as": "Chat notices appear in your name (marked [SHUTTERPARTY])",
+      "chat.ext": "Chat notices appear under the extension's name. Tick “Send chat notices in my name” and log in with Twitch again to send them in your name (text-to-speech tools get them too)",
+      "chat.code": "Log in with Twitch to pair again, and chat notices can appear in your name (text-to-speech tools get them too)",
       "remote.cut": "Cut every Stream Deck remote",
       "remote.note": "This ends every Stream Deck remote paired with your channel. You log in with Twitch to do it. The pairing above stays as it is.",
       "remote.as": "This will cut every remote of {n}. Press Cut all to go on.",
@@ -2334,6 +2383,10 @@
       "beside.checking": "Checking the overlay folder…",
       "beside.missing": "The folder this setup page is in has no overlay folder. Open SHUTTERPARTY-setup.html inside the folder you unzipped.",
       "beside.mismatch": "This setup page and the overlay folder are from different releases. Unzip the downloaded zip into the same place again, replacing the files.",
+      "upd.new": "A new version (v{v}) is available",
+      "upd.how": "How to update",
+      "upd.close": "Close",
+      "log.upd.fail": "Could not check for a new version",
       "dock.dirty": "Changes not written yet",
       "dock.clean": "Written",
       "dock.never": "Nothing has been written yet",
@@ -2370,6 +2423,12 @@
       "help.srv.3": "Marca Habilitar servidor WebSocket. Si cambiaste Puerto del servidor de 4455, pon el mismo número en Puerto, en Detalles de conexión, abajo",
       "help.srv.4": "Ciérralo con OK. Esta página se conecta sola en menos de 30 segundos (o pulsa Conectar)",
       "help.srv.n": "Si Herramientas no tiene Ajustes del servidor WebSocket, tu OBS es anterior a la versión 28: actualízalo. Streamlabs Desktop no tiene este ajuste y no se puede usar.",
+      "st.badhost": "host no válido",
+      "st.badport": "puerto no válido",
+      "help.addr.h": "El Host o el Puerto de Detalles de conexión tiene algo que no es una dirección de OBS. Cámbialo por los valores de abajo y pulsa Conectar.",
+      "help.addr.1": "Host: 127.0.0.1 si OBS está en este PC. Si OBS está en otro PC, la dirección IP de ese PC",
+      "help.addr.2": "Puerto: el mismo número que Puerto del servidor en OBS, en Herramientas → Ajustes del servidor WebSocket (normalmente 4455)",
+      "log.badaddr": "no se conectó: el host «{h}» y el puerto «{p}» no son una dirección de OBS",
       "help.pw.h": "Pega la contraseña de OBS en esta página. Repasa el Paso 2 en OBS, en este orden.",
       "help.pw.1": "En OBS, abre Herramientas → Ajustes del servidor WebSocket y pulsa Mostrar información de conexión",
       "help.pw.2": "Pulsa Copiar junto a Contraseña del servidor",
@@ -2456,6 +2515,11 @@
       "login.notYet": "la vinculación por inicio de sesión aún no está disponible. Usa el código de vinculación de abajo",
       "login.revokeUnsure": "Twitch no confirmó que el inicio de sesión se revocara. Ya estás vinculado (lo que no se pudo revocar caduca en unas 4 horas)",
       "login.nudge": "La vinculación con código de vinculación va a desaparecer. Inicia sesión con Twitch para vincular de nuevo.",
+      "login.chat": "Enviar los avisos del chat con mi nombre",
+      "login.chatNote": "Si inicias sesión con esto marcado, también se pide a Twitch permiso para escribir en tu chat. Los avisos de fotos aparecen entonces con tu nombre, marcados con [SHUTTERPARTY], y llegan también a las herramientas de texto a voz y a los chats superpuestos. Desmárcalo para vincular sin ese permiso; los avisos aparecen entonces con el nombre de la extensión. Para dejarlo, desmárcalo e inicia sesión de nuevo. El permiso en sí se quita en Conexiones, en la configuración de Twitch (eso también corta la vinculación hecha iniciando sesión).",
+      "chat.as": "Los avisos del chat aparecen con tu nombre (marcados con [SHUTTERPARTY])",
+      "chat.ext": "Los avisos del chat aparecen con el nombre de la extensión. Marca «Enviar los avisos del chat con mi nombre» e inicia sesión con Twitch de nuevo para enviarlos con tu nombre (también llegan al texto a voz)",
+      "chat.code": "Si vuelves a vincular iniciando sesión con Twitch, los avisos del chat pueden aparecer con tu nombre (también llegan al texto a voz)",
       "remote.cut": "Desconectar todos los controles de Stream Deck",
       "remote.note": "Desconecta todos los controles vinculados a tu canal. Para hacerlo, inicias sesión con Twitch. La vinculación de arriba no cambia.",
       "remote.as": "Se desconectarán todos los controles de {n}. Pulsa Desconectar todo para continuar.",
@@ -2717,6 +2781,10 @@
       "beside.checking": "Comprobando la carpeta overlay…",
       "beside.missing": "La carpeta donde está esta página de configuración no tiene una carpeta overlay. Abre SHUTTERPARTY-setup.html dentro de la carpeta que descomprimiste.",
       "beside.mismatch": "Esta página de configuración y la carpeta overlay son de versiones distintas. Vuelve a descomprimir el zip descargado en el mismo sitio, reemplazando los archivos.",
+      "upd.new": "Hay una versión nueva (v{v})",
+      "upd.how": "Cómo actualizar",
+      "upd.close": "Cerrar",
+      "log.upd.fail": "No se pudo comprobar si hay una versión nueva",
       "dock.dirty": "Hay cambios sin aplicar",
       "dock.clean": "Aplicado",
       "dock.never": "Todavía no se ha escrito nada",
@@ -2753,6 +2821,12 @@
       "help.srv.3": "Marque Ativar servidor WebSocket. Se você mudou a Porta do servidor de 4455, coloque o mesmo número em Porta, em Detalhes da conexão, abaixo",
       "help.srv.4": "Feche com OK. Esta página se conecta sozinha em até 30 segundos (ou clique em Conectar)",
       "help.srv.n": "Se Ferramentas não tem Configurações do servidor WebSocket, o OBS é anterior à versão 28: atualize o OBS. O Streamlabs Desktop não tem essa opção e não pode ser usado.",
+      "st.badhost": "host inválido",
+      "st.badport": "porta inválida",
+      "help.addr.h": "O Host ou a Porta em Detalhes da conexão tem algo que não é um endereço do OBS. Troque pelos valores abaixo e clique em Conectar.",
+      "help.addr.1": "Host: 127.0.0.1 se o OBS está neste PC. Se o OBS está em outro PC, o endereço IP desse PC",
+      "help.addr.2": "Porta: o mesmo número da Porta do servidor no OBS, em Ferramentas → Configurações do servidor WebSocket (normalmente 4455)",
+      "log.badaddr": "não conectou: o host “{h}” e a porta “{p}” não são um endereço do OBS",
       "help.pw.h": "Cole a senha do OBS nesta página. Confira o Passo 2 no OBS, nesta ordem.",
       "help.pw.1": "No OBS, abra Ferramentas → Configurações do servidor WebSocket e clique em Mostrar informações da conexão",
       "help.pw.2": "Clique em Copiar ao lado de Senha do servidor",
@@ -2839,6 +2913,11 @@
       "login.notYet": "o pareamento por login ainda não está disponível. Use o código de pareamento abaixo",
       "login.revokeUnsure": "a Twitch não confirmou que o login foi revogado. Você já está pareado (o que não pôde ser revogado expira em cerca de 4 horas)",
       "login.nudge": "O pareamento por código de pareamento vai acabar. Entre com a Twitch para parear de novo.",
+      "login.chat": "Enviar os avisos do chat com o meu nome",
+      "login.chatNote": "Entrando com isto marcado, também se pede à Twitch permissão para escrever no seu chat. Os avisos de fotos passam a aparecer com o seu nome, marcados com [SHUTTERPARTY], e chegam também às ferramentas de texto para fala e aos chats sobrepostos. Desmarque para parear sem essa permissão; os avisos aparecem então com o nome da extensão. Para parar, desmarque e entre de novo. A permissão em si é removida em Conexões, nas configurações da Twitch (isso também desfaz o pareamento feito pelo login).",
+      "chat.as": "Os avisos do chat aparecem com o seu nome (marcados com [SHUTTERPARTY])",
+      "chat.ext": "Os avisos do chat aparecem com o nome da extensão. Marque «Enviar os avisos do chat com o meu nome» e entre com a Twitch de novo para enviá-los com o seu nome (o texto para fala também recebe)",
+      "chat.code": "Pareando de novo com o login da Twitch, os avisos do chat podem aparecer com o seu nome (o texto para fala também recebe)",
       "remote.cut": "Desligar todos os controles do Stream Deck",
       "remote.note": "Desliga todos os controles vinculados ao seu canal. Para isso, você entra com a Twitch. O vínculo acima continua como está.",
       "remote.as": "Isso vai desligar todos os controles de {n}. Aperte Desligar tudo para continuar.",
@@ -3100,6 +3179,10 @@
       "beside.checking": "A verificar a pasta overlay…",
       "beside.missing": "A pasta onde está esta página de configuração não tem uma pasta overlay. Abra o SHUTTERPARTY-setup.html dentro da pasta que extraiu.",
       "beside.mismatch": "Esta página de configuração e a pasta overlay são de versões diferentes. Extraia o zip transferido de novo para o mesmo sítio, substituindo os ficheiros.",
+      "upd.new": "Há uma versão nova (v{v})",
+      "upd.how": "Como atualizar",
+      "upd.close": "Fechar",
+      "log.upd.fail": "Não foi possível verificar se há uma versão nova",
       "dock.dirty": "Há alterações por aplicar",
       "dock.clean": "Aplicado",
       "dock.never": "Ainda não foi escrito nada",
@@ -3136,6 +3219,12 @@
       "help.srv.3": "WebSocket-Server aktivieren anhaken. Hast du den Serverport von 4455 geändert, trag dieselbe Zahl unten unter Verbindungsdetails bei Port ein",
       "help.srv.4": "Mit OK schließen. Diese Seite verbindet sich innerhalb von 30 Sekunden von selbst (oder drück Verbinden)",
       "help.srv.n": "Fehlt unter Werkzeuge der Eintrag WebSocket-Servereinstellungen, ist OBS älter als Version 28 — aktualisiere OBS. Streamlabs Desktop hat diese Einstellung nicht und funktioniert nicht.",
+      "st.badhost": "ungültiger Host",
+      "st.badport": "ungültiger Port",
+      "help.addr.h": "Host oder Port unter Verbindungsdetails enthält etwas, das keine OBS-Adresse ist. Ändere es auf die Werte unten und drücke dann Verbinden.",
+      "help.addr.1": "Host: 127.0.0.1, wenn OBS auf diesem PC läuft. Läuft OBS auf einem anderen PC, dessen IP-Adresse",
+      "help.addr.2": "Port: dieselbe Zahl wie Serverport in OBS unter Werkzeuge → WebSocket-Servereinstellungen (meist 4455)",
+      "log.badaddr": "nicht verbunden: Host „{h}“ und Port „{p}“ sind keine OBS-Adresse",
       "help.pw.h": "Füge das Passwort von OBS auf dieser Seite ein. Geh Schritt 2 in OBS der Reihe nach durch:",
       "help.pw.1": "In OBS Werkzeuge → WebSocket-Servereinstellungen öffnen und Verbindungsinformationen anzeigen drücken",
       "help.pw.2": "Neben Serverpasswort auf Kopieren drücken",
@@ -3222,6 +3311,11 @@
       "login.notYet": "Koppeln per Anmeldung ist noch nicht verfügbar. Nimm den Kopplungscode unten",
       "login.revokeUnsure": "Twitch hat nicht bestätigt, dass die Anmeldung widerrufen wurde. Gekoppelt bist du (was nicht widerrufen werden konnte, läuft in etwa 4 Stunden ab)",
       "login.nudge": "Das Koppeln per Kopplungscode wird eingestellt. Melde dich mit Twitch an, um neu zu koppeln.",
+      "login.chat": "Chat-Hinweise unter meinem Namen senden",
+      "login.chatNote": "Meldest du dich mit diesem Haken an, wird bei Twitch auch die Erlaubnis angefragt, in deinen Chat zu schreiben. Foto-Hinweise erscheinen dann unter deinem Namen, mit [SHUTTERPARTY] markiert, und erreichen auch Sprachausgabe-Tools und Chat-Overlays. Ohne Haken koppelst du ohne diese Erlaubnis; die Hinweise erscheinen dann unter dem Namen der Erweiterung. Zum Beenden den Haken entfernen und dich neu anmelden. Die Erlaubnis selbst entfernst du in den Twitch-Einstellungen unter Verbindungen (damit endet auch die Kopplung per Anmeldung).",
+      "chat.as": "Chat-Hinweise erscheinen unter deinem Namen (mit [SHUTTERPARTY] markiert)",
+      "chat.ext": "Chat-Hinweise erscheinen unter dem Namen der Erweiterung. Setze den Haken bei „Chat-Hinweise unter meinem Namen senden“ und melde dich neu mit Twitch an, um sie unter deinem Namen zu senden (auch die Sprachausgabe erhält sie)",
+      "chat.code": "Koppelst du neu per Twitch-Anmeldung, können Chat-Hinweise unter deinem Namen erscheinen (auch die Sprachausgabe erhält sie)",
       "remote.cut": "Alle Stream-Deck-Fernbedienungen trennen",
       "remote.note": "Trennt jede mit deinem Kanal gekoppelte Fernbedienung. Dafür meldest du dich mit Twitch an. Die Kopplung oben bleibt, wie sie ist.",
       "remote.as": "Damit werden alle Fernbedienungen von {n} getrennt. Drücke „Alle trennen“, um fortzufahren.",
@@ -3483,6 +3577,10 @@
       "beside.checking": "Der overlay-Ordner wird geprüft…",
       "beside.missing": "Im Ordner dieser Einrichtungsseite gibt es keinen overlay-Ordner. Öffne SHUTTERPARTY-setup.html in dem Ordner, den du entpackt hast.",
       "beside.mismatch": "Diese Einrichtungsseite und der overlay-Ordner stammen aus verschiedenen Versionen. Entpacke die heruntergeladene ZIP-Datei noch einmal an denselben Ort und ersetze die Dateien.",
+      "upd.new": "Eine neue Version (v{v}) ist verfügbar",
+      "upd.how": "So aktualisierst du",
+      "upd.close": "Schließen",
+      "log.upd.fail": "Konnte nicht prüfen, ob es eine neue Version gibt",
       "dock.dirty": "Änderungen sind noch nicht übernommen",
       "dock.clean": "Übernommen",
       "dock.never": "Es wurde noch nichts geschrieben",
@@ -3519,6 +3617,12 @@
       "help.srv.3": "Coche Activer le serveur WebSocket. Si tu as changé le Port du serveur (4455 par défaut), mets le même nombre dans Port, sous Détails de connexion, plus bas",
       "help.srv.4": "Ferme avec OK. Cette page se connecte toute seule en moins de 30 secondes (ou appuie sur Connecter)",
       "help.srv.n": "Si Outils ne contient pas Paramètres du serveur WebSocket, ton OBS est antérieur à la version 28 : mets-le à jour. Streamlabs Desktop n'a pas ce réglage et ne peut pas être utilisé.",
+      "st.badhost": "hôte invalide",
+      "st.badport": "port invalide",
+      "help.addr.h": "L'Hôte ou le Port dans Détails de connexion contient autre chose qu'une adresse OBS. Remplace-le par les valeurs ci-dessous, puis appuie sur Connecter.",
+      "help.addr.1": "Hôte : 127.0.0.1 si OBS tourne sur ce PC. Si OBS tourne sur un autre PC, l'adresse IP de ce PC",
+      "help.addr.2": "Port : le même nombre que Port du serveur dans OBS, sous Outils → Paramètres du serveur WebSocket (en général 4455)",
+      "log.badaddr": "connexion non tentée : l'hôte « {h} » et le port « {p} » ne sont pas une adresse OBS",
       "help.pw.h": "Colle le mot de passe d'OBS dans cette page. Reprends l'Étape 2 dans OBS, dans l'ordre.",
       "help.pw.1": "Dans OBS, ouvre Outils → Paramètres du serveur WebSocket et appuie sur Afficher les informations de connexion",
       "help.pw.2": "Appuie sur Copier à côté de Mot de passe du serveur",
@@ -3605,6 +3709,11 @@
       "login.notYet": "l'association par connexion n'est pas encore disponible. Utilise le code d'association ci-dessous",
       "login.revokeUnsure": "Twitch n'a pas confirmé la révocation de la connexion. L'association est faite (ce qui n'a pas pu être révoqué expire dans environ 4 heures)",
       "login.nudge": "L'association par code d'association va disparaître. Connecte-toi avec Twitch pour associer à nouveau.",
+      "login.chat": "Envoyer les avis du chat à mon nom",
+      "login.chatNote": "En te connectant avec cette case cochée, tu demandes aussi à Twitch l'autorisation d'écrire dans ton chat. Les avis de photo apparaissent alors à ton nom, marqués [SHUTTERPARTY], et parviennent aussi aux outils de synthèse vocale et aux chats en surimpression. Décoche-la pour associer sans cette autorisation ; les avis apparaissent alors au nom de l'extension. Pour arrêter, décoche-la et reconnecte-toi. L'autorisation elle-même se retire dans Connexions, dans les paramètres Twitch (cela met aussi fin à l'association faite par connexion).",
+      "chat.as": "Les avis du chat apparaissent à ton nom (marqués [SHUTTERPARTY])",
+      "chat.ext": "Les avis du chat apparaissent au nom de l'extension. Coche « Envoyer les avis du chat à mon nom » et reconnecte-toi avec Twitch pour les envoyer à ton nom (la synthèse vocale les reçoit aussi)",
+      "chat.code": "En t'associant à nouveau par connexion Twitch, les avis du chat peuvent apparaître à ton nom (la synthèse vocale les reçoit aussi)",
       "remote.cut": "Couper toutes les télécommandes Stream Deck",
       "remote.note": "Coupe chaque télécommande associée à ta chaîne. Tu te connectes avec Twitch pour le faire. L’association ci-dessus reste telle quelle.",
       "remote.as": "Toutes les télécommandes de {n} vont être coupées. Appuie sur Tout couper pour continuer.",
@@ -3866,6 +3975,10 @@
       "beside.checking": "Vérification du dossier overlay…",
       "beside.missing": "Le dossier de cette page de configuration ne contient pas de dossier overlay. Ouvrez SHUTTERPARTY-setup.html dans le dossier que vous avez extrait.",
       "beside.mismatch": "Cette page de configuration et le dossier overlay ne sont pas de la même version. Extrayez à nouveau le zip téléchargé au même endroit, en remplaçant les fichiers.",
+      "upd.new": "Une nouvelle version (v{v}) est disponible",
+      "upd.how": "Comment mettre à jour",
+      "upd.close": "Fermer",
+      "log.upd.fail": "Impossible de vérifier s'il existe une nouvelle version",
       "dock.dirty": "Des changements ne sont pas encore appliqués",
       "dock.clean": "Appliqué",
       "dock.never": "Rien n’a encore été écrit",
@@ -3902,6 +4015,12 @@
       "help.srv.3": "Spunta Abilita il server WebSocket. Se hai cambiato la Porta server da 4455, metti lo stesso numero in Porta, in Dettagli di connessione qui sotto",
       "help.srv.4": "Chiudi con OK. Questa pagina si collega da sola entro 30 secondi (oppure premi Connetti)",
       "help.srv.n": "Se in Strumenti non c'è Impostazioni server WebSocket, OBS è precedente alla versione 28: aggiornalo. Streamlabs Desktop non ha questa impostazione e non si può usare.",
+      "st.badhost": "host non valido",
+      "st.badport": "porta non valida",
+      "help.addr.h": "In Dettagli di connessione, Host o Porta contiene qualcosa che non è un indirizzo di OBS. Sostituiscilo con i valori qui sotto, poi premi Connetti.",
+      "help.addr.1": "Host: 127.0.0.1 se OBS è su questo PC. Se OBS è su un altro PC, l'indirizzo IP di quel PC",
+      "help.addr.2": "Porta: lo stesso numero di Porta server in OBS, in Strumenti → Impostazioni server WebSocket (di solito 4455)",
+      "log.badaddr": "non connesso: l'host «{h}» e la porta «{p}» non sono un indirizzo di OBS",
       "help.pw.h": "Incolla in questa pagina la password di OBS. Ripercorri il Passo 2 in OBS, in quest'ordine.",
       "help.pw.1": "In OBS apri Strumenti → Impostazioni server WebSocket e premi Visualizza informazioni di connessione",
       "help.pw.2": "Premi Copia accanto a Password server",
@@ -3988,6 +4107,11 @@
       "login.notYet": "il collegamento tramite accesso non è ancora disponibile. Usa il codice di collegamento qui sotto",
       "login.revokeUnsure": "Twitch non ha confermato la revoca dell'accesso. Il collegamento è fatto (ciò che non è stato revocato scade in circa 4 ore)",
       "login.nudge": "Il collegamento tramite codice di collegamento verrà dismesso. Accedi con Twitch per collegare di nuovo.",
+      "login.chat": "Invia gli avvisi in chat a mio nome",
+      "login.chatNote": "Accedendo con questa casella spuntata, a Twitch viene chiesto anche il permesso di scrivere nella tua chat. Gli avvisi delle foto compaiono allora a tuo nome, segnati con [SHUTTERPARTY], e arrivano anche agli strumenti di sintesi vocale e alle chat in sovrimpressione. Togli la spunta per collegare senza quel permesso; gli avvisi compaiono allora con il nome dell'estensione. Per smettere, togli la spunta e accedi di nuovo. Il permesso stesso si toglie in Connessioni, nelle impostazioni di Twitch (questo chiude anche il collegamento fatto con l'accesso).",
+      "chat.as": "Gli avvisi in chat compaiono a tuo nome (segnati con [SHUTTERPARTY])",
+      "chat.ext": "Gli avvisi in chat compaiono con il nome dell'estensione. Spunta «Invia gli avvisi in chat a mio nome» e accedi di nuovo con Twitch per inviarli a tuo nome (arrivano anche alla sintesi vocale)",
+      "chat.code": "Collegando di nuovo con l'accesso Twitch, gli avvisi in chat possono comparire a tuo nome (arrivano anche alla sintesi vocale)",
       "remote.cut": "Scollega tutti i telecomandi Stream Deck",
       "remote.note": "Scollega ogni telecomando associato al tuo canale. Per farlo accedi con Twitch. L’associazione qui sopra resta com’è.",
       "remote.as": "Verranno scollegati tutti i telecomandi di {n}. Premi Scollega tutto per continuare.",
@@ -4249,6 +4373,10 @@
       "beside.checking": "Controllo della cartella overlay…",
       "beside.missing": "Nella cartella di questa pagina di configurazione non c’è nessuna cartella overlay. Apri SHUTTERPARTY-setup.html nella cartella che hai estratto.",
       "beside.mismatch": "Questa pagina di configurazione e la cartella overlay sono di versioni diverse. Estrai di nuovo lo zip scaricato nello stesso punto, sostituendo i file.",
+      "upd.new": "È disponibile una nuova versione (v{v})",
+      "upd.how": "Come aggiornare",
+      "upd.close": "Chiudi",
+      "log.upd.fail": "Impossibile verificare se c'è una nuova versione",
       "dock.dirty": "Ci sono modifiche non ancora applicate",
       "dock.clean": "Applicato",
       "dock.never": "Non è ancora stato scritto niente",
@@ -4285,6 +4413,12 @@
       "help.srv.3": "「WebSocket 서버 사용」에 체크한다. 「서버 포트」를 4455 에서 바꿨다면, 아래 「연결 세부 정보」의 포트도 같은 숫자로 한다",
       "help.srv.4": "「OK」로 닫는다. 이 페이지가 30 초 안에 알아서 연결합니다 (기다리지 않고 「연결」을 눌러도 됩니다)",
       "help.srv.n": "「도구」에 「WebSocket 서버 설정」이 없다면 OBS 가 28 보다 이전 버전입니다. OBS 를 최신으로 업데이트하세요. Streamlabs Desktop 에는 이 설정이 없어 사용할 수 없습니다.",
+      "st.badhost": "호스트 형식이 다릅니다",
+      "st.badport": "포트 형식이 다릅니다",
+      "help.addr.h": "「연결 세부 정보」의 호스트나 포트에 OBS 의 연결 주소가 아닌 값이 들어 있습니다. 아래 값으로 고친 뒤 「연결」을 누르세요.",
+      "help.addr.1": "호스트: OBS 가 이 PC 에 있다면 127.0.0.1. 다른 PC 의 OBS 라면 그 PC 의 IP 주소",
+      "help.addr.2": "포트: OBS 메뉴의 「도구」→「WebSocket 서버 설정」에 있는 「서버 포트」와 같은 숫자 (보통 4455)",
+      "log.badaddr": "연결하지 않았습니다: 호스트 “{h}”·포트 “{p}”는 OBS 의 연결 주소 형식이 아닙니다",
       "help.pw.h": "OBS 의 비밀번호를 이 페이지에 붙여 넣으세요. OBS 에서 2단계를 순서대로 확인하세요.",
       "help.pw.1": "OBS 의 「도구」→「WebSocket 서버 설정」에서 「서버 정보 표시」를 누른다",
       "help.pw.2": "「서버 비밀번호」 옆의 「복사」를 누른다",
@@ -4371,6 +4505,11 @@
       "login.notYet": "로그인으로 하는 연동은 아직 쓸 수 없습니다. 아래의 연동 코드를 써 주세요",
       "login.revokeUnsure": "Twitch 쪽에서 로그인 취소를 확인하지 못했습니다. 연동은 끝났습니다(취소하지 못한 것은 약 4시간 뒤에 만료됩니다)",
       "login.nudge": "연동 코드로 하는 연동은 종료될 예정입니다. Twitch 로 로그인해서 다시 연동해 주세요.",
+      "login.chat": "채팅 알림을 내 이름으로 보내기",
+      "login.chatNote": "체크한 채로 로그인하면 채팅에 글을 쓰는 권한도 Twitch 에 요청합니다. 촬영 알림이 [SHUTTERPARTY] 표시와 함께 내 이름으로 나오고, 읽어 주는 프로그램과 방송에 겹치는 채팅에도 전달됩니다. 체크를 해제하면 쓰기 권한 없이 연동하며, 알림은 확장 프로그램 이름으로 나옵니다. 그만두려면 체크를 해제하고 다시 로그인해 주세요. 권한 자체는 Twitch 설정의 「연결」에서 해제할 수 있습니다(로그인으로 한 연동도 끊깁니다).",
+      "chat.as": "채팅 알림이 내 이름으로 나오고 있습니다([SHUTTERPARTY] 표시)",
+      "chat.ext": "채팅 알림이 확장 프로그램 이름으로 나오고 있습니다. 「채팅 알림을 내 이름으로 보내기」를 체크하고 Twitch 로 다시 로그인하면 내 이름으로 보낼 수 있습니다(읽어 주는 프로그램에도 전달됩니다)",
+      "chat.code": "Twitch 로 로그인해서 다시 연동하면 채팅 알림을 내 이름으로 보낼 수 있습니다(읽어 주는 프로그램에도 전달됩니다)",
       "remote.cut": "Stream Deck 리모컨 모두 끊기",
       "remote.note": "채널에 연동된 리모컨을 모두 끊습니다. 끊을 때도 Twitch로 로그인합니다. 위의 연동(오버레이)은 그대로입니다.",
       "remote.as": "{n}의 리모컨을 모두 끊습니다. 계속하려면 \"모두 끊기\"를 누르세요.",
@@ -4632,6 +4771,10 @@
       "beside.checking": "overlay 폴더를 확인하는 중…",
       "beside.missing": "이 설정 페이지와 같은 폴더에 overlay 폴더가 없습니다. 압축을 푼 폴더 안의 SHUTTERPARTY-setup.html을 여세요.",
       "beside.mismatch": "이 설정 페이지와 overlay 폴더의 버전이 다릅니다. 내려받은 zip을 같은 위치에 다시 압축 해제(덮어쓰기)하세요.",
+      "upd.new": "새 버전(v{v})이 있습니다",
+      "upd.how": "업데이트 방법",
+      "upd.close": "닫기",
+      "log.upd.fail": "새 버전이 있는지 확인하지 못했습니다",
       "dock.dirty": "아직 반영되지 않은 변경이 있습니다",
       "dock.clean": "반영됨",
       "dock.never": "아직 한 번도 쓰지 않았습니다",
@@ -4668,6 +4811,12 @@
       "help.srv.3": "勾选「开启 WebSocket 服务器」。如果把「服务器端口」从 4455 改过，把下面「连接详情」里的端口也改成同一个数字",
       "help.srv.4": "点「OK」关闭。本页会在 30 秒内自动连接（也可以直接点「连接」）",
       "help.srv.n": "「工具」里没有「WebSocket 服务器设置」，说明 OBS 早于 28 版，请更新 OBS。Streamlabs Desktop 没有这个设置，无法使用。",
+      "st.badhost": "主机格式不对",
+      "st.badport": "端口格式不对",
+      "help.addr.h": "「连接详情」的主机或端口里填的不是 OBS 的连接地址。请改成下面的值，再点「连接」。",
+      "help.addr.1": "主机：OBS 在这台电脑上就填 127.0.0.1。OBS 在另一台电脑上就填那台电脑的 IP 地址",
+      "help.addr.2": "端口：和 OBS 菜单「工具」→「WebSocket 服务器设置」里的「服务器端口」相同的数字（一般是 4455）",
+      "log.badaddr": "没有连接：主机“{h}”和端口“{p}”不是 OBS 的连接地址",
       "help.pw.h": "把 OBS 的密码粘贴到本页。请在 OBS 里按顺序确认第 2 步。",
       "help.pw.1": "在 OBS 的「工具」→「WebSocket 服务器设置」里点「显示连接信息」",
       "help.pw.2": "点「服务器密码」旁边的「复制」",
@@ -4754,6 +4903,11 @@
       "login.notYet": "通过登录来连接暂时还不能用。请使用下面的连接码",
       "login.revokeUnsure": "Twitch 那边没能确认登录已撤销。连接已经完成（没能撤销的部分约 4 小时后过期）",
       "login.nudge": "用连接码连接的方式将要停用。请用 Twitch 登录重新连接。",
+      "login.chat": "用我的名字发送聊天提醒",
+      "login.chatNote": "勾选后登录，会同时向 Twitch 请求在你的聊天室发言的权限。拍照提醒会以你的名字发出，带有 [SHUTTERPARTY] 标记，也会传到朗读工具和叠加在直播上的聊天。取消勾选则不带发言权限连接，提醒以扩展的名字发出。要停用，请取消勾选后重新登录。权限本身可在 Twitch 设置的“连接”中移除（用登录方式的连接也会断开）。",
+      "chat.as": "聊天提醒正以你的名字发出（带 [SHUTTERPARTY] 标记）",
+      "chat.ext": "聊天提醒正以扩展的名字发出。勾选“用我的名字发送聊天提醒”并重新用 Twitch 登录，即可用你的名字发出（朗读工具也能收到）",
+      "chat.code": "用 Twitch 登录重新连接后，聊天提醒可以用你的名字发出（朗读工具也能收到）",
       "remote.cut": "断开所有 Stream Deck 遥控器",
       "remote.note": "断开与你的频道关联的所有遥控器。断开时也需要用 Twitch 登录。上面的关联（叠加层）保持不变。",
       "remote.as": "将断开 {n} 的所有遥控器。如要继续，请按“全部断开”。",
@@ -5015,6 +5169,10 @@
       "beside.checking": "正在检查 overlay 文件夹…",
       "beside.missing": "此设置页面所在的文件夹中没有 overlay 文件夹。请打开解压后的文件夹中的 SHUTTERPARTY-setup.html。",
       "beside.mismatch": "此设置页面与 overlay 文件夹版本不同。请将下载的 zip 再次解压到同一位置（覆盖文件）。",
+      "upd.new": "有新版本（v{v}）",
+      "upd.how": "更新方法",
+      "upd.close": "关闭",
+      "log.upd.fail": "无法确认是否有新版本",
       "dock.dirty": "有改动尚未写入",
       "dock.clean": "已写入",
       "dock.never": "还没有写入过",
@@ -5051,6 +5209,12 @@
       "help.srv.3": "Отметьте «Включить сервер WebSocket». Если вы меняли «Порт сервера» с 4455, укажите то же число в поле «Порт» в «Параметрах подключения» ниже",
       "help.srv.4": "Закройте кнопкой OK. Страница подключится сама в течение 30 секунд (или нажмите «Подключить»)",
       "help.srv.n": "Если в меню «Сервис» нет «Настроек сервера WebSocket», у вас OBS старше версии 28 — обновите OBS. В Streamlabs Desktop этой настройки нет, он не подходит.",
+      "st.badhost": "неверный хост",
+      "st.badport": "неверный порт",
+      "help.addr.h": "В «Параметрах подключения» в поле «Хост» или «Порт» указано не то, что является адресом OBS. Замените на значения ниже и нажмите «Подключить».",
+      "help.addr.1": "Хост: 127.0.0.1, если OBS работает на этом ПК. Если OBS на другом ПК — IP-адрес того ПК",
+      "help.addr.2": "Порт: то же число, что и «Порт сервера» в OBS в меню Сервис → Настройки сервера WebSocket (обычно 4455)",
+      "log.badaddr": "подключение не выполнено: хост «{h}» и порт «{p}» не являются адресом OBS",
       "help.pw.h": "Вставьте пароль из OBS на эту страницу. Пройдите Шаг 2 в OBS по порядку.",
       "help.pw.1": "В OBS откройте Сервис → Настройки сервера WebSocket и нажмите «Показать сведения о подключении»",
       "help.pw.2": "Нажмите «Копировать» рядом с «Паролем сервера»",
@@ -5137,6 +5301,11 @@
       "login.notYet": "связь через вход пока недоступна. Используйте код связи ниже",
       "login.revokeUnsure": "Twitch не подтвердил отзыв входа. Связь установлена (то, что не удалось отозвать, истечёт примерно через 4 часа)",
       "login.nudge": "Связь по коду связи будет отключена. Войдите через Twitch, чтобы связать заново.",
+      "login.chat": "Отправлять уведомления в чат от моего имени",
+      "login.chatNote": "Если войти с этой галочкой, у Twitch также будет запрошено разрешение писать в ваш чат. Тогда уведомления о фото будут появляться от вашего имени с пометкой [SHUTTERPARTY] и дойдут также до программ озвучки и чатов поверх трансляции. Без галочки связь будет без этого разрешения, а уведомления будут от имени расширения. Чтобы отказаться, снимите галочку и войдите снова. Само разрешение можно убрать в разделе «Подключения» настроек Twitch (это также разорвёт связь, сделанную через вход).",
+      "chat.as": "Уведомления в чате приходят от вашего имени (с пометкой [SHUTTERPARTY])",
+      "chat.ext": "Уведомления в чате приходят от имени расширения. Отметьте «Отправлять уведомления в чат от моего имени» и войдите через Twitch снова, чтобы они шли от вашего имени (их получит и озвучка)",
+      "chat.code": "Если связать заново через вход в Twitch, уведомления в чате смогут идти от вашего имени (их получит и озвучка)",
       "remote.cut": "Отключить все пульты Stream Deck",
       "remote.note": "Отключает все пульты, привязанные к вашему каналу. Для этого нужно войти через Twitch. Привязка выше остаётся как есть.",
       "remote.as": "Будут отключены все пульты {n}. Нажмите «Отключить все», чтобы продолжить.",
@@ -5398,6 +5567,10 @@
       "beside.checking": "Проверяем папку overlay…",
       "beside.missing": "В папке с этой страницей настройки нет папки overlay. Откройте SHUTTERPARTY-setup.html в папке, куда вы распаковали архив.",
       "beside.mismatch": "Эта страница настройки и папка overlay — из разных версий. Распакуйте скачанный zip ещё раз в то же место с заменой файлов.",
+      "upd.new": "Доступна новая версия (v{v})",
+      "upd.how": "Как обновить",
+      "upd.close": "Закрыть",
+      "log.upd.fail": "Не удалось проверить, есть ли новая версия",
       "dock.dirty": "Есть изменения, которые ещё не записаны",
       "dock.clean": "Записано",
       "dock.never": "Ещё ничего не записано",
@@ -5434,6 +5607,12 @@
       "help.srv.3": "Zaznacz Włącz serwer WebSocket. Jeśli zmieniono Port serwera z 4455, wpisz tę samą liczbę w polu Port w Szczegółach połączenia poniżej",
       "help.srv.4": "Zamknij przyciskiem OK. Ta strona połączy się sama w ciągu 30 sekund (albo naciśnij Połącz)",
       "help.srv.n": "Jeśli w Narzędziach nie ma Ustawień serwera WebSocket, OBS jest starszy niż wersja 28 — zaktualizuj go. Streamlabs Desktop nie ma tego ustawienia i nie da się go użyć.",
+      "st.badhost": "nieprawidłowy host",
+      "st.badport": "nieprawidłowy port",
+      "help.addr.h": "W Szczegółach połączenia pole Host lub Port zawiera coś, co nie jest adresem OBS. Zmień je na wartości poniżej i naciśnij Połącz.",
+      "help.addr.1": "Host: 127.0.0.1, jeśli OBS działa na tym komputerze. Jeśli OBS działa na innym komputerze — jego adres IP",
+      "help.addr.2": "Port: ta sama liczba co Port serwera w OBS, w Narzędzia → Ustawienia serwera WebSocket (zwykle 4455)",
+      "log.badaddr": "nie połączono: host „{h}” i port „{p}” nie są adresem OBS",
       "help.pw.h": "Wklej na tę stronę hasło z OBS. Przejdź w OBS po kolei Krok 2.",
       "help.pw.1": "W OBS otwórz Narzędzia → Ustawienia serwera WebSocket i naciśnij Pokaż informacje połączenia",
       "help.pw.2": "Naciśnij Kopiuj obok Hasła serwera",
@@ -5520,6 +5699,11 @@
       "login.notYet": "parowanie przez logowanie nie jest jeszcze dostępne. Użyj kodu parowania poniżej",
       "login.revokeUnsure": "Twitch nie potwierdził cofnięcia logowania. Parowanie jest gotowe (to, czego nie udało się cofnąć, wygaśnie za około 4 godziny)",
       "login.nudge": "Parowanie kodem parowania zostanie wyłączone. Zaloguj się przez Twitch, aby sparować ponownie.",
+      "login.chat": "Wysyłaj powiadomienia na czacie w moim imieniu",
+      "login.chatNote": "Logując się z zaznaczonym polem, prosisz też Twitch o zgodę na pisanie na twoim czacie. Powiadomienia o zdjęciach pojawią się wtedy w twoim imieniu, oznaczone [SHUTTERPARTY], i trafią też do programów czytających czat na głos i do nakładek czatu. Odznacz pole, aby sparować bez tej zgody; powiadomienia pojawią się wtedy pod nazwą rozszerzenia. Aby zrezygnować, odznacz pole i zaloguj się ponownie. Samą zgodę usuniesz w Połączeniach w ustawieniach Twitch (kończy to też parowanie przez logowanie).",
+      "chat.as": "Powiadomienia na czacie pojawiają się w twoim imieniu (oznaczone [SHUTTERPARTY])",
+      "chat.ext": "Powiadomienia na czacie pojawiają się pod nazwą rozszerzenia. Zaznacz „Wysyłaj powiadomienia na czacie w moim imieniu” i zaloguj się ponownie przez Twitch, aby wysyłać je w twoim imieniu (trafią też do czytania na głos)",
+      "chat.code": "Po ponownym sparowaniu przez logowanie Twitch powiadomienia na czacie mogą pojawiać się w twoim imieniu (trafią też do czytania na głos)",
       "remote.cut": "Odłącz wszystkie piloty Stream Deck",
       "remote.note": "Odłącza każdy pilot powiązany z twoim kanałem. Aby to zrobić, logujesz się przez Twitch. Powiązanie powyżej zostaje bez zmian.",
       "remote.as": "Wszystkie piloty {n} zostaną odłączone. Naciśnij Odłącz wszystkie, aby kontynuować.",
@@ -5781,6 +5965,10 @@
       "beside.checking": "Sprawdzanie folderu overlay…",
       "beside.missing": "W folderze tej strony konfiguracji nie ma folderu overlay. Otwórz SHUTTERPARTY-setup.html w folderze, do którego rozpakowano zip.",
       "beside.mismatch": "Ta strona konfiguracji i folder overlay pochodzą z różnych wersji. Rozpakuj pobrany zip ponownie w to samo miejsce, zastępując pliki.",
+      "upd.new": "Dostępna jest nowa wersja (v{v})",
+      "upd.how": "Jak zaktualizować",
+      "upd.close": "Zamknij",
+      "log.upd.fail": "Nie udało się sprawdzić, czy jest nowa wersja",
       "dock.dirty": "Są zmiany, których jeszcze nie zapisano",
       "dock.clean": "Zapisane",
       "dock.never": "Nic jeszcze nie zostało zapisane",
@@ -5817,6 +6005,12 @@
       "help.srv.3": "WebSocket sunucuyu etkinleştir kutusunu işaretleyin. Sunucu Portu'nu 4455'ten değiştirdiyseniz, aşağıdaki Bağlantı ayrıntıları'nda Port'a aynı sayıyı yazın",
       "help.srv.4": "OK ile kapatın. Bu sayfa 30 saniye içinde kendiliğinden bağlanır (ya da Bağlan'a basın)",
       "help.srv.n": "Araçlar'da WebSocket Suncusu Ayarları yoksa OBS 28'den eski bir sürümdür; OBS'yi güncelleyin. Streamlabs Desktop'ta bu ayar yoktur ve kullanılamaz.",
+      "st.badhost": "geçersiz sunucu",
+      "st.badport": "geçersiz port",
+      "help.addr.h": "Bağlantı ayrıntıları'ndaki Sunucu veya Port alanında OBS adresi olmayan bir değer var. Aşağıdaki değerlerle değiştirip Bağlan'a basın.",
+      "help.addr.1": "Sunucu: OBS bu bilgisayardaysa 127.0.0.1. OBS başka bir bilgisayardaysa o bilgisayarın IP adresi",
+      "help.addr.2": "Port: OBS'de Araçlar → WebSocket Suncusu Ayarları'ndaki Sunucu Portu ile aynı sayı (genellikle 4455)",
+      "log.badaddr": "bağlanılmadı: sunucu “{h}” ve port “{p}” bir OBS adresi değil",
       "help.pw.h": "OBS'nin parolasını bu sayfaya yapıştırın. OBS'de Adım 2'yi sırayla kontrol edin.",
       "help.pw.1": "OBS'de Araçlar → WebSocket Suncusu Ayarları'nı açıp Bağlanma Bilgilerini Göster'e basın",
       "help.pw.2": "Sunucu Parolası'nın yanındaki Kopyala'ya basın",
@@ -5903,6 +6097,11 @@
       "login.notYet": "girişle eşleştirme henüz kullanılamıyor. Aşağıdaki eşleştirme kodunu kullanın",
       "login.revokeUnsure": "Twitch, girişin iptal edildiğini doğrulamadı. Eşleştirme tamam (iptal edilemeyen kısım yaklaşık 4 saat içinde sona erer)",
       "login.nudge": "Eşleştirme koduyla eşleştirme kaldırılacak. Yeniden eşleştirmek için Twitch ile giriş yapın.",
+      "login.chat": "Sohbet bildirimlerini kendi adımla gönder",
+      "login.chatNote": "Bu işaretliyken giriş yaparsanız Twitch'ten sohbetinize yazma izni de istenir. Fotoğraf bildirimleri o zaman [SHUTTERPARTY] işaretiyle sizin adınızla çıkar ve sesli okuma araçlarına ve yayın üstü sohbetlere de ulaşır. İşareti kaldırırsanız bu izin olmadan eşleştirilir; bildirimler o zaman uzantının adıyla çıkar. Bırakmak için işareti kaldırıp yeniden giriş yapın. İznin kendisini Twitch ayarlarındaki Bağlantılar bölümünden kaldırabilirsiniz (bu, girişle yapılan eşleştirmeyi de bitirir).",
+      "chat.as": "Sohbet bildirimleri sizin adınızla çıkıyor ([SHUTTERPARTY] işaretli)",
+      "chat.ext": "Sohbet bildirimleri uzantının adıyla çıkıyor. “Sohbet bildirimlerini kendi adımla gönder” seçeneğini işaretleyip Twitch ile yeniden giriş yaparsanız sizin adınızla gönderilebilir (sesli okuma da alır)",
+      "chat.code": "Twitch ile giriş yaparak yeniden eşleştirirseniz sohbet bildirimleri sizin adınızla çıkabilir (sesli okuma da alır)",
       "remote.cut": "Tüm Stream Deck kumandalarını kes",
       "remote.note": "Kanalınla eşlenen tüm kumandaları keser. Bunun için Twitch ile giriş yaparsın. Yukarıdaki eşleme olduğu gibi kalır.",
       "remote.as": "{n} hesabının tüm kumandaları kesilecek. Devam etmek için Hepsini kes'e bas.",
@@ -6164,6 +6363,10 @@
       "beside.checking": "overlay klasörü denetleniyor…",
       "beside.missing": "Bu kurulum sayfasının bulunduğu klasörde overlay klasörü yok. Zip'i çıkardığınız klasörün içindeki SHUTTERPARTY-setup.html dosyasını açın.",
       "beside.mismatch": "Bu kurulum sayfası ile overlay klasörü farklı sürümlerden. İndirdiğiniz zip'i dosyaların üzerine yazarak aynı yere yeniden çıkarın.",
+      "upd.new": "Yeni bir sürüm (v{v}) var",
+      "upd.how": "Nasıl güncellenir",
+      "upd.close": "Kapat",
+      "log.upd.fail": "Yeni sürüm olup olmadığı denetlenemedi",
       "dock.dirty": "Henüz uygulanmamış değişiklikler var",
       "dock.clean": "Uygulandı",
       "dock.never": "Henüz hiçbir şey yazılmadı",
@@ -6193,8 +6396,17 @@
 
      tools/build-pages.mjs writes it. */
   /* @generated build — src/overlay/index.html。手で書き換えない */
-  var BUILD = "sp-994a0906bbf8";
+  var BUILD = "sp-eea8e8dc50f1";
   /* @end build */
+
+  /* This page's own name, for asking whether a newer version is out
+     (93-new-version.js). BUILD cannot do it: it names the overlay, and a
+     release that changed only this page keeps the same BUILD. This one is the
+     hash of this page with the next line held still, so it changes whenever
+     either page does. tools/build-pages.mjs writes it. */
+  /* @generated setup-stamp — この行を除いた設定ページの中身。手で書き換えない */
+  var SETUP_STAMP = "su-a0e847be9483";
+  /* @end setup-stamp */
 
   /* The languages, in their own names. A list of translated language names
      would be twelve dictionaries deep and would still show the broadcaster
@@ -6963,7 +7175,10 @@
     // the broadcaster last chose with the header button, "" when they never
     // did; `setupDone` is "1" once setupNext() has been seen empty. A closed
     // OBS on a later day does not take the page back to the setup.
-    view: "", setupDone: "" };
+    view: "", setupDone: "",
+    // The version whose notice was closed (93-new-version.js). The next
+    // version is shown again.
+    updSeen: "" };
   // Set when the stored UI has no language yet: a page from before the two
   // languages were split, whose one choice has to become both (see pickLang).
   var uiLangUnset = true;
@@ -7292,6 +7507,8 @@
     dlg: $("setupDlg"), dlgLeft: $("dlgLeft"), dlgWhy: $("dlgWhy"),
     dlgExit: $("btnDlgExit"), dlgLog: $("btnDlgLog"), dlgBack: $("btnDlgBack"), dlgNext: $("btnDlgNext"), dlgDone: $("btnDlgDone"),
     host: $("host"), port: $("port"), pw: $("pw"),
+    // The notice of a newer version (93-new-version.js).
+    upd: $("upd"), updText: $("updText"), updHow: $("updHow"), updClose: $("updClose"),
     // The fold the three of them live in. Focusing a field inside a closed
     // <details> does nothing — the content is not rendered — so anything that
     // reaches for el.pw has to open this first (see renderConnected).
@@ -7318,6 +7535,7 @@
     themeCode: $("themeCode"), packNone: $("btnPackNone"), packInfo: $("packInfo"), grpPack: $("grpPack"),
     pairCode: $("pairCode"), pairInfo: $("pairInfo"), pairMoreSum: $("pairMoreSum"),
     login: $("btnLogin"), loginNudge: $("loginNudge"), loginBox: $("loginBox"),
+    loginChat: $("loginChat"), lLoginChat: $("lLoginChat"), nLoginChat: $("nLoginChat"), chatWay: $("chatWay"),
     loginSay: $("loginSay"), loginCode: $("loginCode"), loginWarn: $("loginWarn"),
     loginLinkRow: $("loginLinkRow"), loginLink: $("loginLink"),
     loginBtns: $("loginBtns"), loginGo: $("btnLoginGo"), loginStop: $("btnLoginStop"),
@@ -7377,6 +7595,7 @@
     setText("ttl", "ttl");
     setText("lede", "lede");
     setText("lLang", "lang.label");
+    renderUpdate();
     setText("lOvLang", "ovLang.label");
     setText("nOvLang", "n.ovLang");
 
@@ -7716,7 +7935,7 @@
    * the states that should open it means a state added later does not silently
    * join the wrong side.
    */
-  var FOLD_OPENING = { "st.needpw": 1, "st.authfail": 1 };
+  var FOLD_OPENING = { "st.needpw": 1, "st.authfail": 1, "st.badhost": 1, "st.badport": 1 };
   function renderConnected() {
     $("stepBuild").hidden = !identified;
     $("stepGate").hidden = !identified;
@@ -7748,7 +7967,11 @@
   var OBS_HELP = {
     "st.failed":   { key: "help.srv", steps: 4, foot: true },
     "st.needpw":   { key: "help.pw",  steps: 3 },
-    "st.authfail": { key: "help.pw",  steps: 3 }
+    "st.authfail": { key: "help.pw",  steps: 3 },
+    // The box itself is wrong (報告 2026-11-06): the answer is in the form,
+    // not in OBS, so these do not send the broadcaster to OBS's settings.
+    "st.badhost":  { key: "help.addr", steps: 2 },
+    "st.badport":  { key: "help.addr", steps: 2 }
   };
   var obsHelpFor = "";
   function renderObsHelp() {
@@ -8442,7 +8665,9 @@
                               to. The overlay watches the program scene and the
                               stream state; the setup page watches nothing.
        obsBeforeConnect()     last chance to decide where to connect. The setup
-                              page reads its form into cfg here.
+                              page reads its form into cfg here, and returns
+                              false (with failKey set) when the form is not
+                              an address; connect() then stops there.
        obsSaying(url)         how this page announces the attempt in its log.
        obsNoPassword()        what to do when OBS asks for one and there is
                               none. The setup page can ask; the overlay cannot
@@ -8556,7 +8781,16 @@
     identified = false;
     failKey = "";
 
-    obsBeforeConnect();
+    /* The page may refuse the address. The setup page does, when its form holds
+     * something that is not a host or not a port — a scene name typed or
+     * autofilled into the box (報告 2026-11-06). Nothing is opened, so nothing
+     * retries: an address that is not one will not become one by waiting. The
+     * page has put its reason in failKey. The overlay never refuses. */
+    if (obsBeforeConnect() === false) {
+      obsOnClosed();
+      status("bad", t(failKey || "st.failed"), true);
+      return;
+    }
 
     var url = "ws://" + cfg.host + ":" + cfg.port;
     status("wait", t("st.connecting"), true);
@@ -8754,12 +8988,64 @@
    * broadcaster who typed the right port and then reloaded still has it.
    */
   function obsBeforeConnect() {
-    cfg.host = el.host.value.trim() || "127.0.0.1";
-    cfg.port = el.port.value.trim() || "4455";
+    // NFKC first: an IME leaves 「４４５５」 or 「１２７．０．０．１」, which are
+    // the right address in the wrong width.
+    var host = el.host.value.normalize("NFKC").trim() || "127.0.0.1";
+    var port = el.port.value.normalize("NFKC").trim() || "4455";
+    var bad = addressProblem(host, port);
+    markAddress(bad);
+    if (bad) {
+      // Not saved: what is stored stays the last address that was one.
+      failKey = { host: "st.badhost", port: "st.badport" }[bad];
+      log(t("log.badaddr", { h: host, p: port }), "bad");
+      return false;
+    }
+    el.host.value = host;
+    el.port.value = port;
+    /* Said out loud only when the address changed. Opening the page connects
+       on its own, and so does every retry, and none of those is a save the
+       broadcaster made — the page used to greet every visit with "saved". */
+    var same = cfg.host === host && cfg.port === port && cfg.pw === el.pw.value;
+    cfg.host = host;
+    cfg.port = port;
     cfg.pw = el.pw.value;
-    saveCfg(cfg);
+    saveCfg(cfg, same);
     // ...and into the encrypted store, which is the only place it is kept.
     saveSecrets();
+  }
+
+  /**
+   * Is this an address obs-websocket can be at? "host" or "port" for the
+   * first box that is wrong, or "" when both are fine.
+   *
+   * WHY IT IS STRICT. A broadcaster's box held 「SHUTTERPARTY 撮影用」 as the
+   * host and 「SHUTTERPARTY」 as the port — the page's own scene and source
+   * names (報告 2026-11-06). It was saved, connected to, and answered with
+   * "cannot connect" and the steps for turning the server on in OBS, where
+   * everything was already right. So only what can be a host is let through:
+   * an IPv4 address, a bracketed IPv6 one, or a DNS name (RFC 1123 labels). A
+   * port is 1–65535 written plainly. Anything else is said to be the box.
+   */
+  function addressProblem(host, port) {
+    var h = String(host == null ? "" : host);
+    var p = String(port == null ? "" : port);
+    var octet = "(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])";
+    var v4 = new RegExp("^" + octet + "(?:\\." + octet + "){3}$");
+    var v6 = /^\[[0-9A-Fa-f.]*:[0-9A-Fa-f:.]*\]$/;
+    var label = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/;
+    var name = h.length <= 253 && !/^[0-9.]+$/.test(h) &&
+      h.split(".").every(function (x) { return label.test(x); });
+    if (!(v4.test(h) || v6.test(h) || name)) return "host";
+    if (!/^[1-9][0-9]{0,4}$/.test(p) || Number(p) > 65535) return "port";
+    return "";
+  }
+
+  /** Which box is wrong, for the eye and for a screen reader. */
+  function markAddress(bad) {
+    [[el.host, "host"], [el.port, "port"]].forEach(function (pair) {
+      if (bad === pair[1]) pair[0].setAttribute("aria-invalid", "true");
+      else pair[0].removeAttribute("aria-invalid");
+    });
   }
 
   function obsSaying(url) { log(t("log.connecting", { u: url })); }
@@ -8798,14 +9084,23 @@
     // where it fell when Connect was disabled for the attempt) — not pulled
     // out of whatever else somebody has moved on to.
     var a = document.activeElement;
-    if (failKey === "st.authfail" && (!a || a === document.body || a === el.dlg || a === el.connect)) {
+    // A box that is not an address is shown the way a missing password is
+    // (obsNoPassword): on its pane and step, which also tells the setup dialog
+    // the cursor is placed and not to put it back on Connect.
+    if (failKey === "st.badhost" || failKey === "st.badport") {
+      showPane("conn");
+      dlgShow("stepConn");
+    }
+    var wrongBox = { "st.authfail": el.pw, "st.badhost": el.host, "st.badport": el.port }[failKey];
+    if (wrongBox && (!a || a === document.body || a === el.dlg || a === el.connect)) {
       el.dConn.open = true;
-      el.pw.focus();
-      el.pw.select();
+      wrongBox.focus();
+      wrongBox.select();
     }
     // The steps for OBS have just been put above the field (renderObsHelp)
     // and pushed it down, out of a short dialog's sight, under the cursor.
-    if (document.activeElement === el.pw) el.pw.scrollIntoView({ block: "nearest" });
+    var f = document.activeElement;
+    if (f === el.pw || f === el.host || f === el.port) f.scrollIntoView({ block: "nearest" });
   }
 
   function obsOnIdentified() {
@@ -11522,7 +11817,10 @@
      no answer is not that: nothing is opened, and the caller tries again later.
 
      Answers through a promise that never rejects:
-       { url }               the socket's address, ready to open
+       { url, chat }         the socket's address, ready to open; chat is
+                             { on, as } — notices turned on, and sent in the
+                             broadcaster's own name — when the EBS said both
+                             (the setup page reads it; the overlay does not)
        { url, legacy: true } the same, from an EBS that has no tickets yet
        { cut: true }         401 — this token no longer opens this channel
        null                  no answer worth acting on: unreachable, or one
@@ -11545,7 +11843,10 @@
       if (!res.ok) return null;
       return res.json().then(function (b) {
         var k = b && typeof b.k === "string" ? b.k : "";
-        return /^[A-Za-z0-9._-]{1,200}$/.test(k) ? { url: sock + "&k=" + encodeURIComponent(k) } : null;
+        if (!/^[A-Za-z0-9._-]{1,200}$/.test(k)) return null;
+        var out = { url: sock + "&k=" + encodeURIComponent(k) };
+        if (typeof b.chatOn === "boolean" && typeof b.chatAs === "boolean") out.chat = { on: b.chatOn, as: b.chatAs };
+        return out;
       }, function () { return null; });
     }, function () { return null; });
   }
@@ -11611,6 +11912,8 @@
   function showPairInfo() {
     // Which kind of pairing is held decides one more line (76-twitch-login.js).
     renderLogin();
+    // The line about the chat goes with the pairing, emptied box included.
+    showChatWay();
     if (!cfg.ebs || !cfg.ch) { el.pairInfo.hidden = true; return; }
     el.pairInfo.hidden = false;
     /* Paired, and how — said before the server and the id, which is all this
@@ -11627,6 +11930,30 @@
     if (pairCut) head = t("pair.cut");
     el.pairInfo.classList.toggle("warn", pairCut);
     el.pairInfo.textContent = (head ? head + " — " : "") + t("pair.reads", { s: cfg.ebs, c: cfg.ch });
+  }
+
+  /* ---- which name the chat notices go in ----
+
+     As the EBS last said it for the pairing held (shared: ebs-ticket.js),
+     and only while the broadcaster has them turned on in the Config panel
+     (docs/chat-as-broadcaster-plan.md §4 の 6, 8; §0 の 8). A pairing code
+     cannot carry the broadcaster's name, so it is told how to get it. */
+  var pairChat = null;
+
+  function showChatWay() {
+    var c = pairChat;
+    var how = String(cfg.ebsToken || "").slice(0, 3);
+    var say = !c || !c.on || pairCut || !cfg.ch ? ""
+      : c.as ? t("chat.as")
+      : how === "v1." ? t("chat.code")
+      : how === "v2." ? t("chat.ext")
+      : "";
+    el.chatWay.hidden = !say;
+    el.chatWay.textContent = say;
+  }
+
+  function heardChat(a) {
+    if (a && a.chat) { pairChat = a.chat; showChatWay(); }
   }
 
   /* ---- whether the pairing still stands ----
@@ -11662,6 +11989,7 @@
     };
     ebsSocketAddress(cfg.ebs, ch, token).then(function (a) {
       if (!a || !still()) return;
+      heardChat(a);
       if (!a.legacy) { answer(!!a.cut); return; }
       try {
         fetch(String(cfg.ebs).replace(/\/+$/, "") + "/stream?ch=" + encodeURIComponent(ch) +
@@ -11676,6 +12004,7 @@
   function pairingMoved() {
     pairAsked++;
     pairCut = false;
+    pairChat = null;
   }
 
   /* ---- the name a login paired as ----
@@ -11820,7 +12149,11 @@
     // The token goes in no address (shared: ebs-ticket.js).
     ebsSocketAddress(cfg.ebs, cfg.ch, cfg.ebsToken).then(function (a) {
       if (done) return;
+      // A pairing that no longer opens anything says nothing about the chat:
+      // a line from an earlier answer must not stay beside it.
+      if (a && a.cut && mine === ebsAttempt) { pairChat = null; showChatWay(); }
       if (!a || a.cut) { failed(); return; }
+      if (mine === ebsAttempt) heardChat(a);
       try { sock = new WebSocket(a.url); } catch (e) { if (settle()) ebsSetState("error"); return; }
       listen();
     });
@@ -11865,7 +12198,9 @@
          one mistake this flow invites (§5-3), and that line is where it stops.
        - It is revoked when this page is done with it — paired, stopped, or
          closed. Revoking is best effort and decides nothing: a token that could
-         not be revoked carries no scopes and dies by itself in about four hours.
+         not be revoked dies by itself in about four hours — and carries no
+         scopes unless the box below the button was ticked, when it carries
+         user:write:chat and user:bot (docs/chat-as-broadcaster-plan.md §4 の 1).
          Twitch does not send its "authorization revoked" notice for this, and
          the app stays listed in the broadcaster's Twitch connections, so
          revoking here cannot cut the pairing it just made (実測 2026-10-10,
@@ -11886,6 +12221,10 @@
   /* @end login-client */
 
   var TWITCH_OAUTH = "https://id.twitch.tv/oauth2/";
+  /* What a login asks for when the broadcaster wants the chat notices in their
+     own name (docs/chat-as-broadcaster-plan.md §4 の 1; 段 0b: channel:bot is
+     not needed). The EBS reads them back from Twitch, never from here. */
+  var CHAT_SCOPES = "user:write:chat user:bot";
   var DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
 
   /** Where a login is sent. A pairing code names its own EBS; a login has
@@ -11967,6 +12306,11 @@
      up to the press; after it, a cut goes to /remote/revoke and changes
      nothing this page holds. */
   var loginWhy = "pair";
+  /* The scopes this attempt asked for, fixed when it starts: the same set goes
+     to /device and to /token — asking for one set and polling with another
+     leaves the token without them. Only a pairing with the box ticked asks;
+     a cut never does. */
+  var loginScopes = "";
   var loginToken = "";
   var loginName = "";
   var loginCode = "";
@@ -12007,9 +12351,11 @@
     if (secretState === "loading") return;
     dropLogin(false);
     loginWhy = why === "cut" ? "cut" : "pair";
+    loginScopes = loginWhy === "pair" && el.loginChat.checked ? CHAT_SCOPES : "";
     var mine = loginRun;
+    var scopes = loginScopes;
     setLogin("asking", "login.asking");
-    twitchPost("device", { client_id: LOGIN_CLIENT_ID, scopes: "" }, 10000).then(function (res) {
+    twitchPost("device", { client_id: LOGIN_CLIENT_ID, scopes: scopes }, 10000).then(function (res) {
       if (!res.ok) throw new Error("device");
       return res.json();
     }).then(function (d) {
@@ -12028,18 +12374,18 @@
       try { window.open(url, "_blank", "noopener"); } catch (e) {}
       setLogin("waiting", "login.wait");
       pollLogin(mine, d.device_code, seconds(d.interval, 1, 60, 5) * 1000,
-                Date.now() + seconds(d.expires_in, 1, 3600, 1800) * 1000, 0);
+                Date.now() + seconds(d.expires_in, 1, 3600, 1800) * 1000, 0, scopes);
     }).catch(function () {
       if (mine === loginRun) endLogin("login.twitchDown", "bad");
     });
   }
 
-  function pollLogin(mine, deviceCode, every, deadline, misses) {
+  function pollLogin(mine, deviceCode, every, deadline, misses, scopes) {
     loginTimer = setTimeout(function () {
       if (mine !== loginRun) return;
       if (Date.now() >= deadline) { endLogin("login.expired", "warn"); return; }
       twitchPost("token", {
-        client_id: LOGIN_CLIENT_ID, scopes: "", device_code: deviceCode, grant_type: DEVICE_GRANT
+        client_id: LOGIN_CLIENT_ID, scopes: scopes, device_code: deviceCode, grant_type: DEVICE_GRANT
       }, 10000).then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (d) {
           return { ok: res.ok, status: res.status, d: d || {} };
@@ -12054,8 +12400,8 @@
         }
         if (token) { whoLoggedIn(mine, token); return; }
         var why = String(r.d.message || "");
-        if (why === "authorization_pending") { pollLogin(mine, deviceCode, every, deadline, 0); return; }
-        if (why === "slow_down") { pollLogin(mine, deviceCode, every + 5000, deadline, 0); return; }
+        if (why === "authorization_pending") { pollLogin(mine, deviceCode, every, deadline, 0, scopes); return; }
+        if (why === "slow_down") { pollLogin(mine, deviceCode, every + 5000, deadline, 0, scopes); return; }
         if (/denied/i.test(why)) { endLogin("login.denied", "warn"); return; }
         if (/expired|invalid device code/i.test(why)) { endLogin("login.expired", "warn"); return; }
         if (r.status >= 500 || r.status === 429) { missed(); return; }
@@ -12066,7 +12412,7 @@
       function missed() {
         if (mine !== loginRun) return;
         if (misses >= 2) endLogin("login.twitchDown", "bad");
-        else pollLogin(mine, deviceCode, every, deadline, misses + 1);
+        else pollLogin(mine, deviceCode, every, deadline, misses + 1, scopes);
       }
     }, every);
   }
@@ -12162,6 +12508,8 @@
         ebsSetState("off");
         showPairInfo();
         renderRail();
+        // Which name the notices now go in (75-ebs-link.js: chatWay).
+        askPairing();
         // Paired. From here the token is only something to hand back.
         loginRun++;
         loginToken = loginName = "";
@@ -12267,6 +12615,10 @@
     var confirm = loginState === "confirm";
     el.login.textContent = t("login.start");
     el.login.disabled = secretState === "loading" || loginState === "asking" || loginState === "linking";
+    el.lLoginChat.textContent = t("login.chat");
+    el.nLoginChat.textContent = t("login.chatNote");
+    // Fixed once the attempt has asked Twitch: a change now would not be what was asked for.
+    el.loginChat.disabled = loginState !== "idle";
     el.pairMoreSum.textContent = t("pair.more");
 
     el.loginBox.hidden = loginState === "idle" && !loginSay;
@@ -13444,6 +13796,10 @@
       if (!identified && !el.connect.disabled) { e.preventDefault(); connect(); }
     });
   });
+  // A box marked wrong stops saying so once it is being corrected.
+  [el.host, el.port].forEach(function (f) {
+    f.addEventListener("input", function () { f.removeAttribute("aria-invalid"); });
+  });
   el.build.addEventListener("click", buildAll);
   el.shot.addEventListener("click", testCapture);
   el.refresh.addEventListener("click", function () {
@@ -13610,6 +13966,88 @@
     });
   }
 
+  /* ================= is there a newer version =================
+
+     A broadcaster learns of a new version from a DM or a post, and a release
+     that goes out without one (2026-11-06) reaches nobody. So this page asks
+     the guide site once, when it opens, and says so in the header when it is
+     behind (docs/update-notice-plan.md).
+
+     What it asks for is one small file, latest.json, built from the release
+     ledger (tools/latest-json.mjs). Nothing about the broadcaster goes with
+     the request. The answer is believed only as far as it has to be: the
+     version is shown as text and must look like one, and the link is fixed
+     here — a guide site that had been taken over could change the number, but
+     could not send anybody somewhere else.
+
+     The overlay never asks. It is what an audience sees, and a sentence there
+     is not the overlay's job (CLAUDE.md NEVER). */
+
+  var LATEST_URL = "https://shutterparty.app/latest.json";
+  // The version the header names, or "" for nothing to say.
+  var updVersion = "";
+
+  /**
+   * What latest.json says to a page whose own stamp is `own`.
+   *
+   *   a version string  this page is an earlier release: name the newest
+   *   ""                nothing to say — this page is the newest, or it was
+   *                     never released (built on a desk, not yet shipped)
+   *   null              the answer is not one this page can read
+   *
+   * "Earlier" is asked of the ledger, not worked out: only a stamp listed in
+   * `known` is a release that went out before the newest one.
+   */
+  function newerVersion(own, d) {
+    if (!d || typeof d !== "object" || d.v !== 1 || !Array.isArray(d.known)) return null;
+    var l = d.latest;
+    if (!l || typeof l !== "object" || typeof l.version !== "string" || typeof l.setup !== "string") return null;
+    if (!/^\d{4}\.\d{2}\.\d{2}(\.\d+)?$/.test(l.version)) return null;
+    if (typeof own !== "string" || !/^su-[0-9a-f]{12}$/.test(own) || own === l.setup) return "";
+    return d.known.indexOf(own) !== -1 ? l.version : "";
+  }
+
+  /** Once, at open. Not again: a page left open is rare, and reopened it asks. */
+  function askNewVersion() {
+    if (typeof fetch !== "function") return;
+    var ctl = typeof AbortController === "function" ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 5000);
+    fetch(LATEST_URL, { credentials: "omit", cache: "no-cache", referrerPolicy: "no-referrer", signal: ctl ? ctl.signal : undefined })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        var v = newerVersion(SETUP_STAMP, d);
+        if (v === null) throw new Error("unreadable");
+        updVersion = v;
+        renderUpdate();
+      })
+      .catch(function (e) {
+        // One line, and nothing on screen: offline is not a fault of this page.
+        log(t("log.upd.fail") + " (" + (e && e.name === "AbortError" ? "timeout" : String((e && e.message) || e)) + ")");
+      })
+      .then(function () { clearTimeout(timer); });
+  }
+
+  function renderUpdate() {
+    var show = !!updVersion && ui.updSeen !== updVersion;
+    el.upd.hidden = !show;
+    if (!show) return;
+    el.updText.textContent = t("upd.new", { v: updVersion });
+    el.updHow.textContent = t("upd.how");
+    el.updHow.href = "https://shutterparty.app/start/" + (lang === "ja" ? "ja/" : "") + "#update";
+    el.updClose.setAttribute("aria-label", t("upd.close"));
+    el.updClose.title = t("upd.close");
+  }
+
+  // Closed for this version. The next one is a new thing to say.
+  el.updClose.addEventListener("click", function () {
+    ui.updSeen = updVersion;
+    saveUi();
+    renderUpdate();
+    el.view.focus();
+  });
   /* ================= go ================= */
 
   fillForm();
@@ -13662,6 +14100,8 @@
   // Before anything is pressed, so a page opened from the wrong place says so
   // at once (67-the-overlay-beside.js). Each write asks again for itself.
   checkBesideOnOpen();
+  // Whether a newer version is out (93-new-version.js). Once, and not waited for.
+  askNewVersion();
   /* Always, and not `if (cfg.pw)`.
    *
    * The condition that used to be here was guarding against a failure that does

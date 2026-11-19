@@ -2828,7 +2828,7 @@
    * line held still. 手で書き換えない。
    */
   /* @generated build — この行を除いたオーバーレイの中身。手で書き換えない */
-  var BUILD = "sp-994a0906bbf8";
+  var BUILD = "sp-eea8e8dc50f1";
   /* @end build */
 
   /**
@@ -6776,7 +6776,9 @@
                               to. The overlay watches the program scene and the
                               stream state; the setup page watches nothing.
        obsBeforeConnect()     last chance to decide where to connect. The setup
-                              page reads its form into cfg here.
+                              page reads its form into cfg here, and returns
+                              false (with failKey set) when the form is not
+                              an address; connect() then stops there.
        obsSaying(url)         how this page announces the attempt in its log.
        obsNoPassword()        what to do when OBS asks for one and there is
                               none. The setup page can ask; the overlay cannot
@@ -6890,7 +6892,16 @@
     identified = false;
     failKey = "";
 
-    obsBeforeConnect();
+    /* The page may refuse the address. The setup page does, when its form holds
+     * something that is not a host or not a port — a scene name typed or
+     * autofilled into the box (報告 2026-11-06). Nothing is opened, so nothing
+     * retries: an address that is not one will not become one by waiting. The
+     * page has put its reason in failKey. The overlay never refuses. */
+    if (obsBeforeConnect() === false) {
+      obsOnClosed();
+      status("bad", t(failKey || "st.failed"), true);
+      return;
+    }
 
     var url = "ws://" + cfg.host + ":" + cfg.port;
     status("wait", t("st.connecting"), true);
@@ -13831,7 +13842,10 @@
      no answer is not that: nothing is opened, and the caller tries again later.
 
      Answers through a promise that never rejects:
-       { url }               the socket's address, ready to open
+       { url, chat }         the socket's address, ready to open; chat is
+                             { on, as } — notices turned on, and sent in the
+                             broadcaster's own name — when the EBS said both
+                             (the setup page reads it; the overlay does not)
        { url, legacy: true } the same, from an EBS that has no tickets yet
        { cut: true }         401 — this token no longer opens this channel
        null                  no answer worth acting on: unreachable, or one
@@ -13854,7 +13868,10 @@
       if (!res.ok) return null;
       return res.json().then(function (b) {
         var k = b && typeof b.k === "string" ? b.k : "";
-        return /^[A-Za-z0-9._-]{1,200}$/.test(k) ? { url: sock + "&k=" + encodeURIComponent(k) } : null;
+        if (!/^[A-Za-z0-9._-]{1,200}$/.test(k)) return null;
+        var out = { url: sock + "&k=" + encodeURIComponent(k) };
+        if (typeof b.chatOn === "boolean" && typeof b.chatAs === "boolean") out.chat = { on: b.chatOn, as: b.chatAs };
+        return out;
       }, function () { return null; });
     }, function () { return null; });
   }
